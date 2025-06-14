@@ -111,7 +111,9 @@ export const convertVideo = onObjectFinalized({
       .size(`${width}x${height}`)
       .fps(fps)
       .videoBitrate(`${targetBitrateK}k`)
-      .format(ffmpegFormat);
+      .format(ffmpegFormat)
+      .addOutputOptions('-loop 0')
+      .addOutputOptions('-progress pipe:1');
 
     // 변환 실행
     await new Promise<void>((resolve, reject) => {
@@ -121,10 +123,11 @@ export const convertVideo = onObjectFinalized({
         })
         .on('progress', async (progress) => {
           console.log('변환 진행률:', progress);
-          if (typeof progress.percent === 'number' && snapshot && !snapshot.empty) {
+          if (snapshot && !snapshot.empty) {
             try {
+              const percent = progress.frames === 1 ? 100 : 0;
               await snapshot.docs[0].ref.update({
-                progress: Math.round(progress.percent),
+                progress: percent,
               });
             } catch (e) {
               console.error('Firestore 진행률 업데이트 오류:', e);
@@ -168,14 +171,17 @@ export const convertVideo = onObjectFinalized({
 
     // getSignedUrl 대신 public URL 직접 생성
     const publicUrl = `https://storage.googleapis.com/${bucket.name}/${outputFileName}`;
+    const downloadUrl = `${publicUrl}?alt=media`;
     console.log('변환된 파일 공개 URL:', publicUrl);
+    console.log('다운로드 URL:', downloadUrl);
 
     // Firestore 상태 업데이트
     console.log('Firestore 상태 업데이트');
     await doc.ref.update({
       status: 'completed',
       convertedFile: outputFileName,
-      downloadUrl: publicUrl,
+      publicUrl: publicUrl, // 이미지 표시용 URL
+      downloadUrl: downloadUrl, // 다운로드용 URL
       completedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
     console.log('Firestore 상태 업데이트 완료');

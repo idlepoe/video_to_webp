@@ -43,6 +43,7 @@ class LoadingController extends GetxController {
       Get.offAllNamed(AppRoutes.complete, arguments: {
         'requestId': docSnap.id,
         'convertedFile': data?['convertedFile'],
+        'publicUrl': data?['publicUrl'],
         'downloadUrl': data?['downloadUrl'],
       });
       return;
@@ -67,6 +68,7 @@ class LoadingController extends GetxController {
         Get.offAllNamed(AppRoutes.complete, arguments: {
           'requestId': doc.id,
           'convertedFile': data?['convertedFile'],
+          'publicUrl': data?['publicUrl'],
           'downloadUrl': data?['downloadUrl'],
         });
       } else if (status == 'error') {
