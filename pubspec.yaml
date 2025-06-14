@@ -39,6 +39,7 @@ dependencies:
   firebase_storage: ^11.5.6
   cloud_functions: ^4.5.8
   cupertino_icons: ^1.0.2
+  url_launcher: ^6.2.5
 
 dev_dependencies:
   flutter_test:

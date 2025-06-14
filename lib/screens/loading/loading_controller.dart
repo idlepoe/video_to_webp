@@ -7,6 +7,7 @@ class LoadingController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   RxBool isCancelled = false.obs;
+  final RxInt progress = 0.obs;
 
   @override
   void onInit() {
@@ -25,27 +26,48 @@ class LoadingController extends GetxController {
     Get.back();
   }
 
-  void listenToConvertRequest(String requestId) {
-    print('변환 상태 구독 시작: $requestId');
-    _firestore
-        .collection('convertRequests')
-        .doc(requestId)
-        .snapshots()
-        .listen((doc) {
+  void listenToConvertRequest(String requestId) async {
+    print('변환 상태 첫 조회: $requestId');
+    final docRef = _firestore.collection('convertRequests').doc(requestId);
+    final docSnap = await docRef.get();
+    if (!docSnap.exists) {
+      print('문서가 존재하지 않음');
+      return;
+    }
+    final data = docSnap.data();
+    final status = data?['status'];
+    progress.value = data?['progress'] ?? 0;
+    print('첫 status: $status');
+    if (status == 'completed') {
+      print('이미 변환 완료! 결과 화면 이동');
+      Get.offAllNamed(AppRoutes.complete, arguments: {
+        'requestId': docSnap.id,
+        'convertedFile': data?['convertedFile'],
+        'downloadUrl': data?['downloadUrl'],
+      });
+      return;
+    } else if (status == 'error') {
+      print('이미 오류 상태!');
+      Get.back();
+      Get.snackbar('오류', '변환 중 오류가 발생했습니다.');
+      return;
+    }
+
+    // 아직 완료/에러가 아니면 실시간 구독 시작
+    print('실시간 상태 구독 시작');
+    docRef.snapshots().listen((doc) {
       print('Firestore 문서 스냅샷 수신: exists=[0m${doc.exists}');
-      if (!doc.exists) {
-        print('문서가 존재하지 않음');
-        return;
-      }
+      if (!doc.exists) return;
       final data = doc.data();
-      print('문서 데이터: $data');
       final status = data?['status'];
-      print('현재 status: $status');
+      progress.value = data?['progress'] ?? 0;
+      print('현재 status: $status, progress: ${progress.value}');
       if (status == 'completed') {
         print('변환 완료 감지! 결과 화면 이동');
         Get.offAllNamed(AppRoutes.complete, arguments: {
           'requestId': doc.id,
           'convertedFile': data?['convertedFile'],
+          'downloadUrl': data?['downloadUrl'],
         });
       } else if (status == 'error') {
         print('변환 오류 감지!');

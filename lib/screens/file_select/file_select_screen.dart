@@ -74,17 +74,16 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
             if (controller.videoFile.value != null) {
               originalFileSize = File(controller.videoFile.value!.path).lengthSync();
             }
-            int originalFps = 30; // 실제 fps를 알 수 없으므로 30으로 가정
+            // 비디오 길이(초) 가져오기
+            int duration = controller.videoDuration.value.inSeconds;
+            if (duration <= 0) duration = 1; // 0으로 나누기 방지
+            // 비트레이트 계산 (bps)
+            double originalBitrate = (originalFileSize * 8) / duration;
+            // quality에 따른 target 비트레이트 계산
+            double targetBitrate = originalBitrate * (quality / 100);
+            // 최종 예상 용량 계산 (bytes)
+            double estimatedSize = (targetBitrate * duration) / 8;
             String selectedFormat = 'webp';
-            double formatCoef = 1.0;
-            if (selectedFormat == 'GIF') formatCoef = 1.3;
-            if (selectedFormat == 'APNG') formatCoef = 1.2;
-            int selWidth = resolutions[selectedResolution]['width'];
-            int selHeight = resolutions[selectedResolution]['height'];
-            double resRatio = (selWidth * selHeight) / (originalWidth * originalHeight == 0 ? 1 : originalWidth * originalHeight);
-            double fpsRatio = fps / originalFps;
-            double qualityCoef = 0.5 + 0.5 * (quality / 100);
-            double estimatedSize = originalFileSize * resRatio * fpsRatio * qualityCoef * formatCoef;
             String estimatedSizeStr = estimatedSize > 0
                 ? (estimatedSize > 1024 * 1024
                     ? '${(estimatedSize / (1024 * 1024)).toStringAsFixed(2)}MB'

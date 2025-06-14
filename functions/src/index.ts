@@ -87,22 +87,30 @@ export const convertVideo = onObjectFinalized({
     const [width, height] = resolution.split('x').map(Number);
     console.log('변환 설정:', { width, height, fps, quality, format: ffmpegFormat });
 
-    // quality(1~100)에 따라 비트레이트 결정 (최대 1000k)
-    let bitrate = '1000k';
-    const q = typeof quality === 'number' ? quality : parseInt(quality, 10);
-    if (q >= 80) bitrate = '1000k';
-    else if (q >= 60) bitrate = '800k';
-    else if (q >= 40) bitrate = '600k';
-    else if (q >= 20) bitrate = '400k';
-    else bitrate = '200k';
-    console.log('적용 비트레이트:', bitrate);
+    // ffprobe로 원본 비디오의 비트레이트 추출
+    const getBitrate = (filePath: string): Promise<number> => {
+      return new Promise((resolve, reject) => {
+        ffmpeg.ffprobe(filePath, (err, metadata) => {
+          if (err) return reject(err);
+          const bitrate = metadata.format.bit_rate;
+          resolve(Number(bitrate));
+        });
+      });
+    };
+
+    const originalBitrate = await getBitrate(inputPath); // bps
+    console.log('원본 비트레이트:', originalBitrate);
+    const qualityPercent = typeof quality === 'number' ? quality : parseInt(quality, 10); // 1~100
+    let targetBitrate = Math.round(originalBitrate * (qualityPercent / 100)); // bps
+    let targetBitrateK = Math.max(Math.round(targetBitrate / 1000), 200); // 최소 200k
+    console.log('적용 변환 비트레이트:', targetBitrateK + 'k');
 
     // FFmpeg 명령어 구성
     console.log('FFmpeg 변환 시작');
     const command = ffmpeg(inputPath)
       .size(`${width}x${height}`)
       .fps(fps)
-      .videoBitrate(bitrate)
+      .videoBitrate(`${targetBitrateK}k`)
       .format(ffmpegFormat);
 
     // 변환 실행
@@ -111,8 +119,17 @@ export const convertVideo = onObjectFinalized({
         .on('start', (commandLine) => {
           console.log('FFmpeg 명령어:', commandLine);
         })
-        .on('progress', (progress) => {
+        .on('progress', async (progress) => {
           console.log('변환 진행률:', progress);
+          if (typeof progress.percent === 'number' && snapshot && !snapshot.empty) {
+            try {
+              await snapshot.docs[0].ref.update({
+                progress: Math.round(progress.percent),
+              });
+            } catch (e) {
+              console.error('Firestore 진행률 업데이트 오류:', e);
+            }
+          }
         })
         .on('end', () => {
           console.log('FFmpeg 변환 완료');
@@ -138,21 +155,27 @@ export const convertVideo = onObjectFinalized({
     console.log('변환된 파일 크기:', stats.size, 'bytes');
 
     // 변환된 파일 업로드
-    const outputFileName = `converted/${requestData.userId}/${doc.id}.${format}`;
+    const outputFileName = `converted/${requestData.userId}/${doc.id}.${ffmpegFormat}`;
     console.log('변환된 파일 업로드 시작:', outputFileName);
     await bucket.upload(outputPath, {
       destination: outputFileName,
       metadata: {
-        contentType: format === 'webp' ? 'image/webp' : 'video/webm',
+        contentType: ffmpegFormat === 'webp' ? 'image/webp' : 'video/webm',
       },
+      predefinedAcl: 'publicRead',
     });
     console.log('변환된 파일 업로드 완료');
+
+    // getSignedUrl 대신 public URL 직접 생성
+    const publicUrl = `https://storage.googleapis.com/${bucket.name}/${outputFileName}`;
+    console.log('변환된 파일 공개 URL:', publicUrl);
 
     // Firestore 상태 업데이트
     console.log('Firestore 상태 업데이트');
     await doc.ref.update({
       status: 'completed',
       convertedFile: outputFileName,
+      downloadUrl: publicUrl,
       completedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
     console.log('Firestore 상태 업데이트 완료');
