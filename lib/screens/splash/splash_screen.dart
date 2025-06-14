@@ -20,7 +20,7 @@ class SplashScreen extends StatelessWidget {
               ),
             ),
             SizedBox(height: 20),
-            Obx(() => controller.isLoading.value
+            Obx(() => controller.isLoading
                 ? CircularProgressIndicator()
                 : SizedBox()),
           ],

@@ -193,38 +193,43 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                   Row(
                     children: [
                       Expanded(
-                        child: ElevatedButton(
-                          onPressed: () => Navigator.of(context).pop(),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            backgroundColor: Colors.grey[100],
-                            foregroundColor: Colors.black,
-                            elevation: 0,
+                        child: SizedBox(
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: () => Navigator.of(context).pop(),
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              backgroundColor: Colors.grey[100],
+                              foregroundColor: Colors.black,
+                              elevation: 0,
+                            ),
+                            child: Text('취소', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                           ),
-                          child: Text('취소', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         ),
                       ),
                       SizedBox(width: 16),
                       Expanded(
-                        child: ElevatedButton(
-                          onPressed: () {
-                            final options = ConvertOptions(
-                              format: selectedFormat,
-                              quality: quality.round(),
-                              fps: fps.round(),
-                              resolution: '${resolutions[selectedResolution]['width']}x${resolutions[selectedResolution]['height']}',
-                            );
-                            controller.uploadAndRequestConvert(options: options);
-                            Navigator.of(context).pop();
-                            Get.toNamed(AppRoutes.loading);
-                          },
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
+                        child: SizedBox(
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: () async {
+                              final options = ConvertOptions(
+                                format: selectedFormat,
+                                quality: quality.round(),
+                                fps: fps.round(),
+                                resolution: '${resolutions[selectedResolution]['width']}x${resolutions[selectedResolution]['height']}',
+                              );
+                              await controller.uploadAndRequestConvert();
+                              Navigator.of(context).pop();
+                            },
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                            ),
+                            child: Text('확인', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                           ),
-                          child: Text('확인', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                         ),
                       ),
                     ],

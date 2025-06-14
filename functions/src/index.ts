@@ -1,108 +1,165 @@
-import * as logger from "firebase-functions/logger";
-import {onObjectFinalized} from "firebase-functions/v2/storage";
-import * as admin from "firebase-admin";
-import ffmpeg from "fluent-ffmpeg";
-import * as ffmpegPath from "ffmpeg-static";
-import * as path from "path";
-import * as os from "os";
-import * as fs from "fs";
-import { setGlobalOptions } from "firebase-functions/options";
+import { onObjectFinalized } from 'firebase-functions/v2/storage';
+import * as admin from 'firebase-admin';
+import ffmpeg from 'fluent-ffmpeg';
+import ffmpegStatic from 'ffmpeg-static';
+import * as path from 'path';
+import * as os from 'os';
+import * as fs from 'fs';
 
+// Firebase 초기화
 admin.initializeApp();
-setGlobalOptions({ region: "asia-northeast3" });
 
-export const convertVideo = onObjectFinalized(async (event) => {
+// FFmpeg 경로 설정 및 실행 권한 부여
+const ffmpegPathStr = ffmpegStatic as string;
+if (!ffmpegPathStr) {
+  console.error('FFmpeg path not found');
+  throw new Error('FFmpeg path not found');
+}
+
+try {
+  // FFmpeg 바이너리 파일에 실행 권한 부여
+  fs.chmodSync(ffmpegPathStr, '755');
+  ffmpeg.setFfmpegPath(ffmpegPathStr);
+  console.log('FFmpeg 설정 완료:', ffmpegPathStr);
+} catch (error) {
+  console.error('FFmpeg 설정 중 오류 발생:', error);
+  throw new Error('FFmpeg 설정 실패');
+}
+
+// Storage 트리거 함수
+export const convertVideo = onObjectFinalized({
+  region: 'us-west1',
+  timeoutSeconds: 540,
+  memory: '2GiB',
+}, async (event) => {
   const fileBucket = event.data.bucket;
   const filePath = event.data.name;
-  if (!filePath) return;
-  const fileName = path.basename(filePath);
-  const tempFilePath = path.join(os.tmpdir(), fileName);
-  const bucket = admin.storage().bucket(fileBucket);
+  console.log('파일 업로드 감지:', filePath);
+
+  if (!filePath) {
+    console.error('파일 경로가 없음');
+    return;
+  }
+
+  // original/ 디렉토리의 파일만 처리
+  if (!filePath.startsWith('original/')) {
+    console.log('original/ 디렉토리가 아닌 파일 무시');
+    return;
+  }
+
   let snapshot: FirebaseFirestore.QuerySnapshot | null = null;
-  let outTempPath = '';
 
   try {
-    // 1. 파일 다운로드
-    await bucket.file(filePath).download({destination: tempFilePath});
-
-    // 2. Firestore에서 변환 옵션 조회
-    snapshot = await admin.firestore().collection('convertRequests')
+    // Firestore에서 변환 요청 정보 조회
+    console.log('변환 요청 정보 조회 시작');
+    snapshot = await admin.firestore()
+      .collection('convertRequests')
       .where('originalFile', '==', filePath)
       .where('status', '==', 'pending')
       .limit(1)
       .get();
+
     if (snapshot.empty) {
-      logger.info('No matching Firestore document for this file.');
+      console.log('해당 파일에 대한 변환 요청을 찾을 수 없음');
       return;
     }
+
     const doc = snapshot.docs[0];
-    const options = doc.data().options || {};
-    const format = options.format || 'webp';
-    const quality = options.quality || 80;
-    const fps = options.fps || 24;
-    const resolution = options.resolution || '720p';
+    const requestData = doc.data();
+    const options = requestData.options;
+    console.log('변환 옵션:', options);
 
-    // 3. 변환 파일 경로 및 이름 지정
-    const outFileName = `${path.parse(fileName).name}_converted.${format}`;
-    outTempPath = path.join(os.tmpdir(), outFileName);
-    const outStoragePath = `converted/${outFileName}`;
+    // 임시 파일 경로 설정
+    const tempDir = os.tmpdir();
+    const inputPath = path.join(tempDir, 'input.mp4');
+    const outputPath = path.join(tempDir, 'output.webp');
+    console.log('임시 파일 경로:', { inputPath, outputPath });
 
-    // 4. ffmpeg 변환
-    const ffmpegPathStr = ffmpegPath as unknown as string;
-    if (!ffmpegPathStr) {
-      throw new Error('FFmpeg path not found');
-    }
-    ffmpeg.setFfmpegPath(ffmpegPathStr);
+    // Storage에서 비디오 다운로드
+    console.log('비디오 다운로드 시작');
+    const bucket = admin.storage().bucket(fileBucket);
+    await bucket.file(filePath).download({ destination: inputPath });
+    console.log('비디오 다운로드 완료');
 
-    await new Promise((resolve, reject) => {
-      ffmpeg(tempFilePath)
-        .outputOptions([
-          `-vf scale=-2:${resolution === 'original' ? null : resolution.replace('p','')}`,
-          `-r ${fps}`,
-          `-q:v ${quality}`,
-          format === 'webp' ? '-vcodec libwebp' : '',
-          format === 'gif' ? '-f gif' : '',
-        ].filter(Boolean))
-        .output(outTempPath)
-        .on('end', resolve)
+    // 변환 옵션 설정
+    const { resolution, fps, quality, format } = options;
+    const [width, height] = resolution.split('x').map(Number);
+    console.log('변환 설정:', { width, height, fps, quality, format });
+
+    // FFmpeg 명령어 구성
+    console.log('FFmpeg 변환 시작');
+    const command = ffmpeg(inputPath)
+      .size(`${width}x${height}`)
+      .fps(fps)
+      .videoBitrate('2000k')
+      .format(format);
+
+    // 변환 실행
+    await new Promise<void>((resolve, reject) => {
+      command
+        .on('start', (commandLine) => {
+          console.log('FFmpeg 명령어:', commandLine);
+        })
+        .on('progress', (progress) => {
+          console.log('변환 진행률:', progress);
+        })
+        .on('end', () => {
+          console.log('FFmpeg 변환 완료');
+          resolve();
+        })
         .on('error', (err) => {
-          logger.error('FFmpeg error:', err);
+          console.error('FFmpeg 변환 오류:', err);
           reject(err);
         })
-        .run();
+        .save(outputPath);
     });
 
-    // 5. 변환 파일 Storage에 업로드
-    await bucket.upload(outTempPath, {destination: outStoragePath});
+    // 변환된 파일 확인
+    if (!fs.existsSync(outputPath)) {
+      throw new Error('변환된 파일이 생성되지 않았습니다.');
+    }
 
-    // 6. Firestore 상태/결과 파일 URL 업데이트
+    const stats = fs.statSync(outputPath);
+    if (stats.size === 0) {
+      throw new Error('변환된 파일의 크기가 0입니다.');
+    }
+
+    console.log('변환된 파일 크기:', stats.size, 'bytes');
+
+    // 변환된 파일 업로드
+    const outputFileName = `converted/${requestData.userId}/${doc.id}.${format}`;
+    console.log('변환된 파일 업로드 시작:', outputFileName);
+    await bucket.upload(outputPath, {
+      destination: outputFileName,
+      metadata: {
+        contentType: format === 'webp' ? 'image/webp' : 'video/webm',
+      },
+    });
+    console.log('변환된 파일 업로드 완료');
+
+    // Firestore 상태 업데이트
+    console.log('Firestore 상태 업데이트');
     await doc.ref.update({
-      status: 'done',
-      convertedFile: outStoragePath,
+      status: 'completed',
+      convertedFile: outputFileName,
       completedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
+    console.log('Firestore 상태 업데이트 완료');
 
-    logger.info(`Converted file uploaded to ${outStoragePath}`);
+    // 임시 파일 정리
+    console.log('임시 파일 정리 시작');
+    fs.unlinkSync(inputPath);
+    fs.unlinkSync(outputPath);
+    console.log('임시 파일 정리 완료');
+
   } catch (error: any) {
-    logger.error('Error processing video:', error);
+    console.error('비디오 변환 중 오류 발생:', error);
     // 에러 발생 시 Firestore 상태 업데이트
     if (snapshot && !snapshot.empty) {
       await snapshot.docs[0].ref.update({
         status: 'error',
         error: error.message || 'Unknown error',
       });
-    }
-  } finally {
-    // 7. 임시 파일 삭제
-    try {
-      if (fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath);
-      }
-      if (outTempPath && fs.existsSync(outTempPath)) {
-        fs.unlinkSync(outTempPath);
-      }
-    } catch (error) {
-      logger.error('Error cleaning up temporary files:', error);
     }
   }
 });

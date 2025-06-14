@@ -20,7 +20,7 @@ class AppPages {
       page: () => LoadingScreen(),
     ),
     GetPage(
-      name: AppRoutes.convertComplete,
+      name: AppRoutes.complete,
       page: () => ConvertCompleteScreen(),
     ),
   ];
