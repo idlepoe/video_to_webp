@@ -83,16 +83,27 @@ export const convertVideo = onObjectFinalized({
 
     // 변환 옵션 설정
     const { resolution, fps, quality, format } = options;
+    const ffmpegFormat = typeof format === 'string' ? format.toLowerCase() : 'webp';
     const [width, height] = resolution.split('x').map(Number);
-    console.log('변환 설정:', { width, height, fps, quality, format });
+    console.log('변환 설정:', { width, height, fps, quality, format: ffmpegFormat });
+
+    // quality(1~100)에 따라 비트레이트 결정 (최대 1000k)
+    let bitrate = '1000k';
+    const q = typeof quality === 'number' ? quality : parseInt(quality, 10);
+    if (q >= 80) bitrate = '1000k';
+    else if (q >= 60) bitrate = '800k';
+    else if (q >= 40) bitrate = '600k';
+    else if (q >= 20) bitrate = '400k';
+    else bitrate = '200k';
+    console.log('적용 비트레이트:', bitrate);
 
     // FFmpeg 명령어 구성
     console.log('FFmpeg 변환 시작');
     const command = ffmpeg(inputPath)
       .size(`${width}x${height}`)
       .fps(fps)
-      .videoBitrate('2000k')
-      .format(format);
+      .videoBitrate(bitrate)
+      .format(ffmpegFormat);
 
     // 변환 실행
     await new Promise<void>((resolve, reject) => {

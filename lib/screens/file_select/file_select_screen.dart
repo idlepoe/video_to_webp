@@ -75,7 +75,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
               originalFileSize = File(controller.videoFile.value!.path).lengthSync();
             }
             int originalFps = 30; // 실제 fps를 알 수 없으므로 30으로 가정
-            String selectedFormat = 'WEBP';
+            String selectedFormat = 'webp';
             double formatCoef = 1.0;
             if (selectedFormat == 'GIF') formatCoef = 1.3;
             if (selectedFormat == 'APNG') formatCoef = 1.2;
@@ -90,152 +90,210 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                     ? '${(estimatedSize / (1024 * 1024)).toStringAsFixed(2)}MB'
                     : '${(estimatedSize / 1024).toStringAsFixed(1)}KB')
                 : '-';
-            return Container(
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.of(context).viewInsets.bottom),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      width: 40,
-                      height: 4,
-                      margin: EdgeInsets.only(bottom: 24),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[300],
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
+            return Stack(
+              children: [
+                Container(
+                  decoration: BoxDecoration(
+                    color: Colors.white,
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
                   ),
-                  Text('변환 옵션', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
-                  SizedBox(height: 24),
-                  Text('해상도', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                  SizedBox(height: 12),
-                  Column(
-                    children: List.generate(resolutions.length, (i) {
-                      return Padding(
-                        padding: const EdgeInsets.only(bottom: 8.0),
-                        child: GestureDetector(
-                          onTap: () => setModalState(() => selectedResolution = i),
-                          child: Container(
-                            padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                            decoration: BoxDecoration(
-                              color: selectedResolution == i ? Colors.blue[50] : Colors.grey[100],
-                              borderRadius: BorderRadius.circular(12),
-                              border: Border.all(
-                                color: selectedResolution == i ? Colors.blue : Colors.transparent,
-                                width: 2,
+                  padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.of(context).viewInsets.bottom),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Center(
+                        child: Container(
+                          width: 40,
+                          height: 4,
+                          margin: EdgeInsets.only(bottom: 24),
+                          decoration: BoxDecoration(
+                            color: Colors.grey[300],
+                            borderRadius: BorderRadius.circular(2),
+                          ),
+                        ),
+                      ),
+                      Text('변환 옵션', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 24),
+                      Text('해상도', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      SizedBox(height: 12),
+                      Column(
+                        children: List.generate(resolutions.length, (i) {
+                          return Padding(
+                            padding: const EdgeInsets.only(bottom: 8.0),
+                            child: GestureDetector(
+                              onTap: controller.isUploading.value ? null : () => setModalState(() => selectedResolution = i),
+                              child: Container(
+                                padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                                decoration: BoxDecoration(
+                                  color: selectedResolution == i ? Colors.blue[50] : Colors.grey[100],
+                                  borderRadius: BorderRadius.circular(12),
+                                  border: Border.all(
+                                    color: selectedResolution == i ? Colors.blue : Colors.transparent,
+                                    width: 2,
+                                  ),
+                                ),
+                                child: Row(
+                                  children: [
+                                    Expanded(child: Text(resolutions[i]['label'], style: TextStyle(fontSize: 16))),
+                                    if (selectedResolution == i)
+                                      Icon(Icons.check_circle, color: Colors.blue),
+                                  ],
+                                ),
                               ),
                             ),
-                            child: Row(
-                              children: [
-                                Expanded(child: Text(resolutions[i]['label'], style: TextStyle(fontSize: 16))),
-                                if (selectedResolution == i)
-                                  Icon(Icons.check_circle, color: Colors.blue),
-                              ],
+                          );
+                        }),
+                      ),
+                      SizedBox(height: 24),
+                      Text('FPS', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                activeTrackColor: Color(0xFF3182F6), // Toss 블루
+                                inactiveTrackColor: Color(0xFFE5E8EB),
+                                thumbColor: Color(0xFF3182F6),
+                              ),
+                              child: Slider(
+                                min: 1,
+                                max: 60,
+                                divisions: 59,
+                                value: fps,
+                                label: fps.round().toString(),
+                                onChanged: controller.isUploading.value ? null : (v) => setModalState(() => fps = v),
+                              ),
                             ),
                           ),
-                        ),
-                      );
-                    }),
-                  ),
-                  SizedBox(height: 24),
-                  Text('FPS', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Slider(
-                          min: 1,
-                          max: 60,
-                          divisions: 59,
-                          value: fps,
-                          label: fps.round().toString(),
-                          onChanged: (v) => setModalState(() => fps = v),
-                        ),
+                          SizedBox(width: 12),
+                          Container(
+                            width: 48,
+                            alignment: Alignment.centerRight,
+                            child: Text('${fps.round()}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
                       ),
-                      SizedBox(width: 12),
-                      Container(
-                        width: 48,
-                        alignment: Alignment.centerRight,
-                        child: Text('${fps.round()}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                      SizedBox(height: 24),
+                      Text('Quality', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SliderTheme(
+                              data: SliderTheme.of(context).copyWith(
+                                activeTrackColor: Color(0xFF3182F6), // Toss 블루
+                                inactiveTrackColor: Color(0xFFE5E8EB),
+                                thumbColor: Color(0xFF3182F6),
+                              ),
+                              child: Slider(
+                                min: 1,
+                                max: 100,
+                                divisions: 99,
+                                value: quality,
+                                label: quality.round().toString(),
+                                onChanged: controller.isUploading.value ? null : (v) => setModalState(() => quality = v),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 12),
+                          Container(
+                            width: 48,
+                            alignment: Alignment.centerRight,
+                            child: Text('${quality.round()}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 24),
+                      Text('예상 파일 크기: $estimatedSizeStr', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+                      SizedBox(height: 32),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SizedBox(
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: controller.isUploading.value ? null : () => Navigator.of(context).pop(),
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  backgroundColor: Colors.grey[100],
+                                  foregroundColor: Colors.black,
+                                  elevation: 0,
+                                ),
+                                child: Text('취소', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ),
+                          SizedBox(width: 16),
+                          Expanded(
+                            child: SizedBox(
+                              height: 56,
+                              child: ElevatedButton(
+                                onPressed: controller.isUploading.value
+                                    ? null
+                                    : () {
+                                        final options = ConvertOptions(
+                                          format: selectedFormat,
+                                          quality: quality.round(),
+                                          fps: fps.round(),
+                                          resolution: '${resolutions[selectedResolution]['width']}x${resolutions[selectedResolution]['height']}',
+                                        );
+                                        controller.uploadAndRequestConvert(options);
+                                      },
+                                style: ElevatedButton.styleFrom(
+                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  backgroundColor: Colors.blue,
+                                  foregroundColor: Colors.white,
+                                  elevation: 0,
+                                ),
+                                child: Text('확인', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  SizedBox(height: 24),
-                  Text('Quality', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Slider(
-                          min: 1,
-                          max: 100,
-                          divisions: 99,
-                          value: quality,
-                          label: quality.round().toString(),
-                          onChanged: (v) => setModalState(() => quality = v),
-                        ),
-                      ),
-                      SizedBox(width: 12),
-                      Container(
-                        width: 48,
-                        alignment: Alignment.centerRight,
-                        child: Text('${quality.round()}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 24),
-                  Text('예상 파일 크기: $estimatedSizeStr', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[700])),
-                  SizedBox(height: 32),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: () => Navigator.of(context).pop(),
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              backgroundColor: Colors.grey[100],
-                              foregroundColor: Colors.black,
-                              elevation: 0,
-                            ),
-                            child: Text('취소', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                ),
+                // 업로드 중일 때 Toss 스타일 퍼센트+로딩 UI 전체 덮기
+                Obx(() {
+                  if (controller.isUploading.value) {
+                    return Positioned.fill(
+                      child: Container(
+                        color: Colors.white.withOpacity(0.85),
+                        child: Center(
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  SizedBox(
+                                    width: 64,
+                                    height: 64,
+                                    child: CircularProgressIndicator(
+                                      value: controller.uploadPercent.value,
+                                      strokeWidth: 6,
+                                      backgroundColor: Colors.grey[200],
+                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                    ),
+                                  ),
+                                  Text(
+                                    '${(controller.uploadPercent.value * 100).toStringAsFixed(0)}%',
+                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                              SizedBox(height: 16),
+                              Text('업로드 중...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            ],
                           ),
                         ),
                       ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: SizedBox(
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: () async {
-                              final options = ConvertOptions(
-                                format: selectedFormat,
-                                quality: quality.round(),
-                                fps: fps.round(),
-                                resolution: '${resolutions[selectedResolution]['width']}x${resolutions[selectedResolution]['height']}',
-                              );
-                              await controller.uploadAndRequestConvert();
-                              Navigator.of(context).pop();
-                            },
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                            ),
-                            child: Text('확인', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                    );
+                  }
+                  return SizedBox.shrink();
+                }),
+              ],
             );
           },
         );
@@ -357,9 +415,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                           trackHeight: 16,
                           thumbShape: RoundSliderThumbShape(enabledThumbRadius: 14),
                           overlayShape: RoundSliderOverlayShape(overlayRadius: 20),
-                          activeTrackColor: Colors.red,
-                          inactiveTrackColor: Colors.red.withOpacity(0.2),
-                          thumbColor: Colors.red,
+                          activeTrackColor: Color(0xFF3182F6), // Toss 블루
+                          inactiveTrackColor: Color(0xFFE5E8EB),
+                          thumbColor: Color(0xFF3182F6),
                         ),
                         child: Slider(
                           min: 0.0,

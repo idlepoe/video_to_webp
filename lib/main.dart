@@ -7,6 +7,7 @@ import 'routes/app_routes.dart';
 import 'screens/splash/splash_screen.dart';
 import 'screens/file_select/file_select_screen.dart';
 import 'screens/loading/loading_screen.dart';
+import 'screens/loading/loading_controller.dart';
 
 Future<void> main() async {
   try {
@@ -17,6 +18,9 @@ Future<void> main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     print('Firebase 초기화 성공');
+
+    // LoadingController를 앱 시작 시 put
+    Get.put(LoadingController(), permanent: true);
 
     runApp(MyApp());
   } catch (e, stackTrace) {
