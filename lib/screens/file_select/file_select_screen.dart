@@ -3,6 +3,8 @@ import 'package:get/get.dart';
 import 'file_select_controller.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:io';
+import '../../models/convert_request.dart';
+import '../../routes/app_routes.dart';
 
 class FileSelectScreen extends StatefulWidget {
   @override
@@ -81,7 +83,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
             int selHeight = resolutions[selectedResolution]['height'];
             double resRatio = (selWidth * selHeight) / (originalWidth * originalHeight == 0 ? 1 : originalWidth * originalHeight);
             double fpsRatio = fps / originalFps;
-            double qualityCoef = 0.5 + 0.5 * (100 - quality) / 100;
+            double qualityCoef = 0.5 + 0.5 * (quality / 100);
             double estimatedSize = originalFileSize * resRatio * fpsRatio * qualityCoef * formatCoef;
             String estimatedSizeStr = estimatedSize > 0
                 ? (estimatedSize > 1024 * 1024
@@ -206,8 +208,15 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            // 변환 작업 트리거 예정
+                            final options = ConvertOptions(
+                              format: selectedFormat,
+                              quality: quality.round(),
+                              fps: fps.round(),
+                              resolution: '${resolutions[selectedResolution]['width']}x${resolutions[selectedResolution]['height']}',
+                            );
+                            controller.uploadAndRequestConvert(options: options);
                             Navigator.of(context).pop();
+                            Get.toNamed(AppRoutes.loading);
                           },
                           style: ElevatedButton.styleFrom(
                             shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),

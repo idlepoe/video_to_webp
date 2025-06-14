@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "800446631265",
+    "project_id": "video-to-webp",
+    "storage_bucket": "video-to-webp.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:800446631265:android:eb5f288c13ff7a8d13c920",
+        "android_client_info": {
+          "package_name": "com.jylee.video_to_webp"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBeYdBvdjfuWaIu9FRS2eJz8B8K3R_yzNs"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
