@@ -50,6 +50,11 @@ class FileSelectController extends GetxController {
     try {
       final XFile? file = await _picker.pickVideo(source: ImageSource.gallery);
       if (file != null) {
+        final fileSize = File(file.path).lengthSync();
+        if (fileSize >= 20 * 1024 * 1024) {
+          Get.snackbar('Error'.tr, 'Only videos smaller than 20MB can be uploaded.'.tr);
+          return;
+        }
         print('비디오 파일 선택됨: ${file.path}');
         videoFile.value = file;
         await _initVideoPlayer(file);

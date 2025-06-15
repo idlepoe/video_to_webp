@@ -45,6 +45,7 @@ class AppTranslations extends Translations {
       'An error occurred during file upload. Please try again.': 'An error occurred during file upload. Please try again.',
       'The progress bar is an estimate. Actual conversion speed may vary.': 'The progress bar is an estimate. Actual conversion speed may vary.',
       'Still working hard on your video! 🚀': 'Still working hard on your video! 🚀',
+      'Only videos smaller than 20MB can be uploaded.': 'Only videos smaller than 20MB can be uploaded.',
     },
     'ko_KR': {
       'Convert Options': '변환 옵션',
@@ -88,6 +89,7 @@ class AppTranslations extends Translations {
       'An error occurred during file upload. Please try again.': '파일 업로드 중 문제가 발생했습니다. 다시 시도해주세요.',
       'The progress bar is an estimate. Actual conversion speed may vary.': '진행률은 예측값입니다. 실제 변환 속도와 다를 수 있습니다.',
       'Still working hard on your video! 🚀': '여전히 열심히 변환 중입니다! 🚀',
+      'Only videos smaller than 20MB can be uploaded.': '20MB 미만의 영상만 업로드할 수 있습니다.',
     }
   };
 } 
