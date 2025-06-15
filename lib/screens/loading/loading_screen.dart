@@ -6,7 +6,7 @@ class LoadingScreen extends GetView<LoadingController> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: Text('변환 중...')),
+      appBar: AppBar(title: Text('Converting...'.tr)),
       body: Center(
         child: Obx(() => Column(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -31,7 +31,12 @@ class LoadingScreen extends GetView<LoadingController> {
               ],
             ),
             SizedBox(height: 24),
-            Text('변환 중...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('Converting...'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+            SizedBox(height: 12),
+            Text('The progress bar is an estimate. Actual conversion speed may vary.'.tr, style: TextStyle(fontSize: 14, color: Colors.grey[600])),
+            SizedBox(height: 12),
+            if (controller.progress.value < 99)
+              Text('Still working hard on your video! 🚀'.tr, style: TextStyle(fontSize: 14, color: Colors.blue)),
           ],
         )),
       ),

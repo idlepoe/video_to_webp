@@ -42,7 +42,7 @@ class FileSelectController extends GetxController {
       print('Firebase 초기화 완료');
     } catch (e) {
       print('Firebase 초기화 중 오류 발생: $e');
-      Get.snackbar('오류', '초기화 중 문제가 발생했습니다.');
+      Get.snackbar('Error'.tr, 'Initialization failed.'.tr);
     }
   }
 
@@ -56,7 +56,7 @@ class FileSelectController extends GetxController {
       }
     } catch (e) {
       print('비디오 선택 중 오류 발생: $e');
-      Get.snackbar('오류', '비디오를 선택하는 중 오류가 발생했습니다.');
+      Get.snackbar('Error'.tr, 'An error occurred while selecting the video.'.tr);
     }
   }
 
@@ -78,13 +78,13 @@ class FileSelectController extends GetxController {
   Future<void> uploadAndRequestConvert(ConvertOptions options) async {
     if (!isInitialized.value) {
       print('Firebase가 초기화되지 않음');
-      Get.snackbar('오류', '초기화가 완료되지 않았습니다. 잠시 후 다시 시도해주세요.');
+      Get.snackbar('Error'.tr, 'Initialization is not complete. Please try again later.'.tr);
       return;
     }
 
     if (videoFile.value == null) {
       print('오류: 비디오 파일이 선택되지 않음');
-      Get.snackbar('오류', '비디오 파일을 선택해주세요.');
+      Get.snackbar('Error'.tr, 'Please select a video file.'.tr);
       return;
     }
 
@@ -94,7 +94,7 @@ class FileSelectController extends GetxController {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         print('오류: 사용자가 로그인되지 않음');
-        Get.snackbar('오류', '로그인이 필요합니다.');
+        Get.snackbar('Error'.tr, 'Login is required.'.tr);
         isUploading.value = false;
         return;
       }
@@ -149,11 +149,7 @@ class FileSelectController extends GetxController {
         print('업로드 중 오류 발생: $uploadError');
         isUploading.value = false;
         uploadPercent.value = 0.0;
-        Get.snackbar(
-          '오류',
-          '파일 업로드 중 문제가 발생했습니다. 다시 시도해주세요.',
-          duration: Duration(seconds: 5),
-        );
+        Get.snackbar('Error'.tr, 'An error occurred during file upload. Please try again.'.tr, duration: Duration(seconds: 5));
       });
 
     } catch (e, stack) {
@@ -161,11 +157,7 @@ class FileSelectController extends GetxController {
       uploadPercent.value = 0.0;
       print('업로드 중 오류 발생: $e');
       print('스택 트레이스: $stack');
-      Get.snackbar(
-        '오류',
-        '파일 업로드 중 문제가 발생했습니다. 다시 시도해주세요.',
-        duration: Duration(seconds: 5),
-      );
+      Get.snackbar('Error'.tr, 'An error occurred during file upload. Please try again.'.tr, duration: Duration(seconds: 5));
     }
   }
 

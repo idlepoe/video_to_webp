@@ -50,7 +50,7 @@ class LoadingController extends GetxController {
     } else if (status == 'error') {
       print('이미 오류 상태!');
       Get.back();
-      Get.snackbar('오류', '변환 중 오류가 발생했습니다.');
+      Get.snackbar('Error'.tr, 'An error occurred during conversion.'.tr);
       return;
     }
 
@@ -74,7 +74,7 @@ class LoadingController extends GetxController {
       } else if (status == 'error') {
         print('변환 오류 감지!');
         Get.back();
-        Get.snackbar('오류', '변환 중 오류가 발생했습니다.');
+        Get.snackbar('Error'.tr, 'An error occurred during conversion.'.tr);
       }
     }, onError: (e) {
       print('Firestore listen 에러: $e');

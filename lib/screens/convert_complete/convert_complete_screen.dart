@@ -9,7 +9,7 @@ class ConvertCompleteScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('변환 완료'),
+        title: Text('Conversion Complete'.tr),
       ),
       body: Obx(() {
         return Stack(
@@ -43,7 +43,7 @@ class ConvertCompleteScreen extends StatelessWidget {
                               },
                             ),
                           SizedBox(height: 32),
-                          Text('변환이 완료되었어요!', style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                          Text('Conversion is complete!'.tr, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
                           SizedBox(height: 16),
                         ],
                       ),
@@ -66,7 +66,7 @@ class ConvertCompleteScreen extends StatelessWidget {
                               foregroundColor: Colors.black,
                               elevation: 0,
                             ),
-                            child: Text('처음으로', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            child: Text('Home'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                           ),
                         ),
                       ),
@@ -82,7 +82,7 @@ class ConvertCompleteScreen extends StatelessWidget {
                               foregroundColor: Colors.white,
                               elevation: 0,
                             ),
-                            child: Text('다운로드', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                            child: Text('Download'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                           ),
                         ),
                       ),
@@ -120,7 +120,7 @@ class ConvertCompleteScreen extends StatelessWidget {
                       ),
                       SizedBox(height: 16),
                       Text(
-                        '다운로드 중...',
+                        'Downloading...'.tr,
                         style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ],

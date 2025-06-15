@@ -69,6 +69,8 @@ export const convertVideo = onObjectFinalized({
     const options = requestData.options;
     console.log('변환 옵션:', options);
 
+    const duration = options.duration || 1;
+
     // 임시 파일 경로 설정
     const tempDir = os.tmpdir();
     const inputPath = path.join(tempDir, 'input.mp4');
@@ -87,33 +89,60 @@ export const convertVideo = onObjectFinalized({
     const [width, height] = resolution.split('x').map(Number);
     console.log('변환 설정:', { width, height, fps, quality, format: ffmpegFormat });
 
-    // ffprobe로 원본 비디오의 비트레이트 추출
-    const getBitrate = (filePath: string): Promise<number> => {
+    // ffprobe로 원본 비디오의 비트레이트 및 fps 추출
+    const getBitrateAndFps = (filePath: string): Promise<{bitrate: number, fps: number}> => {
       return new Promise((resolve, reject) => {
         ffmpeg.ffprobe(filePath, (err, metadata) => {
           if (err) return reject(err);
-          const bitrate = metadata.format.bit_rate;
-          resolve(Number(bitrate));
+          const bitrate = Number(metadata.format.bit_rate);
+          const videoStream = metadata.streams.find((s: any) => s.codec_type === 'video');
+          let fps = 30;
+          if (videoStream && videoStream.r_frame_rate) {
+            const [num, den] = videoStream.r_frame_rate.split('/').map(Number);
+            if (den && den !== 0) {
+              fps = num / den;
+            }
+          }
+          resolve({ bitrate, fps });
         });
       });
     };
 
-    const originalBitrate = await getBitrate(inputPath); // bps
-    console.log('원본 비트레이트:', originalBitrate);
+    const { bitrate: originalBitrate, fps: originalFps } = await getBitrateAndFps(inputPath);
+    console.log('원본 비트레이트:', originalBitrate, '원본 FPS:', originalFps);
     const qualityPercent = typeof quality === 'number' ? quality : parseInt(quality, 10); // 1~100
     let targetBitrate = Math.round(originalBitrate * (qualityPercent / 100)); // bps
     let targetBitrateK = Math.max(Math.round(targetBitrate / 1000), 200); // 최소 200k
     console.log('적용 변환 비트레이트:', targetBitrateK + 'k');
 
+    // 변환 옵션의 fps가 원본보다 높으면 원본 fps로 강제
+    let targetFps = fps;
+    if (typeof targetFps === 'string') targetFps = parseFloat(targetFps);
+    if (targetFps > originalFps) {
+      console.log(`요청된 FPS(${targetFps})가 원본 FPS(${originalFps})보다 높아 원본 FPS로 변경합니다.`);
+      targetFps = originalFps;
+    }
+
     // FFmpeg 명령어 구성
     console.log('FFmpeg 변환 시작');
     const command = ffmpeg(inputPath)
       .size(`${width}x${height}`)
-      .fps(fps)
+      .fps(targetFps)
       .videoBitrate(`${targetBitrateK}k`)
       .format(ffmpegFormat)
-      .addOutputOptions('-loop 0')
-      .addOutputOptions('-progress pipe:1');
+      .addOutputOptions([
+        '-loop 0',
+        '-progress', 'pipe:1',
+      ]);
+
+    // 예상 용량 계산 (한 번만)
+    const baseFrameSize = width * height * 0.1;
+    const qualityFactor = (quality / 75) * 0.5;
+    const totalFrames = Math.round(duration * fps);
+    const estimatedSize = baseFrameSize * qualityFactor * totalFrames;
+
+    // percent 변수를 함수 스코프에 선언
+    let percent = 0;
 
     // 변환 실행
     await new Promise<void>((resolve, reject) => {
@@ -122,10 +151,11 @@ export const convertVideo = onObjectFinalized({
           console.log('FFmpeg 명령어:', commandLine);
         })
         .on('progress', async (progress) => {
-          console.log('변환 진행률:', progress);
           if (snapshot && !snapshot.empty) {
             try {
-              const percent = progress.frames === 1 ? 100 : 0;
+              let step = estimatedSize > 10 * 1024 * 1024 ? 1 : 2;
+              percent += step;
+              if (percent > 99) percent = 0;
               await snapshot.docs[0].ref.update({
                 progress: percent,
               });

@@ -8,6 +8,7 @@ import 'screens/splash/splash_screen.dart';
 import 'screens/file_select/file_select_screen.dart';
 import 'screens/loading/loading_screen.dart';
 import 'screens/loading/loading_controller.dart';
+import 'translations.dart';
 
 Future<void> main() async {
   try {
@@ -35,7 +36,10 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'Video to WebP',
+      title: 'VideoToWebp',
+      translations: AppTranslations(),
+      locale: Get.deviceLocale,
+      fallbackLocale: Locale('ko', 'KR'),
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,

@@ -1,5 +1,5 @@
+import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 class ConvertCompleteController extends GetxController {
   final RxString imageUrl = ''.obs;
@@ -24,10 +24,22 @@ class ConvertCompleteController extends GetxController {
   Future<void> downloadFile() async {
     final url = downloadUrl.value;
     if (url == null || url.isEmpty) {
-      Get.snackbar('다운로드 오류', '다운로드 링크가 없습니다.');
+      Get.snackbar('Download Error'.tr, 'No download link available.'.tr);
       return;
     }
-    final uri = Uri.parse(url);
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
+
+    try {
+      isDownloading.value = true;
+      final bool? success = await GallerySaver.saveImage(url);
+      if (success == true) {
+        Get.snackbar('Success'.tr, 'Saved to gallery.'.tr);
+      } else {
+        Get.snackbar('Failure'.tr, 'Failed to save to gallery.'.tr);
+      }
+    } catch (e) {
+      Get.snackbar('Error'.tr, 'An error occurred during download: $e'.tr);
+    } finally {
+      isDownloading.value = false;
+    }
   }
 } 

@@ -44,20 +44,24 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
     final videoController = controller.videoPlayerController.value;
     final originalWidth = controller.videoWidth.value ?? 0;
     final originalHeight = controller.videoHeight.value ?? 0;
-    final resolutions = <Map<String, dynamic>>[];
+    final aspectRatio = originalWidth / originalHeight;
+    final List<Map<String, dynamic>> resolutions = [];
     resolutions.add({
       'label': 'original (${originalWidth}x${originalHeight})',
       'width': originalWidth,
       'height': originalHeight,
     });
     if (originalHeight > 720) {
-      resolutions.add({'label': '720p (1280x720)', 'width': 1280, 'height': 720});
+      final width = (aspectRatio * 720).round();
+      resolutions.add({'label': '720p (${width}x720)', 'width': width, 'height': 720});
     }
     if (originalHeight > 480) {
-      resolutions.add({'label': '480p (854x480)', 'width': 854, 'height': 480});
+      final width = (aspectRatio * 480).round();
+      resolutions.add({'label': '480p (${width}x480)', 'width': width, 'height': 480});
     }
     if (originalHeight > 320) {
-      resolutions.add({'label': '320p (426x320)', 'width': 426, 'height': 320});
+      final width = (aspectRatio * 320).round();
+      resolutions.add({'label': '320p (${width}x320)', 'width': width, 'height': 320});
     }
     int selectedResolution = 0;
     double fps = 30;
@@ -77,12 +81,19 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
             // 비디오 길이(초) 가져오기
             int duration = controller.videoDuration.value.inSeconds;
             if (duration <= 0) duration = 1; // 0으로 나누기 방지
-            // 비트레이트 계산 (bps)
-            double originalBitrate = (originalFileSize * 8) / duration;
-            // quality에 따른 target 비트레이트 계산
-            double targetBitrate = originalBitrate * (quality / 100);
-            // 최종 예상 용량 계산 (bytes)
-            double estimatedSize = (targetBitrate * duration) / 8;
+            // 해상도, fps, quality 반영한 비트레이트 계산
+            int width = resolutions[selectedResolution]['width'];
+            int height = resolutions[selectedResolution]['height'];
+            
+            // 애니메이션 WebP 용량 계산
+            // 1. 기본 프레임 용량 계산 (quality 75 기준)
+            double baseFrameSize = width * height * 0.1; // 기본 프레임당 용량 (bytes) - 0.025에서 0.1로 증가
+            // 2. quality에 따른 가중치 (0.5~1.5)
+            double qualityFactor = (quality / 75) * 0.5;
+            // 3. 프레임 수 계산
+            int totalFrames = (duration * fps).round();
+            // 4. 최종 예상 용량 계산 (모든 프레임의 용량 합산)
+            double estimatedSize = baseFrameSize * qualityFactor * totalFrames;
             String selectedFormat = 'webp';
             String estimatedSizeStr = estimatedSize > 0
                 ? (estimatedSize > 1024 * 1024
@@ -112,9 +123,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                           ),
                         ),
                       ),
-                      Text('변환 옵션', style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      Text('Convert Options'.tr, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
                       SizedBox(height: 24),
-                      Text('해상도', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      Text('Resolution'.tr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                       SizedBox(height: 12),
                       Column(
                         children: List.generate(resolutions.length, (i) {
@@ -145,7 +156,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                         }),
                       ),
                       SizedBox(height: 24),
-                      Text('FPS', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      Text('FPS'.tr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                       Row(
                         children: [
                           Expanded(
@@ -174,7 +185,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                         ],
                       ),
                       SizedBox(height: 24),
-                      Text('Quality', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      Text('Quality'.tr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
                       Row(
                         children: [
                           Expanded(
@@ -203,7 +214,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                         ],
                       ),
                       SizedBox(height: 24),
-                      Text('예상 파일 크기: $estimatedSizeStr', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+                      Text('Estimated File Size: $estimatedSizeStr'.tr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[700])),
                       SizedBox(height: 32),
                       Row(
                         children: [
@@ -218,7 +229,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                                   foregroundColor: Colors.black,
                                   elevation: 0,
                                 ),
-                                child: Text('취소', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                child: Text('Cancel'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                               ),
                             ),
                           ),
@@ -244,7 +255,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                 ),
-                                child: Text('확인', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                child: Text('Convert Locally'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                               ),
                             ),
                           ),
@@ -283,7 +294,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                                 ],
                               ),
                               SizedBox(height: 16),
-                              Text('업로드 중...', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              Text('Uploading...'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -304,7 +315,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
   Widget build(BuildContext context) {
     final maxVideoHeight = MediaQuery.of(context).size.height * 0.5;
     return Scaffold(
-      appBar: AppBar(title: Text('Video preview')),
+      appBar: AppBar(title: Text('Video To Webp'.tr)),
       body: Obx(() {
         if (controller.videoFile.value == null) {
           return Column(
@@ -314,7 +325,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                   padding: const EdgeInsets.symmetric(horizontal: 32.0),
                   child: Center(
                     child: Text(
-                      '변환할 비디오 파일을 골라주세요! 🎬',
+                      'Please select a video file to convert! 🎬'.tr,
                       textAlign: TextAlign.center,
                       style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
                     ),
@@ -336,7 +347,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                       foregroundColor: Colors.white,
                       elevation: 0,
                     ),
-                    child: Text('비디오 선택하기', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: Text('Select Video'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ),
@@ -450,9 +461,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text('파일명: ${controller.videoFile.value!.name}'),
-                    Text('해상도: ${controller.videoWidth.value} x ${controller.videoHeight.value}'),
-                    Text('길이: ${controller.videoDuration.value?.inSeconds ?? 0}초'),
+                    Text('File Name: ${controller.videoFile.value!.name}'),
+                    Text('Resolution: ${controller.videoWidth.value} x ${controller.videoHeight.value}'),
+                    Text('Duration: ${controller.videoDuration.value?.inSeconds ?? 0} seconds'),
                   ],
                 ),
               ),
@@ -482,7 +493,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                     foregroundColor: Colors.black,
                     elevation: 0,
                   ),
-                  child: Text('다른 비디오 선택', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: Text('Other Video'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),
               SizedBox(height: 12),
@@ -499,7 +510,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                     foregroundColor: Colors.white,
                     elevation: 0,
                   ),
-                  child: Text('변환', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: Text('Convert'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
