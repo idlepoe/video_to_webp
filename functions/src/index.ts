@@ -29,8 +29,7 @@ try {
 // Storage 트리거 함수
 export const convertVideo = onObjectFinalized({
   region: 'us-west1',
-  timeoutSeconds: 540,
-  memory: '2GiB',
+  timeoutSeconds: 540
 }, async (event) => {
   const fileBucket = event.data.bucket;
   const filePath = event.data.name;

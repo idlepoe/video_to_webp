@@ -26,7 +26,8 @@ class ConvertCompleteScreen extends StatelessWidget {
                           if (controller.imageUrl.value.isNotEmpty)
                             LayoutBuilder(
                               builder: (context, constraints) {
-                                final maxImageHeight = MediaQuery.of(context).size.height * 0.5;
+                                final maxImageHeight =
+                                    MediaQuery.of(context).size.height * 0.5;
                                 return SizedBox(
                                   width: double.infinity,
                                   height: maxImageHeight,
@@ -35,16 +36,110 @@ class ConvertCompleteScreen extends StatelessWidget {
                                     child: Image.network(
                                       controller.imageUrl.value,
                                       fit: BoxFit.contain,
-                                      errorBuilder: (context, error, stackTrace) =>
-                                          Text('이미지 로드 실패'),
+                                      errorBuilder:
+                                          (context, error, stackTrace) =>
+                                              Text('이미지 로드 실패'),
                                     ),
                                   ),
                                 );
                               },
                             ),
                           SizedBox(height: 32),
-                          Text('Conversion is complete!'.tr, style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold)),
+                          Text('Conversion is complete!'.tr,
+                              style: TextStyle(
+                                  fontSize: 22, fontWeight: FontWeight.bold)),
                           SizedBox(height: 16),
+                          if (controller.isDownloading.value)
+                            Column(
+                              children: [
+                                CircularProgressIndicator(
+                                  strokeWidth: 3,
+                                  valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.blue),
+                                ),
+                                SizedBox(height: 12),
+                                Text('Auto downloading to gallery...'.tr,
+                                    style: TextStyle(
+                                        fontSize: 16, color: Colors.blue)),
+                                SizedBox(height: 16),
+                              ],
+                            )
+                          else
+                            Column(
+                              children: [
+                                Icon(
+                                    controller.downloadCompleted.value
+                                        ? Icons.check_circle
+                                        : Icons.file_download_done,
+                                    color: controller.downloadCompleted.value
+                                        ? Colors.green
+                                        : Colors.blue,
+                                    size: 48),
+                                SizedBox(height: 12),
+                                Text(
+                                    controller.downloadCompleted.value
+                                        ? 'Downloaded to gallery!'.tr
+                                        : 'File is ready for download'.tr,
+                                    style: TextStyle(
+                                        fontSize: 16,
+                                        color:
+                                            controller.downloadCompleted.value
+                                                ? Colors.green
+                                                : Colors.blue,
+                                        fontWeight: FontWeight.bold)),
+                                SizedBox(height: 24),
+                                // 다운로드 버튼들
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: controller.downloadFile,
+                                        icon: Icon(
+                                            controller.downloadCompleted.value
+                                                ? Icons.download_done
+                                                : Icons.download,
+                                            size: 20),
+                                        label: Text(
+                                            controller.downloadCompleted.value
+                                                ? 'Re-download'.tr
+                                                : 'Download'.tr),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor:
+                                              controller.downloadCompleted.value
+                                                  ? Colors.green
+                                                  : Colors.blue,
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 12),
+                                        ),
+                                      ),
+                                    ),
+                                    SizedBox(width: 12),
+                                    Expanded(
+                                      child: ElevatedButton.icon(
+                                        onPressed: controller.openInBrowser,
+                                        icon: Icon(Icons.open_in_browser,
+                                            size: 20),
+                                        label: Text('Browser'.tr),
+                                        style: ElevatedButton.styleFrom(
+                                          backgroundColor: Colors.orange,
+                                          foregroundColor: Colors.white,
+                                          shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12)),
+                                          padding: EdgeInsets.symmetric(
+                                              vertical: 12),
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                SizedBox(height: 16),
+                              ],
+                            ),
                         ],
                       ),
                     ),
@@ -53,83 +148,29 @@ class ConvertCompleteScreen extends StatelessWidget {
                 // 하단 고정 버튼
                 Container(
                   padding: EdgeInsets.all(24),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SizedBox(
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: () => Get.offAllNamed('/'),
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              backgroundColor: Colors.grey[100],
-                              foregroundColor: Colors.black,
-                              elevation: 0,
-                            ),
-                            child: Text('Home'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          ),
-                        ),
+                  child: SizedBox(
+                    width: double.infinity,
+                    height: 56,
+                    child: ElevatedButton(
+                      onPressed: () => Get.offAllNamed('/'),
+                      style: ElevatedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16)),
+                        backgroundColor: Colors.blue,
+                        foregroundColor: Colors.white,
+                        elevation: 0,
                       ),
-                      SizedBox(width: 16),
-                      Expanded(
-                        child: SizedBox(
-                          height: 56,
-                          child: ElevatedButton(
-                            onPressed: controller.isDownloading.value ? null : controller.downloadFile,
-                            style: ElevatedButton.styleFrom(
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                              backgroundColor: Colors.blue,
-                              foregroundColor: Colors.white,
-                              elevation: 0,
-                            ),
-                            child: Text('Download'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-                          ),
-                        ),
-                      ),
-                    ],
+                      child: Text('Convert Another Video'.tr,
+                          style: TextStyle(
+                              fontSize: 18, fontWeight: FontWeight.bold)),
+                    ),
                   ),
                 ),
               ],
             ),
-            // 다운로드 진행률 오버레이
-            if (controller.isDownloading.value)
-              Container(
-                color: Colors.black.withOpacity(0.5),
-                child: Center(
-                  child: Column(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Stack(
-                        alignment: Alignment.center,
-                        children: [
-                          SizedBox(
-                            width: 64,
-                            height: 64,
-                            child: CircularProgressIndicator(
-                              value: controller.downloadProgress.value,
-                              strokeWidth: 6,
-                              backgroundColor: Colors.grey[200],
-                              valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
-                            ),
-                          ),
-                          Text(
-                            '${(controller.downloadProgress.value * 100).toStringAsFixed(0)}%',
-                            style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
-                          ),
-                        ],
-                      ),
-                      SizedBox(height: 16),
-                      Text(
-                        'Downloading...'.tr,
-                        style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold, color: Colors.white),
-                      ),
-                    ],
-                  ),
-                ),
-              ),
           ],
         );
       }),
     );
   }
-} 
+}

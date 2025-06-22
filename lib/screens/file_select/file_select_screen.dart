@@ -40,7 +40,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
     super.dispose();
   }
 
-  void _showConvertDialog(BuildContext context) {
+  void _showConvertDialog(BuildContext context) async {
     final videoController = controller.videoPlayerController.value;
     final originalWidth = controller.videoWidth.value ?? 0;
     final originalHeight = controller.videoHeight.value ?? 0;
@@ -53,19 +53,32 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
     });
     if (originalHeight > 720) {
       final width = (aspectRatio * 720).round();
-      resolutions.add({'label': '720p (${width}x720)', 'width': width, 'height': 720});
+      resolutions
+          .add({'label': '720p (${width}x720)', 'width': width, 'height': 720});
     }
     if (originalHeight > 480) {
       final width = (aspectRatio * 480).round();
-      resolutions.add({'label': '480p (${width}x480)', 'width': width, 'height': 480});
+      resolutions
+          .add({'label': '480p (${width}x480)', 'width': width, 'height': 480});
     }
     if (originalHeight > 320) {
       final width = (aspectRatio * 320).round();
-      resolutions.add({'label': '320p (${width}x320)', 'width': width, 'height': 320});
+      resolutions
+          .add({'label': '320p (${width}x320)', 'width': width, 'height': 320});
     }
-    int selectedResolution = 0;
-    double fps = 30;
-    double quality = 75;
+
+    // 저장된 설정 불러오기
+    final savedSettings = await controller.loadConvertSettings();
+    int selectedResolution = savedSettings['selectedResolution'] as int;
+    double fps = savedSettings['fps'] as double;
+    double quality = savedSettings['quality'] as double;
+    String selectedFormat = savedSettings['format'] as String;
+
+    // 해상도 인덱스가 현재 비디오의 해상도 옵션 수를 초과하면 0으로 초기화
+    if (selectedResolution >= resolutions.length) {
+      selectedResolution = 0;
+    }
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -76,7 +89,8 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
             // 예상 파일 크기 계산 함수
             int originalFileSize = 0;
             if (controller.videoFile.value != null) {
-              originalFileSize = File(controller.videoFile.value!.path).lengthSync();
+              originalFileSize =
+                  File(controller.videoFile.value!.path).lengthSync();
             }
             // 비디오 길이(초) 가져오기
             int duration = controller.videoDuration.value.inSeconds;
@@ -84,10 +98,11 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
             // 해상도, fps, quality 반영한 비트레이트 계산
             int width = resolutions[selectedResolution]['width'];
             int height = resolutions[selectedResolution]['height'];
-            
+
             // 애니메이션 WebP 용량 계산
             // 1. 기본 프레임 용량 계산 (quality 75 기준)
-            double baseFrameSize = width * height * 0.1; // 기본 프레임당 용량 (bytes) - 0.025에서 0.1로 증가
+            double baseFrameSize =
+                width * height * 0.1; // 기본 프레임당 용량 (bytes) - 0.025에서 0.1로 증가
             // 2. quality에 따른 가중치 (0.5~1.5)
             double qualityFactor = (quality / 75) * 0.5;
             // 3. 프레임 수 계산
@@ -105,9 +120,11 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                 Container(
                   decoration: BoxDecoration(
                     color: Colors.white,
-                    borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+                    borderRadius:
+                        BorderRadius.vertical(top: Radius.circular(24)),
                   ),
-                  padding: EdgeInsets.fromLTRB(24, 24, 24, 24 + MediaQuery.of(context).viewInsets.bottom),
+                  padding: EdgeInsets.fromLTRB(24, 24, 24,
+                      24 + MediaQuery.of(context).viewInsets.bottom),
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -123,31 +140,46 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                           ),
                         ),
                       ),
-                      Text('Convert Options'.tr, style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold)),
+                      Text('Convert Options'.tr,
+                          style: TextStyle(
+                              fontSize: 20, fontWeight: FontWeight.bold)),
                       SizedBox(height: 24),
-                      Text('Resolution'.tr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      Text('Resolution'.tr,
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
                       SizedBox(height: 12),
                       Column(
                         children: List.generate(resolutions.length, (i) {
                           return Padding(
                             padding: const EdgeInsets.only(bottom: 8.0),
                             child: GestureDetector(
-                              onTap: controller.isUploading.value ? null : () => setModalState(() => selectedResolution = i),
+                              onTap: controller.isUploading.value
+                                  ? null
+                                  : () => setModalState(
+                                      () => selectedResolution = i),
                               child: Container(
-                                padding: EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+                                padding: EdgeInsets.symmetric(
+                                    vertical: 14, horizontal: 16),
                                 decoration: BoxDecoration(
-                                  color: selectedResolution == i ? Colors.blue[50] : Colors.grey[100],
+                                  color: selectedResolution == i
+                                      ? Colors.blue[50]
+                                      : Colors.grey[100],
                                   borderRadius: BorderRadius.circular(12),
                                   border: Border.all(
-                                    color: selectedResolution == i ? Colors.blue : Colors.transparent,
+                                    color: selectedResolution == i
+                                        ? Colors.blue
+                                        : Colors.transparent,
                                     width: 2,
                                   ),
                                 ),
                                 child: Row(
                                   children: [
-                                    Expanded(child: Text(resolutions[i]['label'], style: TextStyle(fontSize: 16))),
+                                    Expanded(
+                                        child: Text(resolutions[i]['label'],
+                                            style: TextStyle(fontSize: 16))),
                                     if (selectedResolution == i)
-                                      Icon(Icons.check_circle, color: Colors.blue),
+                                      Icon(Icons.check_circle,
+                                          color: Colors.blue),
                                   ],
                                 ),
                               ),
@@ -156,7 +188,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                         }),
                       ),
                       SizedBox(height: 24),
-                      Text('FPS'.tr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      Text('FPS'.tr,
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
                       Row(
                         children: [
                           Expanded(
@@ -172,7 +206,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                                 divisions: 59,
                                 value: fps,
                                 label: fps.round().toString(),
-                                onChanged: controller.isUploading.value ? null : (v) => setModalState(() => fps = v),
+                                onChanged: controller.isUploading.value
+                                    ? null
+                                    : (v) => setModalState(() => fps = v),
                               ),
                             ),
                           ),
@@ -180,12 +216,16 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                           Container(
                             width: 48,
                             alignment: Alignment.centerRight,
-                            child: Text('${fps.round()}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            child: Text('${fps.round()}',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
                       SizedBox(height: 24),
-                      Text('Quality'.tr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600)),
+                      Text('Quality'.tr,
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.w600)),
                       Row(
                         children: [
                           Expanded(
@@ -201,7 +241,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                                 divisions: 99,
                                 value: quality,
                                 label: quality.round().toString(),
-                                onChanged: controller.isUploading.value ? null : (v) => setModalState(() => quality = v),
+                                onChanged: controller.isUploading.value
+                                    ? null
+                                    : (v) => setModalState(() => quality = v),
                               ),
                             ),
                           ),
@@ -209,12 +251,18 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                           Container(
                             width: 48,
                             alignment: Alignment.centerRight,
-                            child: Text('${quality.round()}', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
+                            child: Text('${quality.round()}',
+                                style: TextStyle(
+                                    fontSize: 16, fontWeight: FontWeight.bold)),
                           ),
                         ],
                       ),
                       SizedBox(height: 24),
-                      Text('Estimated File Size: $estimatedSizeStr'.tr, style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600, color: Colors.grey[700])),
+                      Text('Estimated File Size: $estimatedSizeStr'.tr,
+                          style: TextStyle(
+                              fontSize: 16,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.grey[700])),
                       SizedBox(height: 32),
                       Row(
                         children: [
@@ -222,14 +270,20 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                             child: SizedBox(
                               height: 56,
                               child: ElevatedButton(
-                                onPressed: controller.isUploading.value ? null : () => Navigator.of(context).pop(),
+                                onPressed: controller.isUploading.value
+                                    ? null
+                                    : () => Navigator.of(context).pop(),
                                 style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16)),
                                   backgroundColor: Colors.grey[100],
                                   foregroundColor: Colors.black,
                                   elevation: 0,
                                 ),
-                                child: Text('Cancel'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                child: Text('Cancel'.tr,
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
                               ),
                             ),
                           ),
@@ -240,22 +294,37 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                               child: ElevatedButton(
                                 onPressed: controller.isUploading.value
                                     ? null
-                                    : () {
+                                    : () async {
+                                        // 설정 저장
+                                        await controller.saveConvertSettings(
+                                          selectedResolution:
+                                              selectedResolution,
+                                          fps: fps,
+                                          quality: quality,
+                                          format: selectedFormat,
+                                        );
+
                                         final options = ConvertOptions(
                                           format: selectedFormat,
                                           quality: quality.round(),
                                           fps: fps.round(),
-                                          resolution: '${resolutions[selectedResolution]['width']}x${resolutions[selectedResolution]['height']}',
+                                          resolution:
+                                              '${resolutions[selectedResolution]['width']}x${resolutions[selectedResolution]['height']}',
                                         );
-                                        controller.uploadAndRequestConvert(options);
+                                        controller
+                                            .uploadAndRequestConvert(options);
                                       },
                                 style: ElevatedButton.styleFrom(
-                                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                                  shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(16)),
                                   backgroundColor: Colors.blue,
                                   foregroundColor: Colors.white,
                                   elevation: 0,
                                 ),
-                                child: Text('Convert Locally'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                                child: Text('Convert'.tr,
+                                    style: TextStyle(
+                                        fontSize: 18,
+                                        fontWeight: FontWeight.bold)),
                               ),
                             ),
                           ),
@@ -284,17 +353,23 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                                       value: controller.uploadPercent.value,
                                       strokeWidth: 6,
                                       backgroundColor: Colors.grey[200],
-                                      valueColor: AlwaysStoppedAnimation<Color>(Colors.blue),
+                                      valueColor: AlwaysStoppedAnimation<Color>(
+                                          Colors.blue),
                                     ),
                                   ),
                                   Text(
                                     '${(controller.uploadPercent.value * 100).toStringAsFixed(0)}%',
-                                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                                    style: TextStyle(
+                                        fontSize: 20,
+                                        fontWeight: FontWeight.bold),
                                   ),
                                 ],
                               ),
                               SizedBox(height: 16),
-                              Text('Uploading...'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                              Text('Uploading...'.tr,
+                                  style: TextStyle(
+                                      fontSize: 18,
+                                      fontWeight: FontWeight.bold)),
                             ],
                           ),
                         ),
@@ -324,10 +399,45 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                 child: Padding(
                   padding: const EdgeInsets.symmetric(horizontal: 32.0),
                   child: Center(
-                    child: Text(
-                      'Please select a video file to convert! 🎬'.tr,
-                      textAlign: TextAlign.center,
-                      style: TextStyle(fontSize: 22, fontWeight: FontWeight.bold),
+                    child: GestureDetector(
+                      onTap: controller.pickVideo,
+                      child: Container(
+                        padding: EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                              color: Colors.blue.withOpacity(0.3), width: 2),
+                          color: Colors.blue.withOpacity(0.05),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.video_library_outlined,
+                              color: Colors.blue,
+                              size: 48,
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'Please select a video file to convert! 🎬'.tr,
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                fontSize: 22,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.blue,
+                              ),
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              'Tap to select'.tr,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.blue.withOpacity(0.7),
+                              ),
+                            ),
+                          ],
+                        ),
+                      ),
                     ),
                   ),
                 ),
@@ -347,7 +457,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                       foregroundColor: Colors.white,
                       elevation: 0,
                     ),
-                    child: Text('Select Video'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                    child: Text('Select Video'.tr,
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold)),
                   ),
                 ),
               ),
@@ -361,7 +473,8 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
           _addVideoListener();
           final duration = videoController.value.duration;
           final position = _isDragging
-              ? Duration(milliseconds: (_dragValue * duration.inMilliseconds).toInt())
+              ? Duration(
+                  milliseconds: (_dragValue * duration.inMilliseconds).toInt())
               : videoController.value.position;
           return Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -416,15 +529,23 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 12.0),
                       child: Text(
                         _formatDuration(position),
-                        style: TextStyle(color: Colors.black, fontSize: 14, fontWeight: FontWeight.bold, shadows: [Shadow(blurRadius: 2, color: Colors.white)]),
+                        style: TextStyle(
+                            color: Colors.black,
+                            fontSize: 14,
+                            fontWeight: FontWeight.bold,
+                            shadows: [
+                              Shadow(blurRadius: 2, color: Colors.white)
+                            ]),
                       ),
                     ),
                     Expanded(
                       child: SliderTheme(
                         data: SliderTheme.of(context).copyWith(
                           trackHeight: 16,
-                          thumbShape: RoundSliderThumbShape(enabledThumbRadius: 14),
-                          overlayShape: RoundSliderOverlayShape(overlayRadius: 20),
+                          thumbShape:
+                              RoundSliderThumbShape(enabledThumbRadius: 14),
+                          overlayShape:
+                              RoundSliderOverlayShape(overlayRadius: 20),
                           activeTrackColor: Color(0xFF3182F6), // Toss 블루
                           inactiveTrackColor: Color(0xFFE5E8EB),
                           thumbColor: Color(0xFF3182F6),
@@ -436,7 +557,10 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                               ? 0.0
                               : (_isDragging
                                   ? _dragValue
-                                  : (videoController.value.position.inMilliseconds / duration.inMilliseconds).clamp(0.0, 1.0)),
+                                  : (videoController
+                                              .value.position.inMilliseconds /
+                                          duration.inMilliseconds)
+                                      .clamp(0.0, 1.0)),
                           onChanged: (value) {
                             setState(() {
                               _isDragging = true;
@@ -444,7 +568,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                             });
                           },
                           onChangeEnd: (value) async {
-                            final newPosition = Duration(milliseconds: (value * duration.inMilliseconds).toInt());
+                            final newPosition = Duration(
+                                milliseconds:
+                                    (value * duration.inMilliseconds).toInt());
                             await videoController.seekTo(newPosition);
                             setState(() {
                               _isDragging = false;
@@ -457,13 +583,16 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                 ),
               ),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text('File Name: ${controller.videoFile.value!.name}'),
-                    Text('Resolution: ${controller.videoWidth.value} x ${controller.videoHeight.value}'),
-                    Text('Duration: ${controller.videoDuration.value?.inSeconds ?? 0} seconds'),
+                    Text(
+                        'Resolution: ${controller.videoWidth.value} x ${controller.videoHeight.value}'),
+                    Text(
+                        'Duration: ${controller.videoDuration.value?.inSeconds ?? 0} seconds'),
                   ],
                 ),
               ),
@@ -493,7 +622,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                     foregroundColor: Colors.black,
                     elevation: 0,
                   ),
-                  child: Text('Other Video'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: Text('Other Video'.tr,
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),
               SizedBox(height: 12),
@@ -510,7 +641,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                     foregroundColor: Colors.white,
                     elevation: 0,
                   ),
-                  child: Text('Convert'.tr, style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
+                  child: Text('Convert'.tr,
+                      style:
+                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
                 ),
               ),
             ],
@@ -526,4 +659,4 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
     final twoDigitSeconds = twoDigits(d.inSeconds.remainder(60));
     return "${twoDigits(d.inHours)}:$twoDigitMinutes:$twoDigitSeconds";
   }
-} 
+}

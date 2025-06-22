@@ -5,14 +5,17 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../models/convert_request.dart';
 import '../../routes/app_routes.dart';
 import '../loading/loading_controller.dart';
+import '../../widgets/common_snackbar.dart';
 
 class FileSelectController extends GetxController {
   final ImagePicker _picker = ImagePicker();
   final Rx<XFile?> videoFile = Rx<XFile?>(null);
-  final Rx<VideoPlayerController?> videoPlayerController = Rx<VideoPlayerController?>(null);
+  final Rx<VideoPlayerController?> videoPlayerController =
+      Rx<VideoPlayerController?>(null);
   final Rx<Duration> videoDuration = Duration.zero.obs;
   final RxInt videoWidth = 0.obs;
   final RxInt videoHeight = 0.obs;
@@ -42,7 +45,7 @@ class FileSelectController extends GetxController {
       print('Firebase 초기화 완료');
     } catch (e) {
       print('Firebase 초기화 중 오류 발생: $e');
-      Get.snackbar('Error'.tr, 'Initialization failed.'.tr);
+      CommonSnackBar.error('Error'.tr, 'Initialization failed.'.tr);
     }
   }
 
@@ -52,7 +55,8 @@ class FileSelectController extends GetxController {
       if (file != null) {
         final fileSize = File(file.path).lengthSync();
         if (fileSize >= 20 * 1024 * 1024) {
-          Get.snackbar('Error'.tr, 'Only videos smaller than 20MB can be uploaded.'.tr);
+          CommonSnackBar.warn('Warning'.tr,
+              'Only videos smaller than 20MB can be uploaded.'.tr);
           return;
         }
         print('비디오 파일 선택됨: ${file.path}');
@@ -61,7 +65,8 @@ class FileSelectController extends GetxController {
       }
     } catch (e) {
       print('비디오 선택 중 오류 발생: $e');
-      Get.snackbar('Error'.tr, 'An error occurred while selecting the video.'.tr);
+      CommonSnackBar.error(
+          'Error'.tr, 'An error occurred while selecting the video.'.tr);
     }
   }
 
@@ -74,7 +79,8 @@ class FileSelectController extends GetxController {
       videoDuration.value = controller.value.duration;
       videoWidth.value = controller.value.size.width.toInt();
       videoHeight.value = controller.value.size.height.toInt();
-      print('비디오 정보: ${videoWidth.value}x${videoHeight.value}, ${videoDuration.value}');
+      print(
+          '비디오 정보: ${videoWidth.value}x${videoHeight.value}, ${videoDuration.value}');
     } catch (e) {
       print('비디오 플레이어 초기화 중 오류 발생: $e');
     }
@@ -83,13 +89,14 @@ class FileSelectController extends GetxController {
   Future<void> uploadAndRequestConvert(ConvertOptions options) async {
     if (!isInitialized.value) {
       print('Firebase가 초기화되지 않음');
-      Get.snackbar('Error'.tr, 'Initialization is not complete. Please try again later.'.tr);
+      CommonSnackBar.error('Error'.tr,
+          'Initialization is not complete. Please try again later.'.tr);
       return;
     }
 
     if (videoFile.value == null) {
       print('오류: 비디오 파일이 선택되지 않음');
-      Get.snackbar('Error'.tr, 'Please select a video file.'.tr);
+      CommonSnackBar.error('Error'.tr, 'Please select a video file.'.tr);
       return;
     }
 
@@ -99,13 +106,14 @@ class FileSelectController extends GetxController {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
         print('오류: 사용자가 로그인되지 않음');
-        Get.snackbar('Error'.tr, 'Login is required.'.tr);
+        CommonSnackBar.error('Error'.tr, 'Login is required.'.tr);
         isUploading.value = false;
         return;
       }
 
       print('Firestore 변환 요청 문서 먼저 생성');
-      final requestRef = FirebaseFirestore.instance.collection('convertRequests').doc();
+      final requestRef =
+          FirebaseFirestore.instance.collection('convertRequests').doc();
       final requestId = requestRef.id;
       final originalFilePath = 'original/${user.uid}/$requestId.mp4';
       await requestRef.set({
@@ -129,15 +137,18 @@ class FileSelectController extends GetxController {
           .child('$requestId.mp4');
 
       bool updated = false;
-      storageRef.putFile(
-        File(videoFile.value!.path),
-        SettableMetadata(
-          contentType: 'video/mp4',
-          customMetadata: {
-            'uploadedAt': DateTime.now().toIso8601String(),
-          },
-        ),
-      ).snapshotEvents.listen((TaskSnapshot snapshot) async {
+      storageRef
+          .putFile(
+            File(videoFile.value!.path),
+            SettableMetadata(
+              contentType: 'video/mp4',
+              customMetadata: {
+                'uploadedAt': DateTime.now().toIso8601String(),
+              },
+            ),
+          )
+          .snapshotEvents
+          .listen((TaskSnapshot snapshot) async {
         final progress = snapshot.bytesTransferred / snapshot.totalBytes;
         uploadPercent.value = progress;
         if (progress >= 1.0 && !updated) {
@@ -148,21 +159,66 @@ class FileSelectController extends GetxController {
           uploadPercent.value = 0.0;
           // 다이얼로그 닫고 로딩 화면 이동
           if (Get.isDialogOpen ?? false) Get.back();
-          await Get.toNamed(AppRoutes.loading, arguments: {'requestId': requestId});
+          await Get.toNamed(AppRoutes.loading,
+              arguments: {'requestId': requestId});
         }
       }, onError: (uploadError) {
         print('업로드 중 오류 발생: $uploadError');
         isUploading.value = false;
         uploadPercent.value = 0.0;
-        Get.snackbar('Error'.tr, 'An error occurred during file upload. Please try again.'.tr, duration: Duration(seconds: 5));
+        CommonSnackBar.error('Error'.tr,
+            'An error occurred during file upload. Please try again.'.tr,
+            duration: Duration(seconds: 5));
       });
-
     } catch (e, stack) {
       isUploading.value = false;
       uploadPercent.value = 0.0;
       print('업로드 중 오류 발생: $e');
       print('스택 트레이스: $stack');
-      Get.snackbar('Error'.tr, 'An error occurred during file upload. Please try again.'.tr, duration: Duration(seconds: 5));
+      CommonSnackBar.error('Error'.tr,
+          'An error occurred during file upload. Please try again.'.tr,
+          duration: Duration(seconds: 5));
+    }
+  }
+
+  // 설정 저장
+  Future<void> saveConvertSettings({
+    required int selectedResolution,
+    required double fps,
+    required double quality,
+    required String format,
+  }) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setInt('convert_resolution', selectedResolution);
+      await prefs.setDouble('convert_fps', fps);
+      await prefs.setDouble('convert_quality', quality);
+      await prefs.setString('convert_format', format);
+      print(
+          '변환 설정 저장 완료: resolution=$selectedResolution, fps=$fps, quality=$quality, format=$format');
+    } catch (e) {
+      print('변환 설정 저장 중 오류: $e');
+    }
+  }
+
+  // 설정 불러오기
+  Future<Map<String, dynamic>> loadConvertSettings() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      return {
+        'selectedResolution': prefs.getInt('convert_resolution') ?? 0,
+        'fps': prefs.getDouble('convert_fps') ?? 30.0,
+        'quality': prefs.getDouble('convert_quality') ?? 75.0,
+        'format': prefs.getString('convert_format') ?? 'webp',
+      };
+    } catch (e) {
+      print('변환 설정 불러오기 중 오류: $e');
+      return {
+        'selectedResolution': 0,
+        'fps': 30.0,
+        'quality': 75.0,
+        'format': 'webp',
+      };
     }
   }
 
@@ -171,4 +227,4 @@ class FileSelectController extends GetxController {
     videoPlayerController.value?.dispose();
     super.onClose();
   }
-} 
+}

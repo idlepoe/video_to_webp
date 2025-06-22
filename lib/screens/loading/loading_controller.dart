@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../routes/app_routes.dart';
+import '../../widgets/common_snackbar.dart';
 
 class LoadingController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -50,7 +51,8 @@ class LoadingController extends GetxController {
     } else if (status == 'error') {
       print('이미 오류 상태!');
       Get.back();
-      Get.snackbar('Error'.tr, 'An error occurred during conversion.'.tr);
+      CommonSnackBar.error(
+          'Error'.tr, 'An error occurred during conversion.'.tr);
       return;
     }
 
@@ -74,10 +76,11 @@ class LoadingController extends GetxController {
       } else if (status == 'error') {
         print('변환 오류 감지!');
         Get.back();
-        Get.snackbar('Error'.tr, 'An error occurred during conversion.'.tr);
+        CommonSnackBar.error(
+            'Error'.tr, 'An error occurred during conversion.'.tr);
       }
     }, onError: (e) {
       print('Firestore listen 에러: $e');
     });
   }
-} 
+}
