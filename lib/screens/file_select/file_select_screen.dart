@@ -31,7 +31,8 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
             return Center(child: CircularProgressIndicator());
           }
 
-          return VideoPlayerWidget(
+          return SimpleVideoPlayerWidget(
+            key: ValueKey(controller.videoFile.value!.path), // 파일 경로를 키로 사용
             videoController: videoController,
             maxVideoHeight: maxVideoHeight,
             fileName: controller.videoFile.value!.name,
@@ -39,10 +40,6 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
             videoHeight: controller.videoHeight.value,
             videoDuration: controller.videoDuration.value,
             filePath: controller.videoFile.value!.path,
-            onTrimChanged: (startTime, endTime) {
-              // trim 설정 변경 시 컨트롤러에 업데이트
-              controller.updateTrimSettings(startTime, endTime);
-            },
           );
         }
       }),
@@ -51,6 +48,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
         return BottomNavigationWidget(
           onPickOtherVideo: controller.pickVideo,
           onConvert: () => _showConvertDialog(context),
+          onTrim: controller.openTrimScreen,
+          onRestoreOriginal: controller.restoreOriginal,
+          showRestoreButton: controller.isTrimmed.value,
         );
       }),
     );

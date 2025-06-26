@@ -10,11 +10,13 @@ import 'package:flutter/material.dart';
 import '../../models/convert_request.dart';
 import '../../routes/app_routes.dart';
 import '../loading/loading_controller.dart';
+import '../video_trim/video_trim_screen.dart';
 import '../../widgets/common_snackbar.dart';
 
 class FileSelectController extends GetxController {
   final ImagePicker _picker = ImagePicker();
   final Rx<XFile?> videoFile = Rx<XFile?>(null);
+  final Rx<XFile?> originalVideoFile = Rx<XFile?>(null); // 원본 파일 보존
   final Rx<VideoPlayerController?> videoPlayerController =
       Rx<VideoPlayerController?>(null);
   final Rx<Duration> videoDuration = Duration.zero.obs;
@@ -23,8 +25,9 @@ class FileSelectController extends GetxController {
   final RxBool isInitialized = false.obs;
   final RxDouble uploadPercent = 0.0.obs;
   final RxBool isUploading = false.obs;
+  final RxBool isTrimmed = false.obs; // Trim 여부 추적
 
-  // Trim 설정
+  // Trim 설정 (서버사이드 호환성을 위해 유지)
   final RxDouble trimStartTime = 0.0.obs;
   final Rx<double?> trimEndTime = Rx<double?>(null);
 
@@ -36,20 +39,14 @@ class FileSelectController extends GetxController {
 
   Future<void> _initializeFirebase() async {
     try {
-      print('Firebase 초기화 시작');
       final auth = FirebaseAuth.instance;
-      print('Firebase Auth 인스턴스 초기화 확인: ${auth.app.name}');
 
       if (auth.currentUser == null) {
-        print('익명 로그인 시도');
         final userCredential = await auth.signInAnonymously();
-        print('익명 로그인 성공: ${userCredential.user?.uid}');
       }
 
       isInitialized.value = true;
-      print('Firebase 초기화 완료');
     } catch (e) {
-      print('Firebase 초기화 중 오류 발생: $e');
       CommonSnackBar.error('Error'.tr, 'Initialization failed.'.tr);
     }
   }
@@ -58,26 +55,14 @@ class FileSelectController extends GetxController {
     try {
       final XFile? file = await _picker.pickVideo(source: ImageSource.gallery);
       if (file != null) {
-        final fileSize = File(file.path).lengthSync();
-        final fileSizeMB = fileSize / (1024 * 1024);
-
-        // 20MB 제한 적용
-        if (fileSizeMB > 20) {
-          CommonSnackBar.error(
-              'Error'.tr,
-              'Videos larger than 20MB cannot be processed due to processing costs. Please select a smaller video.'
-                  .tr);
-          return;
-        }
-
-        print('비디오 파일 선택됨: ${file.path} (${fileSizeMB.toStringAsFixed(1)}MB)');
         videoFile.value = file;
+        originalVideoFile.value = file; // 원본 파일 저장
+        isTrimmed.value = false; // Trim 상태 초기화
         await _initVideoPlayer(file);
       }
     } catch (e) {
-      print('비디오 선택 중 오류 발생: $e');
       CommonSnackBar.error(
-          'Error'.tr, 'An error occurred while selecting the video.'.tr);
+          'error'.tr, 'An error occurred while selecting the video.'.tr);
     }
   }
 
@@ -90,31 +75,86 @@ class FileSelectController extends GetxController {
       videoDuration.value = controller.value.duration;
       videoWidth.value = controller.value.size.width.toInt();
       videoHeight.value = controller.value.size.height.toInt();
-      print(
-          '비디오 정보: ${videoWidth.value}x${videoHeight.value}, ${videoDuration.value}');
     } catch (e) {
-      print('비디오 플레이어 초기화 중 오류 발생: $e');
+      // 비디오 플레이어 초기화 오류 처리
     }
   }
 
-  // Trim 설정 업데이트
+  // Trim 설정 업데이트 (서버사이드 호환성을 위해 유지하지만 사용되지 않음)
   void updateTrimSettings(double startTime, double? endTime) {
     trimStartTime.value = startTime;
     trimEndTime.value = endTime;
-    print('Trim 설정 업데이트: 시작=${startTime}초, 끝=${endTime}초');
+  }
+
+  // Trim 화면으로 이동
+  void openTrimScreen() async {
+    if (videoFile.value == null) {
+      CommonSnackBar.error('error'.tr, 'select_file_error'.tr);
+      return;
+    }
+
+    // Trim 화면으로 네비게이션 (Get.to 사용하여 기존 컨트롤러 유지)
+    final result = await Get.to(
+      () => VideoTrimScreen(),
+      arguments: {
+        'filePath': videoFile.value!.path,
+        'fileName': videoFile.value!.name,
+      },
+    );
+
+    if (result != null && result is String) {
+      // Trim된 파일로 교체
+      final trimmedFile = XFile(result);
+      videoFile.value = trimmedFile;
+      isTrimmed.value = true; // Trim 상태 업데이트
+      await _initVideoPlayer(trimmedFile);
+
+      CommonSnackBar.success('success'.tr, 'trim_applied_message'.tr);
+    }
+  }
+
+  // 원본으로 되돌리기
+  Future<void> restoreOriginal() async {
+    if (originalVideoFile.value == null) {
+      CommonSnackBar.error('error'.tr, 'no_original_file'.tr);
+      return;
+    }
+
+    try {
+      videoFile.value = originalVideoFile.value;
+      isTrimmed.value = false;
+      await _initVideoPlayer(originalVideoFile.value!);
+      CommonSnackBar.success('success'.tr, 'original_restored'.tr);
+    } catch (e) {
+      CommonSnackBar.error('error'.tr, 'restore_error'.tr);
+    }
+  }
+
+  // 업로드 전 파일 크기 확인
+  bool validateFileSize(String filePath) {
+    final fileSize = File(filePath).lengthSync();
+    final fileSizeMB = fileSize / (1024 * 1024);
+
+    if (fileSizeMB > 20) {
+      CommonSnackBar.error('error'.tr, 'file_size_error'.tr);
+      return false;
+    }
+    return true;
   }
 
   Future<void> uploadAndRequestConvert(ConvertOptions options) async {
     if (!isInitialized.value) {
-      print('Firebase가 초기화되지 않음');
-      CommonSnackBar.error('Error'.tr,
-          'Initialization is not complete. Please try again later.'.tr);
+      CommonSnackBar.error('error'.tr, 'initialization_error'.tr);
       return;
     }
 
     if (videoFile.value == null) {
-      print('오류: 비디오 파일이 선택되지 않음');
-      CommonSnackBar.error('Error'.tr, 'Please select a video file.'.tr);
+      CommonSnackBar.error('error'.tr, 'select_file_error'.tr);
+      return;
+    }
+
+    // 업로드 직전 파일 크기 확인
+    if (!validateFileSize(videoFile.value!.path)) {
       return;
     }
 
@@ -123,13 +163,11 @@ class FileSelectController extends GetxController {
       uploadPercent.value = 0.0;
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        print('오류: 사용자가 로그인되지 않음');
-        CommonSnackBar.error('Error'.tr, 'Login is required.'.tr);
+        CommonSnackBar.error('error'.tr, 'login_required'.tr);
         isUploading.value = false;
         return;
       }
 
-      print('Firestore 변환 요청 문서 먼저 생성');
       final requestRef =
           FirebaseFirestore.instance.collection('convertRequests').doc();
       final requestId = requestRef.id;
@@ -141,13 +179,11 @@ class FileSelectController extends GetxController {
         'createdAt': FieldValue.serverTimestamp(),
         'originalFile': originalFilePath,
       });
-      print('Firestore 문서 생성 완료: $requestId');
 
       // LoadingController를 find로 가져와 구독 시작
       final loadingController = Get.find<LoadingController>();
       loadingController.listenToConvertRequest(requestId);
 
-      print('Storage에 파일 업로드 시작');
       final storageRef = FirebaseStorage.instance
           .ref()
           .child('original')
@@ -171,8 +207,6 @@ class FileSelectController extends GetxController {
         uploadPercent.value = progress;
         if (progress >= 1.0 && !updated) {
           updated = true;
-          print('파일 업로드 완료: ${await snapshot.ref.getDownloadURL()}');
-          print('Firestore update 완료');
           isUploading.value = false;
           uploadPercent.value = 0.0;
           // 다이얼로그 닫고 로딩 화면 이동
@@ -181,20 +215,15 @@ class FileSelectController extends GetxController {
               arguments: {'requestId': requestId});
         }
       }, onError: (uploadError) {
-        print('업로드 중 오류 발생: $uploadError');
         isUploading.value = false;
         uploadPercent.value = 0.0;
-        CommonSnackBar.error('Error'.tr,
-            'An error occurred during file upload. Please try again.'.tr,
+        CommonSnackBar.error('error'.tr, 'upload_error'.tr,
             duration: Duration(seconds: 5));
       });
     } catch (e, stack) {
       isUploading.value = false;
       uploadPercent.value = 0.0;
-      print('업로드 중 오류 발생: $e');
-      print('스택 트레이스: $stack');
-      CommonSnackBar.error('Error'.tr,
-          'An error occurred during file upload. Please try again.'.tr,
+      CommonSnackBar.error('error'.tr, 'upload_error'.tr,
           duration: Duration(seconds: 5));
     }
   }
@@ -212,10 +241,8 @@ class FileSelectController extends GetxController {
       await prefs.setDouble('convert_fps', fps);
       await prefs.setDouble('convert_quality', quality);
       await prefs.setString('convert_format', format);
-      print(
-          '변환 설정 저장 완료: resolution=$selectedResolution, fps=$fps, quality=$quality, format=$format');
     } catch (e) {
-      print('변환 설정 저장 중 오류: $e');
+      // 변환 설정 저장 중 오류 처리
     }
   }
 
@@ -236,7 +263,6 @@ class FileSelectController extends GetxController {
         'isFirstUse': isFirstUse,
       };
     } catch (e) {
-      print('변환 설정 불러오기 중 오류: $e');
       return {
         'selectedResolution': -1, // 첫 사용으로 간주하여 480p 찾기
         'fps': 30.0,

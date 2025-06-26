@@ -17,8 +17,6 @@ class LoadingController extends GetxController {
     final requestId = args?['requestId'] as String?;
     if (requestId != null) {
       listenToConvertRequest(requestId);
-    } else {
-      print('requestId가 전달되지 않음');
     }
   }
 
@@ -28,19 +26,15 @@ class LoadingController extends GetxController {
   }
 
   void listenToConvertRequest(String requestId) async {
-    print('변환 상태 첫 조회: $requestId');
     final docRef = _firestore.collection('convertRequests').doc(requestId);
     final docSnap = await docRef.get();
     if (!docSnap.exists) {
-      print('문서가 존재하지 않음');
       return;
     }
     final data = docSnap.data();
     final status = data?['status'];
     progress.value = data?['progress'] ?? 0;
-    print('첫 status: $status');
     if (status == 'completed') {
-      print('이미 변환 완료! 결과 화면 이동');
       Get.offAllNamed(AppRoutes.complete, arguments: {
         'requestId': docSnap.id,
         'convertedFile': data?['convertedFile'],
@@ -49,7 +43,6 @@ class LoadingController extends GetxController {
       });
       return;
     } else if (status == 'error') {
-      print('이미 오류 상태!');
       Get.back();
       CommonSnackBar.error(
           'Error'.tr, 'An error occurred during conversion.'.tr);
@@ -57,9 +50,7 @@ class LoadingController extends GetxController {
     }
 
     // 아직 완료/에러가 아니면 실시간 구독 시작
-    print('실시간 상태 구독 시작');
     docRef.snapshots().listen((doc) {
-      print('Firestore 문서 스냅샷 수신: exists=${doc.exists}');
       if (!doc.exists) return;
       final data = doc.data();
       final status = data?['status'];
@@ -70,9 +61,7 @@ class LoadingController extends GetxController {
         progress.value = newProgress;
       }
 
-      print('현재 status: $status, progress: ${progress.value}');
       if (status == 'completed') {
-        print('변환 완료 감지! 결과 화면 이동');
         Get.offAllNamed(AppRoutes.complete, arguments: {
           'requestId': doc.id,
           'convertedFile': data?['convertedFile'],
@@ -80,13 +69,12 @@ class LoadingController extends GetxController {
           'downloadUrl': data?['downloadUrl'],
         });
       } else if (status == 'error') {
-        print('변환 오류 감지!');
         Get.back();
         CommonSnackBar.error(
             'Error'.tr, 'An error occurred during conversion.'.tr);
       }
     }, onError: (e) {
-      print('Firestore listen 에러: $e');
+      // Firestore listen 오류 처리
     });
   }
 }

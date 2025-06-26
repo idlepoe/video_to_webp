@@ -103,7 +103,6 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
     // 첫 사용인 경우 480p를 기본값으로 설정
     if (selectedResolution == -1) {
       selectedResolution = _find480pIndex();
-      print('첫 사용 감지: 480p 해상도 (인덱스 $selectedResolution) 자동 선택');
     }
 
     // 해상도 인덱스가 현재 비디오의 해상도 옵션 수를 초과하면 0으로 초기화

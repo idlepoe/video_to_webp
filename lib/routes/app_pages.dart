@@ -1,6 +1,7 @@
 import 'package:get/get.dart';
 import '../screens/splash/splash_screen.dart';
 import '../screens/file_select/file_select_screen.dart';
+import '../screens/video_trim/video_trim_screen.dart';
 import '../screens/loading/loading_screen.dart';
 import '../screens/convert_complete/convert_complete_screen.dart';
 import '../screens/loading/loading_binding.dart';
@@ -17,6 +18,10 @@ class AppPages {
       page: () => FileSelectScreen(),
     ),
     GetPage(
+      name: AppRoutes.videoTrim,
+      page: () => VideoTrimScreen(),
+    ),
+    GetPage(
       name: AppRoutes.loading,
       page: () => LoadingScreen(),
       binding: LoadingBinding(),
@@ -26,4 +31,4 @@ class AppPages {
       page: () => ConvertCompleteScreen(),
     ),
   ];
-} 
+}

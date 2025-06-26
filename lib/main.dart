@@ -14,20 +14,16 @@ import 'translations.dart';
 Future<void> main() async {
   try {
     WidgetsFlutterBinding.ensureInitialized();
-    print('Flutter 바인딩 초기화 완료');
 
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    print('Firebase 초기화 성공');
 
     // LoadingController를 앱 시작 시 put
     Get.put(LoadingController(), permanent: true);
 
     runApp(MyApp());
   } catch (e, stackTrace) {
-    print('초기화 중 오류 발생: $e');
-    print('스택 트레이스: $stackTrace');
     // 오류가 발생해도 앱은 실행
     runApp(MyApp());
   }

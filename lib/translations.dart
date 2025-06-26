@@ -117,6 +117,16 @@ class AppTranslations extends Translations {
           'trim_applied_message': 'Video has been trimmed successfully!',
           'trim_error': 'Trim Error',
           'trim_error_message': 'Failed to trim video. Please try again.',
+          'restore_original': 'Restore Original',
+          'no_original_file': 'No original file found.',
+          'original_restored': 'Original video has been restored.',
+          'restore_error':
+              'An error occurred while restoring the original video.',
+          'complete': 'Complete',
+          'start_time': 'Start Time',
+          'end_time': 'End Time',
+          'processing': 'Processing...',
+          'complete_video_trim': 'Complete Video Trim',
 
           // Error Messages
           'initialization_error':
@@ -236,6 +246,15 @@ class AppTranslations extends Translations {
           'trim_applied_message': 'Trim 설정이 적용되었습니다. 변환 시 서버에서 처리됩니다.',
           'trim_error': '자르기 오류',
           'trim_error_message': '비디오 자르기 중 오류가 발생했습니다.',
+          'restore_original': '원본으로 되돌리기',
+          'no_original_file': '원본 파일을 찾을 수 없습니다.',
+          'original_restored': '원본 비디오로 복원되었습니다.',
+          'restore_error': '원본 비디오 복원 중 오류가 발생했습니다.',
+          'complete': '완료',
+          'start_time': '시작 시간',
+          'end_time': '종료 시간',
+          'processing': '처리 중...',
+          'complete_video_trim': '비디오 자르기 완료',
 
           // Error Messages
           'initialization_error': '초기화가 완료되지 않았습니다. 잠시 후 다시 시도해주세요.',

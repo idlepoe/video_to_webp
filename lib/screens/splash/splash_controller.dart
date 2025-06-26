@@ -20,12 +20,8 @@ class SplashController extends GetxController {
 
       if (currentUser == null) {
         // 익명 로그인 시도
-        print('익명 로그인 시도');
         final userCredential = await FirebaseAuth.instance.signInAnonymously();
         currentUser = userCredential.user;
-        print('익명 로그인 성공: ${currentUser?.uid}');
-      } else {
-        print('이미 로그인된 사용자: ${currentUser.uid}');
       }
 
       // 개인정보 동의 여부 확인
@@ -44,7 +40,6 @@ class SplashController extends GetxController {
         Get.offAllNamed(AppRoutes.privacy);
       }
     } catch (e) {
-      print('초기화 중 오류 발생: $e');
       _isLoading.value = false;
       // 오류 발생 시 개인정보 동의 화면으로 이동
       Get.offAllNamed(AppRoutes.privacy);

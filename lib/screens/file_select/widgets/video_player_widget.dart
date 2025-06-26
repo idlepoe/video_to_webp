@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:video_player/video_player.dart';
+import 'package:video_trimmer/video_trimmer.dart';
+import 'package:path_provider/path_provider.dart';
 import 'dart:io';
 
 class VideoPlayerWidget extends StatefulWidget {
@@ -160,7 +162,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
 
       setState(() {});
     } catch (e) {
-      print('Trim 프리뷰 컨트롤러 초기화 오류: $e');
+      // Trim 프리뷰 컨트롤러 초기화 오류 처리
     }
   }
 
@@ -185,7 +187,7 @@ class _VideoPlayerWidgetState extends State<VideoPlayerWidget> {
       _startFrameController!.seekTo(startPosition);
       _endFrameController!.seekTo(endPosition);
     } catch (e) {
-      print('Trim 프리뷰 프레임 업데이트 오류: $e');
+      // Trim 프리뷰 프레임 업데이트 오류 처리
     }
   }
 
