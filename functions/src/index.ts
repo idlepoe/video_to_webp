@@ -1,4 +1,5 @@
 import { onObjectFinalized } from 'firebase-functions/v2/storage';
+import { onSchedule } from 'firebase-functions/v2/scheduler';
 import * as admin from 'firebase-admin';
 import ffmpeg from 'fluent-ffmpeg';
 import ffmpegStatic from 'ffmpeg-static';
@@ -29,7 +30,8 @@ try {
 // Storage 트리거 함수
 export const convertVideo = onObjectFinalized({
   region: 'us-west1',
-  timeoutSeconds: 540
+  timeoutSeconds: 540,
+  memory: '512MiB'
 }, async (event) => {
   const fileBucket = event.data.bucket;
   const filePath = event.data.name;
@@ -82,11 +84,16 @@ export const convertVideo = onObjectFinalized({
     await bucket.file(filePath).download({ destination: inputPath });
     console.log('비디오 다운로드 완료');
 
-    // 변환 옵션 설정
-    const { resolution, fps, quality, format } = options;
+    // 변환 옵션 설정 (기존 호환성 유지)
+    const { resolution, fps, quality, format, startTime = 0, endTime = null } = options;
     const ffmpegFormat = typeof format === 'string' ? format.toLowerCase() : 'webp';
     const [width, height] = resolution.split('x').map(Number);
     console.log('변환 설정:', { width, height, fps, quality, format: ffmpegFormat });
+    
+    // Trim 설정 로깅 (있는 경우만)
+    if (startTime > 0 || endTime) {
+      console.log('Trim 설정:', { startTime, endTime });
+    }
 
     // ffprobe로 원본 비디오의 비트레이트 및 fps 추출
     const getBitrateAndFps = (filePath: string): Promise<{bitrate: number, fps: number}> => {
@@ -124,7 +131,28 @@ export const convertVideo = onObjectFinalized({
 
     // FFmpeg 명령어 구성
     console.log('FFmpeg 변환 시작');
-    const command = ffmpeg(inputPath)
+    let command = ffmpeg(inputPath);
+    
+    // Trim 설정이 있으면 적용 (새로운 기능)
+    const hasTrimSettings = (startTime && startTime > 0) || (endTime && endTime > 0);
+    if (hasTrimSettings) {
+      console.log('Trim 설정 감지 - 새로운 처리 방식 사용');
+      
+      if (startTime && startTime > 0) {
+        console.log(`Trim 시작 시간: ${startTime}초`);
+        command = command.seekInput(startTime);
+      }
+      
+      if (endTime && endTime > startTime) {
+        const duration = endTime - (startTime || 0);
+        console.log(`Trim 지속 시간: ${duration}초`);
+        command = command.duration(duration);
+      }
+    } else {
+      console.log('Trim 설정 없음 - 기존 처리 방식 사용 (전체 비디오 변환)');
+    }
+    
+    command = command
       .size(`${width}x${height}`)
       .fps(targetFps)
       .videoBitrate(`${targetBitrateK}k`)
@@ -134,10 +162,16 @@ export const convertVideo = onObjectFinalized({
         '-progress', 'pipe:1',
       ]);
 
-    // 예상 용량 계산 (한 번만)
+    // 예상 용량 계산 (trim 적용 시 조정)
+    let actualDuration = duration;
+    if (hasTrimSettings && endTime && startTime) {
+      actualDuration = endTime - startTime;
+      console.log(`Trim 적용으로 실제 변환 시간: ${actualDuration}초 (원본: ${duration}초)`);
+    }
+    
     const baseFrameSize = width * height * 0.1;
     const qualityFactor = (quality / 75) * 0.5;
-    const totalFrames = Math.round(duration * fps);
+    const totalFrames = Math.round(actualDuration * fps);
     const estimatedSize = baseFrameSize * qualityFactor * totalFrames;
 
     // percent 변수를 함수 스코프에 선언
@@ -230,5 +264,72 @@ export const convertVideo = onObjectFinalized({
         error: error.message || 'Unknown error',
       });
     }
+  }
+});
+
+// 매일 00시에 자동으로 오래된 파일들을 삭제하는 스케줄링 함수
+export const cleanupOldFiles = onSchedule({
+  schedule: '0 0 * * *', // 매일 00시
+  region: 'us-west1',
+  timeoutSeconds: 540,
+  memory: '512MiB'
+}, async (event) => {
+  console.log('자동 파일 정리 시작:', new Date().toISOString());
+  
+  try {
+    const bucket = admin.storage().bucket();
+    
+    // original/ 디렉토리의 모든 파일들 삭제
+    console.log('original/ 디렉토리 정리 시작');
+    const [originalFiles] = await bucket.getFiles({
+      prefix: 'original/',
+    });
+    
+    let deletedCount = 0;
+    for (const file of originalFiles) {
+      console.log('원본 파일 삭제:', file.name);
+      await file.delete();
+      deletedCount++;
+    }
+    console.log(`original/ 디렉토리에서 ${deletedCount}개 파일 삭제 완료`);
+    
+    // converted/ 디렉토리의 모든 파일들 삭제
+    console.log('converted/ 디렉토리 정리 시작');
+    const [convertedFiles] = await bucket.getFiles({
+      prefix: 'converted/',
+    });
+    
+    deletedCount = 0;
+    for (const file of convertedFiles) {
+      console.log('변환 파일 삭제:', file.name);
+      await file.delete();
+      deletedCount++;
+    }
+    console.log(`converted/ 디렉토리에서 ${deletedCount}개 파일 삭제 완료`);
+    
+    // Firestore에서 convertRequests 컬렉션의 모든 문서 일괄 삭제
+    console.log('Firestore convertRequests 컬렉션 정리 시작');
+    const allRequests = await admin.firestore()
+      .collection('convertRequests')
+      .limit(500) // 한 번에 최대 500개씩 처리
+      .get();
+    
+    const batch = admin.firestore().batch();
+    let firestoreDeletedCount = 0;
+    
+    allRequests.docs.forEach(doc => {
+      batch.delete(doc.ref);
+      firestoreDeletedCount++;
+    });
+    
+    if (firestoreDeletedCount > 0) {
+      await batch.commit();
+      console.log(`Firestore에서 ${firestoreDeletedCount}개 문서 삭제 완료`);
+    }
+    
+    console.log('자동 파일 정리 완료');
+    
+  } catch (error) {
+    console.error('자동 파일 정리 중 오류 발생:', error);
   }
 });

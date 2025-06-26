@@ -22,16 +22,16 @@ _$ConvertRequestImpl _$$ConvertRequestImplFromJson(Map<String, dynamic> json) =>
     );
 
 Map<String, dynamic> _$$ConvertRequestImplToJson(
-  _$ConvertRequestImpl instance,
-) => <String, dynamic>{
-  'userId': instance.userId,
-  'originalFile': instance.originalFile,
-  'convertedFile': instance.convertedFile,
-  'status': instance.status,
-  'options': instance.options,
-  'createdAt': instance.createdAt?.toIso8601String(),
-  'completedAt': instance.completedAt?.toIso8601String(),
-};
+        _$ConvertRequestImpl instance) =>
+    <String, dynamic>{
+      'userId': instance.userId,
+      'originalFile': instance.originalFile,
+      'convertedFile': instance.convertedFile,
+      'status': instance.status,
+      'options': instance.options,
+      'createdAt': instance.createdAt?.toIso8601String(),
+      'completedAt': instance.completedAt?.toIso8601String(),
+    };
 
 _$ConvertOptionsImpl _$$ConvertOptionsImplFromJson(Map<String, dynamic> json) =>
     _$ConvertOptionsImpl(
@@ -39,13 +39,17 @@ _$ConvertOptionsImpl _$$ConvertOptionsImplFromJson(Map<String, dynamic> json) =>
       quality: (json['quality'] as num).toInt(),
       fps: (json['fps'] as num).toInt(),
       resolution: json['resolution'] as String,
+      startTime: (json['startTime'] as num?)?.toDouble() ?? 0.0,
+      endTime: (json['endTime'] as num?)?.toDouble(),
     );
 
 Map<String, dynamic> _$$ConvertOptionsImplToJson(
-  _$ConvertOptionsImpl instance,
-) => <String, dynamic>{
-  'format': instance.format,
-  'quality': instance.quality,
-  'fps': instance.fps,
-  'resolution': instance.resolution,
-};
+        _$ConvertOptionsImpl instance) =>
+    <String, dynamic>{
+      'format': instance.format,
+      'quality': instance.quality,
+      'fps': instance.fps,
+      'resolution': instance.resolution,
+      'startTime': instance.startTime,
+      'endTime': instance.endTime,
+    };

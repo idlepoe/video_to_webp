@@ -15,7 +15,8 @@ class ConvertRequest with _$ConvertRequest {
     DateTime? completedAt,
   }) = _ConvertRequest;
 
-  factory ConvertRequest.fromJson(Map<String, dynamic> json) => _$ConvertRequestFromJson(json);
+  factory ConvertRequest.fromJson(Map<String, dynamic> json) =>
+      _$ConvertRequestFromJson(json);
 }
 
 @freezed
@@ -25,7 +26,10 @@ class ConvertOptions with _$ConvertOptions {
     required int quality,
     required int fps,
     required String resolution,
+    @Default(0.0) double startTime,
+    double? endTime,
   }) = _ConvertOptions;
 
-  factory ConvertOptions.fromJson(Map<String, dynamic> json) => _$ConvertOptionsFromJson(json);
-} 
+  factory ConvertOptions.fromJson(Map<String, dynamic> json) =>
+      _$ConvertOptionsFromJson(json);
+}

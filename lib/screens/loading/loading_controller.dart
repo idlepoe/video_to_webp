@@ -59,11 +59,17 @@ class LoadingController extends GetxController {
     // 아직 완료/에러가 아니면 실시간 구독 시작
     print('실시간 상태 구독 시작');
     docRef.snapshots().listen((doc) {
-      print('Firestore 문서 스냅샷 수신: exists=[0m${doc.exists}');
+      print('Firestore 문서 스냅샷 수신: exists=${doc.exists}');
       if (!doc.exists) return;
       final data = doc.data();
       final status = data?['status'];
-      progress.value = data?['progress'] ?? 0;
+      final newProgress = data?['progress'] ?? 0;
+
+      // 진행률 업데이트
+      if (newProgress != progress.value) {
+        progress.value = newProgress;
+      }
+
       print('현재 status: $status, progress: ${progress.value}');
       if (status == 'completed') {
         print('변환 완료 감지! 결과 화면 이동');

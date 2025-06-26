@@ -12,8 +12,7 @@ part of 'convert_request.dart';
 T _$identity<T>(T value) => value;
 
 final _privateConstructorUsedError = UnsupportedError(
-  'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models',
-);
+    'It seems like you constructed your class using `MyClass._()`. This constructor is only meant to be used by freezed and you are not supposed to need it nor use it.\nPlease check the documentation here for more information: https://github.com/rrousselGit/freezed#adding-getters-and-methods-to-our-models');
 
 ConvertRequest _$ConvertRequestFromJson(Map<String, dynamic> json) {
   return _ConvertRequest.fromJson(json);
@@ -42,19 +41,17 @@ mixin _$ConvertRequest {
 /// @nodoc
 abstract class $ConvertRequestCopyWith<$Res> {
   factory $ConvertRequestCopyWith(
-    ConvertRequest value,
-    $Res Function(ConvertRequest) then,
-  ) = _$ConvertRequestCopyWithImpl<$Res, ConvertRequest>;
+          ConvertRequest value, $Res Function(ConvertRequest) then) =
+      _$ConvertRequestCopyWithImpl<$Res, ConvertRequest>;
   @useResult
-  $Res call({
-    String userId,
-    String originalFile,
-    String? convertedFile,
-    String status,
-    ConvertOptions options,
-    DateTime? createdAt,
-    DateTime? completedAt,
-  });
+  $Res call(
+      {String userId,
+      String originalFile,
+      String? convertedFile,
+      String status,
+      ConvertOptions options,
+      DateTime? createdAt,
+      DateTime? completedAt});
 
   $ConvertOptionsCopyWith<$Res> get options;
 }
@@ -82,39 +79,36 @@ class _$ConvertRequestCopyWithImpl<$Res, $Val extends ConvertRequest>
     Object? createdAt = freezed,
     Object? completedAt = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            userId: null == userId
-                ? _value.userId
-                : userId // ignore: cast_nullable_to_non_nullable
-                      as String,
-            originalFile: null == originalFile
-                ? _value.originalFile
-                : originalFile // ignore: cast_nullable_to_non_nullable
-                      as String,
-            convertedFile: freezed == convertedFile
-                ? _value.convertedFile
-                : convertedFile // ignore: cast_nullable_to_non_nullable
-                      as String?,
-            status: null == status
-                ? _value.status
-                : status // ignore: cast_nullable_to_non_nullable
-                      as String,
-            options: null == options
-                ? _value.options
-                : options // ignore: cast_nullable_to_non_nullable
-                      as ConvertOptions,
-            createdAt: freezed == createdAt
-                ? _value.createdAt
-                : createdAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-            completedAt: freezed == completedAt
-                ? _value.completedAt
-                : completedAt // ignore: cast_nullable_to_non_nullable
-                      as DateTime?,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      userId: null == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String,
+      originalFile: null == originalFile
+          ? _value.originalFile
+          : originalFile // ignore: cast_nullable_to_non_nullable
+              as String,
+      convertedFile: freezed == convertedFile
+          ? _value.convertedFile
+          : convertedFile // ignore: cast_nullable_to_non_nullable
+              as String?,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
+      options: null == options
+          ? _value.options
+          : options // ignore: cast_nullable_to_non_nullable
+              as ConvertOptions,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      completedAt: freezed == completedAt
+          ? _value.completedAt
+          : completedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+    ) as $Val);
   }
 
   /// Create a copy of ConvertRequest
@@ -131,21 +125,19 @@ class _$ConvertRequestCopyWithImpl<$Res, $Val extends ConvertRequest>
 /// @nodoc
 abstract class _$$ConvertRequestImplCopyWith<$Res>
     implements $ConvertRequestCopyWith<$Res> {
-  factory _$$ConvertRequestImplCopyWith(
-    _$ConvertRequestImpl value,
-    $Res Function(_$ConvertRequestImpl) then,
-  ) = __$$ConvertRequestImplCopyWithImpl<$Res>;
+  factory _$$ConvertRequestImplCopyWith(_$ConvertRequestImpl value,
+          $Res Function(_$ConvertRequestImpl) then) =
+      __$$ConvertRequestImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({
-    String userId,
-    String originalFile,
-    String? convertedFile,
-    String status,
-    ConvertOptions options,
-    DateTime? createdAt,
-    DateTime? completedAt,
-  });
+  $Res call(
+      {String userId,
+      String originalFile,
+      String? convertedFile,
+      String status,
+      ConvertOptions options,
+      DateTime? createdAt,
+      DateTime? completedAt});
 
   @override
   $ConvertOptionsCopyWith<$Res> get options;
@@ -156,9 +148,8 @@ class __$$ConvertRequestImplCopyWithImpl<$Res>
     extends _$ConvertRequestCopyWithImpl<$Res, _$ConvertRequestImpl>
     implements _$$ConvertRequestImplCopyWith<$Res> {
   __$$ConvertRequestImplCopyWithImpl(
-    _$ConvertRequestImpl _value,
-    $Res Function(_$ConvertRequestImpl) _then,
-  ) : super(_value, _then);
+      _$ConvertRequestImpl _value, $Res Function(_$ConvertRequestImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of ConvertRequest
   /// with the given fields replaced by the non-null parameter values.
@@ -173,53 +164,50 @@ class __$$ConvertRequestImplCopyWithImpl<$Res>
     Object? createdAt = freezed,
     Object? completedAt = freezed,
   }) {
-    return _then(
-      _$ConvertRequestImpl(
-        userId: null == userId
-            ? _value.userId
-            : userId // ignore: cast_nullable_to_non_nullable
-                  as String,
-        originalFile: null == originalFile
-            ? _value.originalFile
-            : originalFile // ignore: cast_nullable_to_non_nullable
-                  as String,
-        convertedFile: freezed == convertedFile
-            ? _value.convertedFile
-            : convertedFile // ignore: cast_nullable_to_non_nullable
-                  as String?,
-        status: null == status
-            ? _value.status
-            : status // ignore: cast_nullable_to_non_nullable
-                  as String,
-        options: null == options
-            ? _value.options
-            : options // ignore: cast_nullable_to_non_nullable
-                  as ConvertOptions,
-        createdAt: freezed == createdAt
-            ? _value.createdAt
-            : createdAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-        completedAt: freezed == completedAt
-            ? _value.completedAt
-            : completedAt // ignore: cast_nullable_to_non_nullable
-                  as DateTime?,
-      ),
-    );
+    return _then(_$ConvertRequestImpl(
+      userId: null == userId
+          ? _value.userId
+          : userId // ignore: cast_nullable_to_non_nullable
+              as String,
+      originalFile: null == originalFile
+          ? _value.originalFile
+          : originalFile // ignore: cast_nullable_to_non_nullable
+              as String,
+      convertedFile: freezed == convertedFile
+          ? _value.convertedFile
+          : convertedFile // ignore: cast_nullable_to_non_nullable
+              as String?,
+      status: null == status
+          ? _value.status
+          : status // ignore: cast_nullable_to_non_nullable
+              as String,
+      options: null == options
+          ? _value.options
+          : options // ignore: cast_nullable_to_non_nullable
+              as ConvertOptions,
+      createdAt: freezed == createdAt
+          ? _value.createdAt
+          : createdAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+      completedAt: freezed == completedAt
+          ? _value.completedAt
+          : completedAt // ignore: cast_nullable_to_non_nullable
+              as DateTime?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ConvertRequestImpl implements _ConvertRequest {
-  const _$ConvertRequestImpl({
-    required this.userId,
-    required this.originalFile,
-    this.convertedFile,
-    this.status = 'pending',
-    required this.options,
-    this.createdAt,
-    this.completedAt,
-  });
+  const _$ConvertRequestImpl(
+      {required this.userId,
+      required this.originalFile,
+      this.convertedFile,
+      this.status = 'pending',
+      required this.options,
+      this.createdAt,
+      this.completedAt});
 
   factory _$ConvertRequestImpl.fromJson(Map<String, dynamic> json) =>
       _$$ConvertRequestImplFromJson(json);
@@ -265,16 +253,8 @@ class _$ConvertRequestImpl implements _ConvertRequest {
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode => Object.hash(
-    runtimeType,
-    userId,
-    originalFile,
-    convertedFile,
-    status,
-    options,
-    createdAt,
-    completedAt,
-  );
+  int get hashCode => Object.hash(runtimeType, userId, originalFile,
+      convertedFile, status, options, createdAt, completedAt);
 
   /// Create a copy of ConvertRequest
   /// with the given fields replaced by the non-null parameter values.
@@ -283,26 +263,25 @@ class _$ConvertRequestImpl implements _ConvertRequest {
   @pragma('vm:prefer-inline')
   _$$ConvertRequestImplCopyWith<_$ConvertRequestImpl> get copyWith =>
       __$$ConvertRequestImplCopyWithImpl<_$ConvertRequestImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ConvertRequestImplToJson(this);
+    return _$$ConvertRequestImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ConvertRequest implements ConvertRequest {
-  const factory _ConvertRequest({
-    required final String userId,
-    required final String originalFile,
-    final String? convertedFile,
-    final String status,
-    required final ConvertOptions options,
-    final DateTime? createdAt,
-    final DateTime? completedAt,
-  }) = _$ConvertRequestImpl;
+  const factory _ConvertRequest(
+      {required final String userId,
+      required final String originalFile,
+      final String? convertedFile,
+      final String status,
+      required final ConvertOptions options,
+      final DateTime? createdAt,
+      final DateTime? completedAt}) = _$ConvertRequestImpl;
 
   factory _ConvertRequest.fromJson(Map<String, dynamic> json) =
       _$ConvertRequestImpl.fromJson;
@@ -340,6 +319,8 @@ mixin _$ConvertOptions {
   int get quality => throw _privateConstructorUsedError;
   int get fps => throw _privateConstructorUsedError;
   String get resolution => throw _privateConstructorUsedError;
+  double get startTime => throw _privateConstructorUsedError;
+  double? get endTime => throw _privateConstructorUsedError;
 
   /// Serializes this ConvertOptions to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -354,11 +335,16 @@ mixin _$ConvertOptions {
 /// @nodoc
 abstract class $ConvertOptionsCopyWith<$Res> {
   factory $ConvertOptionsCopyWith(
-    ConvertOptions value,
-    $Res Function(ConvertOptions) then,
-  ) = _$ConvertOptionsCopyWithImpl<$Res, ConvertOptions>;
+          ConvertOptions value, $Res Function(ConvertOptions) then) =
+      _$ConvertOptionsCopyWithImpl<$Res, ConvertOptions>;
   @useResult
-  $Res call({String format, int quality, int fps, String resolution});
+  $Res call(
+      {String format,
+      int quality,
+      int fps,
+      String resolution,
+      double startTime,
+      double? endTime});
 }
 
 /// @nodoc
@@ -380,41 +366,53 @@ class _$ConvertOptionsCopyWithImpl<$Res, $Val extends ConvertOptions>
     Object? quality = null,
     Object? fps = null,
     Object? resolution = null,
+    Object? startTime = null,
+    Object? endTime = freezed,
   }) {
-    return _then(
-      _value.copyWith(
-            format: null == format
-                ? _value.format
-                : format // ignore: cast_nullable_to_non_nullable
-                      as String,
-            quality: null == quality
-                ? _value.quality
-                : quality // ignore: cast_nullable_to_non_nullable
-                      as int,
-            fps: null == fps
-                ? _value.fps
-                : fps // ignore: cast_nullable_to_non_nullable
-                      as int,
-            resolution: null == resolution
-                ? _value.resolution
-                : resolution // ignore: cast_nullable_to_non_nullable
-                      as String,
-          )
-          as $Val,
-    );
+    return _then(_value.copyWith(
+      format: null == format
+          ? _value.format
+          : format // ignore: cast_nullable_to_non_nullable
+              as String,
+      quality: null == quality
+          ? _value.quality
+          : quality // ignore: cast_nullable_to_non_nullable
+              as int,
+      fps: null == fps
+          ? _value.fps
+          : fps // ignore: cast_nullable_to_non_nullable
+              as int,
+      resolution: null == resolution
+          ? _value.resolution
+          : resolution // ignore: cast_nullable_to_non_nullable
+              as String,
+      startTime: null == startTime
+          ? _value.startTime
+          : startTime // ignore: cast_nullable_to_non_nullable
+              as double,
+      endTime: freezed == endTime
+          ? _value.endTime
+          : endTime // ignore: cast_nullable_to_non_nullable
+              as double?,
+    ) as $Val);
   }
 }
 
 /// @nodoc
 abstract class _$$ConvertOptionsImplCopyWith<$Res>
     implements $ConvertOptionsCopyWith<$Res> {
-  factory _$$ConvertOptionsImplCopyWith(
-    _$ConvertOptionsImpl value,
-    $Res Function(_$ConvertOptionsImpl) then,
-  ) = __$$ConvertOptionsImplCopyWithImpl<$Res>;
+  factory _$$ConvertOptionsImplCopyWith(_$ConvertOptionsImpl value,
+          $Res Function(_$ConvertOptionsImpl) then) =
+      __$$ConvertOptionsImplCopyWithImpl<$Res>;
   @override
   @useResult
-  $Res call({String format, int quality, int fps, String resolution});
+  $Res call(
+      {String format,
+      int quality,
+      int fps,
+      String resolution,
+      double startTime,
+      double? endTime});
 }
 
 /// @nodoc
@@ -422,9 +420,8 @@ class __$$ConvertOptionsImplCopyWithImpl<$Res>
     extends _$ConvertOptionsCopyWithImpl<$Res, _$ConvertOptionsImpl>
     implements _$$ConvertOptionsImplCopyWith<$Res> {
   __$$ConvertOptionsImplCopyWithImpl(
-    _$ConvertOptionsImpl _value,
-    $Res Function(_$ConvertOptionsImpl) _then,
-  ) : super(_value, _then);
+      _$ConvertOptionsImpl _value, $Res Function(_$ConvertOptionsImpl) _then)
+      : super(_value, _then);
 
   /// Create a copy of ConvertOptions
   /// with the given fields replaced by the non-null parameter values.
@@ -435,39 +432,48 @@ class __$$ConvertOptionsImplCopyWithImpl<$Res>
     Object? quality = null,
     Object? fps = null,
     Object? resolution = null,
+    Object? startTime = null,
+    Object? endTime = freezed,
   }) {
-    return _then(
-      _$ConvertOptionsImpl(
-        format: null == format
-            ? _value.format
-            : format // ignore: cast_nullable_to_non_nullable
-                  as String,
-        quality: null == quality
-            ? _value.quality
-            : quality // ignore: cast_nullable_to_non_nullable
-                  as int,
-        fps: null == fps
-            ? _value.fps
-            : fps // ignore: cast_nullable_to_non_nullable
-                  as int,
-        resolution: null == resolution
-            ? _value.resolution
-            : resolution // ignore: cast_nullable_to_non_nullable
-                  as String,
-      ),
-    );
+    return _then(_$ConvertOptionsImpl(
+      format: null == format
+          ? _value.format
+          : format // ignore: cast_nullable_to_non_nullable
+              as String,
+      quality: null == quality
+          ? _value.quality
+          : quality // ignore: cast_nullable_to_non_nullable
+              as int,
+      fps: null == fps
+          ? _value.fps
+          : fps // ignore: cast_nullable_to_non_nullable
+              as int,
+      resolution: null == resolution
+          ? _value.resolution
+          : resolution // ignore: cast_nullable_to_non_nullable
+              as String,
+      startTime: null == startTime
+          ? _value.startTime
+          : startTime // ignore: cast_nullable_to_non_nullable
+              as double,
+      endTime: freezed == endTime
+          ? _value.endTime
+          : endTime // ignore: cast_nullable_to_non_nullable
+              as double?,
+    ));
   }
 }
 
 /// @nodoc
 @JsonSerializable()
 class _$ConvertOptionsImpl implements _ConvertOptions {
-  const _$ConvertOptionsImpl({
-    required this.format,
-    required this.quality,
-    required this.fps,
-    required this.resolution,
-  });
+  const _$ConvertOptionsImpl(
+      {required this.format,
+      required this.quality,
+      required this.fps,
+      required this.resolution,
+      this.startTime = 0.0,
+      this.endTime});
 
   factory _$ConvertOptionsImpl.fromJson(Map<String, dynamic> json) =>
       _$$ConvertOptionsImplFromJson(json);
@@ -480,10 +486,15 @@ class _$ConvertOptionsImpl implements _ConvertOptions {
   final int fps;
   @override
   final String resolution;
+  @override
+  @JsonKey()
+  final double startTime;
+  @override
+  final double? endTime;
 
   @override
   String toString() {
-    return 'ConvertOptions(format: $format, quality: $quality, fps: $fps, resolution: $resolution)';
+    return 'ConvertOptions(format: $format, quality: $quality, fps: $fps, resolution: $resolution, startTime: $startTime, endTime: $endTime)';
   }
 
   @override
@@ -495,13 +506,16 @@ class _$ConvertOptionsImpl implements _ConvertOptions {
             (identical(other.quality, quality) || other.quality == quality) &&
             (identical(other.fps, fps) || other.fps == fps) &&
             (identical(other.resolution, resolution) ||
-                other.resolution == resolution));
+                other.resolution == resolution) &&
+            (identical(other.startTime, startTime) ||
+                other.startTime == startTime) &&
+            (identical(other.endTime, endTime) || other.endTime == endTime));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
-  int get hashCode =>
-      Object.hash(runtimeType, format, quality, fps, resolution);
+  int get hashCode => Object.hash(
+      runtimeType, format, quality, fps, resolution, startTime, endTime);
 
   /// Create a copy of ConvertOptions
   /// with the given fields replaced by the non-null parameter values.
@@ -510,23 +524,24 @@ class _$ConvertOptionsImpl implements _ConvertOptions {
   @pragma('vm:prefer-inline')
   _$$ConvertOptionsImplCopyWith<_$ConvertOptionsImpl> get copyWith =>
       __$$ConvertOptionsImplCopyWithImpl<_$ConvertOptionsImpl>(
-        this,
-        _$identity,
-      );
+          this, _$identity);
 
   @override
   Map<String, dynamic> toJson() {
-    return _$$ConvertOptionsImplToJson(this);
+    return _$$ConvertOptionsImplToJson(
+      this,
+    );
   }
 }
 
 abstract class _ConvertOptions implements ConvertOptions {
-  const factory _ConvertOptions({
-    required final String format,
-    required final int quality,
-    required final int fps,
-    required final String resolution,
-  }) = _$ConvertOptionsImpl;
+  const factory _ConvertOptions(
+      {required final String format,
+      required final int quality,
+      required final int fps,
+      required final String resolution,
+      final double startTime,
+      final double? endTime}) = _$ConvertOptionsImpl;
 
   factory _ConvertOptions.fromJson(Map<String, dynamic> json) =
       _$ConvertOptionsImpl.fromJson;
@@ -539,6 +554,10 @@ abstract class _ConvertOptions implements ConvertOptions {
   int get fps;
   @override
   String get resolution;
+  @override
+  double get startTime;
+  @override
+  double? get endTime;
 
   /// Create a copy of ConvertOptions
   /// with the given fields replaced by the non-null parameter values.

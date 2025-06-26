@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:video_to_webp/firebase_options.dart';
 import 'package:video_to_webp/screens/convert_complete/convert_complete_screen.dart';
+import 'package:video_to_webp/screens/privacy/privacy_consent_screen.dart';
 import 'routes/app_routes.dart';
 import 'screens/splash/splash_screen.dart';
 import 'screens/file_select/file_select_screen.dart';
@@ -47,6 +48,7 @@ class MyApp extends StatelessWidget {
       initialRoute: AppRoutes.splash,
       getPages: [
         GetPage(name: AppRoutes.splash, page: () => SplashScreen()),
+        GetPage(name: AppRoutes.privacy, page: () => PrivacyConsentScreen()),
         GetPage(name: AppRoutes.fileSelect, page: () => FileSelectScreen()),
         GetPage(name: AppRoutes.loading, page: () => LoadingScreen()),
         GetPage(name: AppRoutes.complete, page: () => ConvertCompleteScreen()),

@@ -6,6 +6,7 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter/material.dart';
 import '../../models/convert_request.dart';
 import '../../routes/app_routes.dart';
 import '../loading/loading_controller.dart';
@@ -22,6 +23,10 @@ class FileSelectController extends GetxController {
   final RxBool isInitialized = false.obs;
   final RxDouble uploadPercent = 0.0.obs;
   final RxBool isUploading = false.obs;
+
+  // Trim 설정
+  final RxDouble trimStartTime = 0.0.obs;
+  final Rx<double?> trimEndTime = Rx<double?>(null);
 
   @override
   void onReady() {
@@ -54,12 +59,18 @@ class FileSelectController extends GetxController {
       final XFile? file = await _picker.pickVideo(source: ImageSource.gallery);
       if (file != null) {
         final fileSize = File(file.path).lengthSync();
-        if (fileSize >= 20 * 1024 * 1024) {
-          CommonSnackBar.warn('Warning'.tr,
-              'Only videos smaller than 20MB can be uploaded.'.tr);
+        final fileSizeMB = fileSize / (1024 * 1024);
+
+        // 20MB 제한 적용
+        if (fileSizeMB > 20) {
+          CommonSnackBar.error(
+              'Error'.tr,
+              'Videos larger than 20MB cannot be processed due to processing costs. Please select a smaller video.'
+                  .tr);
           return;
         }
-        print('비디오 파일 선택됨: ${file.path}');
+
+        print('비디오 파일 선택됨: ${file.path} (${fileSizeMB.toStringAsFixed(1)}MB)');
         videoFile.value = file;
         await _initVideoPlayer(file);
       }
@@ -84,6 +95,13 @@ class FileSelectController extends GetxController {
     } catch (e) {
       print('비디오 플레이어 초기화 중 오류 발생: $e');
     }
+  }
+
+  // Trim 설정 업데이트
+  void updateTrimSettings(double startTime, double? endTime) {
+    trimStartTime.value = startTime;
+    trimEndTime.value = endTime;
+    print('Trim 설정 업데이트: 시작=${startTime}초, 끝=${endTime}초');
   }
 
   Future<void> uploadAndRequestConvert(ConvertOptions options) async {
@@ -205,19 +223,26 @@ class FileSelectController extends GetxController {
   Future<Map<String, dynamic>> loadConvertSettings() async {
     try {
       final prefs = await SharedPreferences.getInstance();
+
+      // 첫 사용인지 확인 (해상도 설정이 저장되어 있지 않으면 첫 사용)
+      final isFirstUse = !prefs.containsKey('convert_resolution');
+
       return {
-        'selectedResolution': prefs.getInt('convert_resolution') ?? 0,
+        'selectedResolution': prefs.getInt('convert_resolution') ??
+            (isFirstUse ? -1 : 0), // -1은 480p 찾기 신호
         'fps': prefs.getDouble('convert_fps') ?? 30.0,
         'quality': prefs.getDouble('convert_quality') ?? 75.0,
         'format': prefs.getString('convert_format') ?? 'webp',
+        'isFirstUse': isFirstUse,
       };
     } catch (e) {
       print('변환 설정 불러오기 중 오류: $e');
       return {
-        'selectedResolution': 0,
+        'selectedResolution': -1, // 첫 사용으로 간주하여 480p 찾기
         'fps': 30.0,
         'quality': 75.0,
         'format': 'webp',
+        'isFirstUse': true,
       };
     }
   }
