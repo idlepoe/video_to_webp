@@ -10,7 +10,7 @@ Flutter + Firebase 기반으로 제작되었으며, 상태관리는 GetX, OTA �
 
 ## 🌐 공식 서비스
 
-- 📱 Google Play: [VideoToWebp 앱 설치하기](https://play.google.com/store/apps/details?id=com.jylee.video_to_webp) - 미정
+- 📱 Google Play: [VideoToWebp 앱 설치하기](https://play.google.com/store/apps/details?id=com.jylee.video_to_webp)
 
 ---
 

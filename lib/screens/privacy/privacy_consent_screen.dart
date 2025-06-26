@@ -117,27 +117,34 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                 child: Column(
                   children: [
                     // 이용약관 동의
-                    Row(
-                      children: [
-                        Checkbox(
-                          value: _termsAccepted,
-                          onChanged: (value) {
-                            setState(() {
-                              _termsAccepted = value ?? false;
-                            });
-                          },
-                          activeColor: const Color(0xFF4CAF50),
-                        ),
-                        Expanded(
-                          child: Text(
-                            'terms_agreement'.tr,
-                            style: const TextStyle(
-                              fontSize: 14,
-                              color: Color(0xFF333333),
+                    GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          _termsAccepted = !_termsAccepted;
+                        });
+                      },
+                      child: Row(
+                        children: [
+                          Checkbox(
+                            value: _termsAccepted,
+                            onChanged: (value) {
+                              setState(() {
+                                _termsAccepted = value ?? false;
+                              });
+                            },
+                            activeColor: const Color(0xFF4CAF50),
+                          ),
+                          Expanded(
+                            child: Text(
+                              'terms_agreement'.tr,
+                              style: const TextStyle(
+                                fontSize: 14,
+                                color: Color(0xFF333333),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
 
                     // 개인정보 처리방침 동의
@@ -227,10 +234,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
         return AlertDialog(
           title: Text('privacy_policy_title'.tr),
           content: SingleChildScrollView(
-            child: Text(
-              'privacy_policy_content'.tr,
-              style: const TextStyle(height: 1.5),
-            ),
+            child: _buildPrivacyPolicyContent(),
           ),
           actions: [
             TextButton(
@@ -241,6 +245,60 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
         );
       },
     );
+  }
+
+  Widget _buildPrivacyPolicyContent() {
+    final content = 'privacy_policy_content'.tr;
+    final emailAddress = 'idlepoe@gmail.com';
+    final parts = content.split(emailAddress);
+
+    return RichText(
+      text: TextSpan(
+        style: const TextStyle(
+          height: 1.5,
+          color: Colors.black,
+          fontSize: 14,
+        ),
+        children: [
+          if (parts.isNotEmpty) TextSpan(text: parts[0]),
+          if (parts.length > 1) ...[
+            WidgetSpan(
+              child: GestureDetector(
+                onTap: () => _launchEmail(emailAddress),
+                child: Text(
+                  emailAddress,
+                  style: const TextStyle(
+                    color: Color(0xFF4CAF50),
+                    decoration: TextDecoration.underline,
+                    fontSize: 14,
+                  ),
+                ),
+              ),
+            ),
+            if (parts.length > 1) TextSpan(text: parts[1]),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Future<void> _launchEmail(String email) async {
+    final Uri emailUri = Uri(
+      scheme: 'mailto',
+      path: email,
+      query: 'subject=VideoToWebp 문의',
+    );
+
+    try {
+      await launchUrl(emailUri);
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('메일 앱을 열 수 없습니다. $email로 직접 문의해주세요.'),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
   }
 
   Future<void> _acceptAndContinue() async {

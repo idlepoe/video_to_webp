@@ -33,8 +33,7 @@ class ConvertCompleteController extends GetxController {
   void _startAutoDownload() {
     // 다운로드 URL이 있으면 자동으로 다운로드 시작
     if (downloadUrl.value.isNotEmpty) {
-      CommonSnackBar.info(
-          'Auto Download'.tr, 'Starting automatic download...'.tr);
+      CommonSnackBar.info('auto_download'.tr, 'starting_download'.tr);
       downloadFile();
     }
   }
@@ -42,7 +41,7 @@ class ConvertCompleteController extends GetxController {
   Future<void> downloadFile() async {
     final url = downloadUrl.value;
     if (url == null || url.isEmpty) {
-      CommonSnackBar.warn('Warning'.tr, 'No download link available.'.tr);
+      CommonSnackBar.warn('warning'.tr, 'no_download_link'.tr);
       return;
     }
 
@@ -52,13 +51,12 @@ class ConvertCompleteController extends GetxController {
       final bool? success = await GallerySaver.saveImage(url);
       if (success == true) {
         downloadCompleted.value = true;
-        CommonSnackBar.success('Success'.tr, 'Saved to gallery.'.tr);
+        CommonSnackBar.success('success'.tr, 'saved_to_gallery'.tr);
       } else {
-        CommonSnackBar.error('Failure'.tr, 'Failed to save to gallery.'.tr);
+        CommonSnackBar.error('failure'.tr, 'failed_to_save'.tr);
       }
     } catch (e) {
-      CommonSnackBar.error(
-          'Error'.tr, 'An error occurred during download: $e'.tr);
+      CommonSnackBar.error('error'.tr, '${'download_error'.tr}${e.toString()}');
     } finally {
       isDownloading.value = false;
     }
@@ -67,7 +65,7 @@ class ConvertCompleteController extends GetxController {
   Future<void> openInBrowser() async {
     final url = downloadUrl.value;
     if (url.isEmpty) {
-      CommonSnackBar.warn('Warning'.tr, 'No download link available.'.tr);
+      CommonSnackBar.warn('warning'.tr, 'no_download_link'.tr);
       return;
     }
 
@@ -77,10 +75,10 @@ class ConvertCompleteController extends GetxController {
         uri,
         mode: LaunchMode.externalApplication,
       );
-      CommonSnackBar.info(
-          'Browser'.tr, 'Opening download link in browser...'.tr);
+      CommonSnackBar.info('browser'.tr, 'opening_browser'.tr);
     } catch (e) {
-      CommonSnackBar.error('Error'.tr, 'Failed to open browser: $e'.tr);
+      CommonSnackBar.error(
+          'error'.tr, '${'browser_open_error'.tr}${e.toString()}');
     }
   }
 }

@@ -47,13 +47,13 @@ class AppTranslations extends Translations {
               'Please review the following information before using our video to WebP animation conversion service.',
           'data_processing_info': 'Data Processing Information',
           'data_processing_details':
-              '• Your selected video will be temporarily uploaded to our servers for conversion\n• Original videos are automatically deleted within 24 hours after conversion\n• Converted WebP files are deleted from servers after download\n• No personal information is collected and all processing is anonymous',
+              '• Your selected video will be temporarily uploaded to our servers for conversion\n• Original videos are automatically deleted within 24 hours after conversion\n• No personal information is collected and all processing is anonymous',
           'terms_agreement': 'I agree to the Terms of Service',
           'privacy_agreement': 'I agree to the Privacy Policy',
           'view_privacy_policy': 'View Privacy Policy',
           'privacy_policy_title': 'Privacy Policy',
           'privacy_policy_content':
-              'The VideoToWebp app prioritizes user privacy protection.\n\n1. Information Collected\n• No personal information is collected\n• Video files are used temporarily only for conversion purposes\n\n2. Purpose of Information Use\n• Providing video to WebP format conversion services\n• Not used for any other purposes\n\n3. Information Retention Period\n• Automatically deleted within 24 hours after conversion\n• All files are deleted daily at 00:00\n\n4. Information Sharing\n• Not shared with third parties\n• Only provided when legally required\n\n5. Security\n• Secure transmission through SSL encryption\n• Protected through access restrictions\n\nContact: idlepoe@gmail.com',
+              'The VideoToWebp app prioritizes user privacy protection.\n\n1. Information Collected\n• No personal information is collected\n• Video files are used temporarily only for conversion purposes\n\n2. Purpose of Information Use\n• Providing video to WebP format conversion services\n• Not used for any other purposes\n\n3. Information Retention Period\n• Automatically deleted within 24 hours after conversion\n• All files are deleted daily at 00:00\n\n4. Information Sharing\n• Not shared with third parties\n• Only provided when legally required\n\nContact: idlepoe@gmail.com',
 
           // File Size & Limits
           'privacy_file_limits': 'Privacy & File Limits',
@@ -171,13 +171,13 @@ class AppTranslations extends Translations {
               '비디오를 WebP 애니메이션으로 변환하는 서비스를 이용하기 전에 다음 사항을 확인해주세요.',
           'data_processing_info': '데이터 처리 안내',
           'data_processing_details':
-              '• 선택하신 비디오는 변환을 위해 임시로 서버에 업로드됩니다\n• 변환 완료 후 원본 비디오는 최대 24시간 이내에 자동으로 삭제됩니다\n• 변환된 WebP 파일은 다운로드 후 서버에서 삭제됩니다\n• 개인정보는 수집하지 않으며, 익명으로 처리됩니다',
+              '• 선택하신 비디오는 변환을 위해 임시로 서버에 업로드됩니다\n• 변환 완료 후 원본 비디오는 최대 24시간 이내에 자동으로 삭제됩니다\n• 개인정보는 수집하지 않으며, 익명으로 처리됩니다',
           'terms_agreement': '서비스 이용약관에 동의합니다',
           'privacy_agreement': '개인정보 처리방침에 동의합니다',
           'view_privacy_policy': '개인정보 처리방침 보기',
           'privacy_policy_title': '개인정보 처리방침',
           'privacy_policy_content':
-              'VideoToWebp 앱은 사용자의 개인정보 보호를 최우선으로 합니다.\n\n1. 수집하는 정보\n• 개인정보를 수집하지 않습니다\n• 비디오 파일은 변환 목적으로만 임시 사용됩니다\n\n2. 정보 사용 목적\n• 비디오를 WebP 형식으로 변환하는 서비스 제공\n• 기타 목적으로는 사용하지 않습니다\n\n3. 정보 보관 기간\n• 변환 완료 후 최대 24시간 이내 자동 삭제\n• 매일 00시에 모든 파일 일괄 삭제\n\n4. 정보 공유\n• 제3자와 공유하지 않습니다\n• 법적 요구사항이 있는 경우에만 제공\n\n5. 보안\n• SSL 암호화를 통한 안전한 전송\n• 접근 권한 제한으로 보호\n\n문의: idlepoe@gmail.com',
+              'VideoToWebp 앱은 사용자의 개인정보 보호를 최우선으로 합니다.\n\n1. 수집하는 정보\n• 개인정보를 수집하지 않습니다\n• 비디오 파일은 변환 목적으로만 임시 사용됩니다\n\n2. 정보 사용 목적\n• 비디오를 WebP 형식으로 변환하는 서비스 제공\n• 기타 목적으로는 사용하지 않습니다\n\n3. 정보 보관 기간\n• 변환 완료 후 최대 24시간 이내 자동 삭제\n• 매일 00시에 모든 파일 일괄 삭제\n\n4. 정보 공유\n• 제3자와 공유하지 않습니다\n• 법적 요구사항이 있는 경우에만 제공\n\n문의: idlepoe@gmail.com',
 
           // File Size & Limits
           'privacy_file_limits': '개인정보 보호 및 파일 제한',
