@@ -79,14 +79,6 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
               isUploading: controller.isUploading.value,
               uploadPercent: controller.uploadPercent.value,
               onConvert: (options) async {
-                // 설정 저장
-                await controller.saveConvertSettings(
-                  selectedResolution: 0, // 다이얼로그에서 처리
-                  fps: options.fps.toDouble(),
-                  quality: options.quality.toDouble(),
-                  format: options.format,
-                );
-
                 controller.uploadAndRequestConvert(options);
               },
             ));

@@ -117,8 +117,11 @@ export const convertVideo = onObjectFinalized({
     const { bitrate: originalBitrate, fps: originalFps } = await getBitrateAndFps(inputPath);
     console.log('원본 비트레이트:', originalBitrate, '원본 FPS:', originalFps);
     const qualityPercent = typeof quality === 'number' ? quality : parseInt(quality, 10); // 1~100
-    let targetBitrate = Math.round(originalBitrate * (qualityPercent / 100)); // bps
-    let targetBitrateK = Math.max(Math.round(targetBitrate / 1000), 200); // 최소 200k
+    
+    // 비트레이트 계산 (qualityPercent는 영향 X, 100% 고정)
+    let targetBitrate = originalBitrate; // qualityPercent 반영하지 않음
+    const minBitrateK = Math.max(Math.round((width * height) / 1000), 200); // 해상도 기반 최소값
+    let targetBitrateK = Math.max(Math.round(targetBitrate / 1000), minBitrateK);
     console.log('적용 변환 비트레이트:', targetBitrateK + 'k');
 
     // 변환 옵션의 fps가 원본보다 높으면 원본 fps로 강제
@@ -133,7 +136,7 @@ export const convertVideo = onObjectFinalized({
     console.log('FFmpeg 변환 시작');
     let command = ffmpeg(inputPath);
     
-    // Trim 설정이 있으면 적용 (새로운 기능)
+    // Trim 설정이 있으면 적용
     const hasTrimSettings = (startTime && startTime > 0) || (endTime && endTime > 0);
     if (hasTrimSettings) {
       console.log('Trim 설정 감지 - 새로운 처리 방식 사용');
@@ -148,18 +151,18 @@ export const convertVideo = onObjectFinalized({
         console.log(`Trim 지속 시간: ${duration}초`);
         command = command.duration(duration);
       }
-    } else {
-      console.log('Trim 설정 없음 - 기존 처리 방식 사용 (전체 비디오 변환)');
     }
-    
+
+    // FFmpeg 옵션 설정 (qualityPercent만 -quality에 반영)
     command = command
-      .size(`${width}x${height}`)
       .fps(targetFps)
       .videoBitrate(`${targetBitrateK}k`)
       .format(ffmpegFormat)
       .addOutputOptions([
         '-loop 0',
         '-progress', 'pipe:1',
+        `-quality ${qualityPercent}`,
+        `-vf scale=${width}:${height}`
       ]);
 
     // 예상 용량 계산 (trim 적용 시 조정)

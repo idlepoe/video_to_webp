@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'dart:io';
 import '../../../models/convert_request.dart';
 import '../file_select_controller.dart';
+import 'dart:math';
 
 class ConvertOptionsDialog extends StatefulWidget {
   final int originalWidth;
@@ -100,31 +101,10 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
     quality = widget.savedSettings['quality'] as double;
     selectedFormat = widget.savedSettings['format'] as String;
 
-    // 첫 사용인 경우 480p를 기본값으로 설정
-    if (selectedResolution == -1) {
-      selectedResolution = _find480pIndex();
+    // 저장된 해상도가 현재 비디오의 해상도 옵션에서 사용할 수 없는 경우 원본으로 설정
+    if (selectedResolution < 0 || selectedResolution >= resolutions.length) {
+      selectedResolution = 0; // 원본 해상도 선택
     }
-
-    // 해상도 인덱스가 현재 비디오의 해상도 옵션 수를 초과하면 0으로 초기화
-    if (selectedResolution >= resolutions.length) {
-      selectedResolution = 0;
-    }
-  }
-
-  // 480p 해상도의 인덱스를 찾는 메서드
-  int _find480pIndex() {
-    for (int i = 0; i < resolutions.length; i++) {
-      final height = resolutions[i]['height'] as int;
-      if (height == 480) {
-        return i;
-      }
-    }
-    // 480p가 없으면 원본보다 작은 해상도 중 가장 큰 것을 선택
-    for (int i = 1; i < resolutions.length; i++) {
-      return i;
-    }
-    // 그래도 없으면 원본 해상도 선택
-    return 0;
   }
 
   String _calculateEstimatedSize() {
@@ -134,11 +114,53 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
     int width = resolutions[selectedResolution]['width'];
     int height = resolutions[selectedResolution]['height'];
 
-    // 애니메이션 WebP 용량 계산
-    double baseFrameSize = width * height * 0.1;
-    double qualityFactor = (quality / 75) * 0.5;
-    int totalFrames = (duration * fps).round();
-    double estimatedSize = baseFrameSize * qualityFactor * totalFrames;
+    // 원본 파일 크기
+    double originalSize = File(widget.videoFilePath).lengthSync().toDouble();
+    print('원본 크기: ${originalSize / (1024 * 1024)}MB');
+
+    // quality에 따른 크기 배율 계산
+    double qualityMultiplier;
+    if (quality >= 99) {
+      // 99-100 구간: 약 8-8.15배
+      qualityMultiplier = 8.0 + ((quality - 99) * 0.15);
+    } else if (quality >= 90) {
+      // 90-98 구간: 3.24-8배로 선형 증가
+      qualityMultiplier = 3.24 + ((quality - 90) * (8.0 - 3.24) / 9);
+    } else if (quality >= 50) {
+      // 50-89 구간: 1.03-3.24배로 선형 증가
+      qualityMultiplier = 1.03 + ((quality - 50) * (3.24 - 1.03) / 40);
+    } else {
+      // 50 미만: 1.03배에서 선형 감소
+      qualityMultiplier = (quality / 50) * 1.03;
+    }
+    print('품질 배율 (quality: ${quality.round()}): $qualityMultiplier');
+
+    // 해상도 비율에 따른 조정 (기준: 540x720)
+    double baseWidth = 540.0;
+    double baseHeight = 720.0;
+    double resolutionRatio = sqrt((width * height) / (baseWidth * baseHeight));
+    // 해상도 비율의 제곱근을 사용하여 실제 크기 증가 반영
+    double resolutionMultiplier = pow(resolutionRatio, 1.5).toDouble();
+    print(
+        '해상도 비율 ($width x $height -> ${baseWidth.round()} x ${baseHeight.round()}): $resolutionRatio');
+    print('해상도 배율: $resolutionMultiplier');
+
+    // FPS에 따른 조정 (기준 30fps)
+    double fpsRatio = fps / 30.0;
+    print('FPS 비율 (${fps.round()}fps): $fpsRatio');
+
+    // 최종 예상 크기 계산
+    double estimatedSize =
+        originalSize * qualityMultiplier * resolutionMultiplier * fpsRatio;
+    print('예상 크기: ${estimatedSize / (1024 * 1024)}MB');
+
+    if (estimatedSize <= 0) {
+      print('계산된 크기가 0 이하입니다. 계산 과정 확인 필요');
+      print('- originalSize: $originalSize');
+      print('- qualityMultiplier: $qualityMultiplier');
+      print('- resolutionMultiplier: $resolutionMultiplier');
+      print('- fpsRatio: $fpsRatio');
+    }
 
     return estimatedSize > 0
         ? (estimatedSize > 1024 * 1024
@@ -353,7 +375,7 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                       child: ElevatedButton(
                         onPressed: widget.isUploading
                             ? null
-                            : () {
+                            : () async {
                                 // FileSelectController에서 trim 설정 가져오기
                                 final controller =
                                     Get.find<FileSelectController>();
@@ -367,6 +389,15 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                                   startTime: controller.trimStartTime.value,
                                   endTime: controller.trimEndTime.value,
                                 );
+
+                                // 설정 저장
+                                await controller.saveConvertSettings(
+                                  selectedResolution: selectedResolution,
+                                  fps: fps,
+                                  quality: quality,
+                                  format: selectedFormat,
+                                );
+
                                 widget.onConvert(options);
                               },
                         style: ElevatedButton.styleFrom(

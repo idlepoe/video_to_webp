@@ -28,7 +28,7 @@ class AppTranslations extends Translations {
           'fps': 'FPS',
           'quality': 'Quality',
           'resolution': 'Resolution',
-          'estimated_file_size': 'Estimated File Size: ',
+          'estimated_file_size': 'Estimated File Size: @size',
           'convert_options': 'Convert Options',
 
           // File Operations
@@ -162,7 +162,7 @@ class AppTranslations extends Translations {
           'fps': 'FPS',
           'quality': '품질',
           'resolution': '해상도',
-          'estimated_file_size': '예상 파일 크기: ',
+          'estimated_file_size': '예상 파일 크기: @size',
           'convert_options': '변환 옵션',
 
           // File Operations

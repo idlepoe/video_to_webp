@@ -251,24 +251,19 @@ class FileSelectController extends GetxController {
     try {
       final prefs = await SharedPreferences.getInstance();
 
-      // 첫 사용인지 확인 (해상도 설정이 저장되어 있지 않으면 첫 사용)
-      final isFirstUse = !prefs.containsKey('convert_resolution');
-
       return {
-        'selectedResolution': prefs.getInt('convert_resolution') ??
-            (isFirstUse ? -1 : 0), // -1은 480p 찾기 신호
+        'selectedResolution':
+            prefs.getInt('convert_resolution') ?? 0, // 기본값은 원본 해상도
         'fps': prefs.getDouble('convert_fps') ?? 30.0,
         'quality': prefs.getDouble('convert_quality') ?? 75.0,
         'format': prefs.getString('convert_format') ?? 'webp',
-        'isFirstUse': isFirstUse,
       };
     } catch (e) {
       return {
-        'selectedResolution': -1, // 첫 사용으로 간주하여 480p 찾기
+        'selectedResolution': 0, // 기본값은 원본 해상도
         'fps': 30.0,
         'quality': 75.0,
         'format': 'webp',
-        'isFirstUse': true,
       };
     }
   }
