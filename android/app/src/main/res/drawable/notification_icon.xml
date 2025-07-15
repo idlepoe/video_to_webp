@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <!-- 배경 원형 (Toss 색상) -->
-    <item>
-        <shape android:shape="oval">
-            <solid android:color="#3182F6" />
-            <size android:width="24dp" android:height="24dp" />
-        </shape>
-    </item>
-    <!-- 아이콘 이미지 (흰색) -->
-    <item android:drawable="@drawable/notification_icon_foreground" />
-</layer-list> 
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="24dp"
+    android:height="24dp"
+    android:viewportWidth="24"
+    android:viewportHeight="24">
+    
+    <!-- 단색 흰색 심플한 비디오/재생 심볼 -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M8,5v14l11,-7z"/>
+</vector> 
