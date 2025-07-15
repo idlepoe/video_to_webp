@@ -5,7 +5,7 @@ class AppTranslations extends Translations {
   Map<String, Map<String, String>> get keys => {
         'en': {
           // App Basic
-          'app_title': 'Video to WebP',
+          'app_title': 'WebP Me!',
           'select_video': 'Select Video',
           'convert': 'Convert',
           'cancel': 'Cancel',
@@ -28,6 +28,7 @@ class AppTranslations extends Translations {
           'fps': 'FPS',
           'quality': 'Quality',
           'resolution': 'Resolution',
+          'playback_speed': 'Playback Speed',
           'estimated_file_size': 'Estimated File Size: @size',
           'convert_options': 'Convert Options',
 
@@ -42,7 +43,7 @@ class AppTranslations extends Translations {
           'file_select_prompt': 'Please select a video file to convert! 🎬',
 
           // Privacy & Consent
-          'welcome_title': 'Welcome to VideoToWebp!',
+          'welcome_title': 'Welcome to WebP Me!',
           'service_description':
               'Please review the following information before using our video to WebP animation conversion service.',
           'data_processing_info': 'Data Processing Information',
@@ -53,7 +54,7 @@ class AppTranslations extends Translations {
           'view_privacy_policy': 'View Privacy Policy',
           'privacy_policy_title': 'Privacy Policy',
           'privacy_policy_content':
-              'The VideoToWebp app prioritizes user privacy protection.\n\n1. Information Collected\n• No personal information is collected\n• Video files are used temporarily only for conversion purposes\n\n2. Purpose of Information Use\n• Providing video to WebP format conversion services\n• Not used for any other purposes\n\n3. Information Retention Period\n• Automatically deleted within 24 hours after conversion\n• All files are deleted daily at 00:00\n\n4. Information Sharing\n• Not shared with third parties\n• Only provided when legally required\n\nContact: idlepoe@gmail.com',
+              'The WebP Me! app prioritizes user privacy protection.\n\n1. Information Collected\n• No personal information is collected\n• Video files are used temporarily only for conversion purposes\n\n2. Purpose of Information Use\n• Providing video to WebP format conversion services\n• Not used for any other purposes\n\n3. Information Retention Period\n• Automatically deleted within 24 hours after conversion\n• All files are deleted daily at 00:00\n\n4. Information Sharing\n• Not shared with third parties\n• Only provided when legally required\n\nContact: idlepoe@gmail.com',
 
           // File Size & Limits
           'privacy_file_limits': 'Privacy & File Limits',
@@ -136,10 +137,20 @@ class AppTranslations extends Translations {
           'upload_error':
               'An error occurred during file upload. Please try again.',
           'conversion_error': 'An error occurred during conversion.',
+          'conversion_complete_notification': 'Video conversion completed!',
+          'notification_permission_required':
+              'Notification permission is required for push notifications.',
+          'convert_complete_title': 'Conversion Complete',
+          'convert_complete_message':
+              'Your video has been successfully converted to WebP!',
+          'notification_subscribe':
+              'Get notification when conversion is complete',
+          'notification_subscribe_message':
+              'Feel free to step out! We\'ll notify you when the conversion is done!',
         },
         'ko_KR': {
           // App Basic
-          'app_title': 'Video to WebP',
+          'app_title': 'WebP Me!',
           'select_video': '비디오 선택',
           'convert': '변환',
           'cancel': '취소',
@@ -162,6 +173,7 @@ class AppTranslations extends Translations {
           'fps': 'FPS',
           'quality': '품질',
           'resolution': '해상도',
+          'playback_speed': '재생 속도',
           'estimated_file_size': '예상 파일 크기: @size',
           'convert_options': '변환 옵션',
 
@@ -176,7 +188,7 @@ class AppTranslations extends Translations {
           'file_select_prompt': '변환할 비디오 파일을 선택해주세요! 🎬',
 
           // Privacy & Consent
-          'welcome_title': 'VideoToWebp에 오신 것을 환영합니다!',
+          'welcome_title': 'WebP Me!에 오신 것을 환영합니다!',
           'service_description':
               '비디오를 WebP 애니메이션으로 변환하는 서비스를 이용하기 전에 다음 사항을 확인해주세요.',
           'data_processing_info': '데이터 처리 안내',
@@ -187,7 +199,7 @@ class AppTranslations extends Translations {
           'view_privacy_policy': '개인정보 처리방침 보기',
           'privacy_policy_title': '개인정보 처리방침',
           'privacy_policy_content':
-              'VideoToWebp 앱은 사용자의 개인정보 보호를 최우선으로 합니다.\n\n1. 수집하는 정보\n• 개인정보를 수집하지 않습니다\n• 비디오 파일은 변환 목적으로만 임시 사용됩니다\n\n2. 정보 사용 목적\n• 비디오를 WebP 형식으로 변환하는 서비스 제공\n• 기타 목적으로는 사용하지 않습니다\n\n3. 정보 보관 기간\n• 변환 완료 후 최대 24시간 이내 자동 삭제\n• 매일 00시에 모든 파일 일괄 삭제\n\n4. 정보 공유\n• 제3자와 공유하지 않습니다\n• 법적 요구사항이 있는 경우에만 제공\n\n문의: idlepoe@gmail.com',
+              'WebP Me! 앱은 사용자의 개인정보 보호를 최우선으로 합니다.\n\n1. 수집하는 정보\n• 개인정보를 수집하지 않습니다\n• 비디오 파일은 변환 목적으로만 임시 사용됩니다\n\n2. 정보 사용 목적\n• 비디오를 WebP 형식으로 변환하는 서비스 제공\n• 기타 목적으로는 사용하지 않습니다\n\n3. 정보 보관 기간\n• 변환 완료 후 최대 24시간 이내 자동 삭제\n• 매일 00시에 모든 파일 일괄 삭제\n\n4. 정보 공유\n• 제3자와 공유하지 않습니다\n• 법적 요구사항이 있는 경우에만 제공\n\n문의: idlepoe@gmail.com',
 
           // File Size & Limits
           'privacy_file_limits': '개인정보 보호 및 파일 제한',
@@ -262,6 +274,12 @@ class AppTranslations extends Translations {
           'login_required': '로그인이 필요합니다.',
           'upload_error': '파일 업로드 중 문제가 발생했습니다. 다시 시도해주세요.',
           'conversion_error': '변환 중 오류가 발생했습니다.',
+          'conversion_complete_notification': '비디오 변환이 완료되었습니다!',
+          'notification_permission_required': '푸시 알림을 위해 알림 권한이 필요합니다.',
+          'convert_complete_title': '변환 완료',
+          'convert_complete_message': '비디오가 성공적으로 WebP로 변환되었습니다!',
+          'notification_subscribe': '변환 완료시 알림 받기',
+          'notification_subscribe_message': '잠시 외출하셔도 돼요. 변환이 끝나면 바로 알려드릴게요!',
         }
       };
 }

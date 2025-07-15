@@ -13,7 +13,7 @@ class SplashScreen extends StatelessWidget {
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Text(
-              'Video to WebP'.tr,
+              'WebP Me!'.tr,
               style: TextStyle(
                 fontSize: 24,
                 fontWeight: FontWeight.bold,

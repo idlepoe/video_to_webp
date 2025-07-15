@@ -41,6 +41,7 @@ _$ConvertOptionsImpl _$$ConvertOptionsImplFromJson(Map<String, dynamic> json) =>
       resolution: json['resolution'] as String,
       startTime: (json['startTime'] as num?)?.toDouble() ?? 0.0,
       endTime: (json['endTime'] as num?)?.toDouble(),
+      speed: (json['speed'] as num?)?.toDouble() ?? 1.0,
     );
 
 Map<String, dynamic> _$$ConvertOptionsImplToJson(
@@ -52,4 +53,5 @@ Map<String, dynamic> _$$ConvertOptionsImplToJson(
       'resolution': instance.resolution,
       'startTime': instance.startTime,
       'endTime': instance.endTime,
+      'speed': instance.speed,
     };

@@ -19,7 +19,57 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
   Widget build(BuildContext context) {
     final maxVideoHeight = MediaQuery.of(context).size.height * 0.35;
     return Scaffold(
-      appBar: AppBar(title: Text('app_title'.tr)),
+      appBar: AppBar(
+        title: Text('app_title'.tr),
+        actions: [
+          Obx(() => GestureDetector(
+                onTap: () {
+                  controller.setNotificationSubscribed(
+                      !controller.notificationSubscribed.value);
+                },
+                child: Container(
+                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Container(
+                        width: 20,
+                        height: 20,
+                        decoration: BoxDecoration(
+                          color: controller.notificationSubscribed.value
+                              ? Colors.blue
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(4),
+                          border: Border.all(
+                            color: controller.notificationSubscribed.value
+                                ? Colors.blue
+                                : Colors.grey[400]!,
+                            width: 2,
+                          ),
+                        ),
+                        child: controller.notificationSubscribed.value
+                            ? Icon(
+                                Icons.check,
+                                size: 14,
+                                color: Colors.white,
+                              )
+                            : null,
+                      ),
+                      SizedBox(width: 8),
+                      Text(
+                        'notification_subscribe'.tr,
+                        style: TextStyle(
+                          fontSize: 14,
+                          color: Colors.grey[700],
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              )),
+        ],
+      ),
       body: Obx(() {
         if (controller.videoFile.value == null) {
           return EmptyVideoWidget(

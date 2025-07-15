@@ -28,6 +28,7 @@ class ConvertOptions with _$ConvertOptions {
     required String resolution,
     @Default(0.0) double startTime,
     double? endTime,
+    @Default(1.0) double speed,
   }) = _ConvertOptions;
 
   factory ConvertOptions.fromJson(Map<String, dynamic> json) =>

@@ -44,8 +44,8 @@ class LoadingController extends GetxController {
       return;
     } else if (status == 'error') {
       Get.back();
-      CommonSnackBar.error(
-          'Error'.tr, 'An error occurred during conversion.'.tr);
+      // CommonSnackBar.error(
+      //     'Error'.tr, 'An error occurred during conversion.'.tr);
       return;
     }
 
@@ -70,8 +70,8 @@ class LoadingController extends GetxController {
         });
       } else if (status == 'error') {
         Get.back();
-        CommonSnackBar.error(
-            'Error'.tr, 'An error occurred during conversion.'.tr);
+        // CommonSnackBar.error(
+        //     'Error'.tr, 'An error occurred during conversion.'.tr);
       }
     }, onError: (e) {
       // Firestore listen 오류 처리

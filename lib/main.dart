@@ -9,6 +9,7 @@ import 'screens/splash/splash_screen.dart';
 import 'screens/file_select/file_select_screen.dart';
 import 'screens/loading/loading_screen.dart';
 import 'screens/loading/loading_controller.dart';
+import 'services/fcm_service.dart';
 import 'translations.dart';
 
 Future<void> main() async {
@@ -22,6 +23,9 @@ Future<void> main() async {
     // LoadingController를 앱 시작 시 put
     Get.put(LoadingController(), permanent: true);
 
+    // FCM 서비스 초기화
+    Get.put(FCMService(), permanent: true);
+
     runApp(MyApp());
   } catch (e, stackTrace) {
     // 오류가 발생해도 앱은 실행
@@ -33,7 +37,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return GetMaterialApp(
-      title: 'VideoToWebp',
+      title: 'WebP Me!',
       translations: AppTranslations(),
       locale: Get.deviceLocale,
       fallbackLocale: Locale('ko', 'KR'),

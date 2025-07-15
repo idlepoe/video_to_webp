@@ -35,6 +35,7 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
   late int selectedResolution;
   late double fps;
   late double quality;
+  late double speed;
   late String selectedFormat;
   late List<Map<String, dynamic>> resolutions;
 
@@ -99,6 +100,7 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
     selectedResolution = widget.savedSettings['selectedResolution'] as int;
     fps = widget.savedSettings['fps'] as double;
     quality = widget.savedSettings['quality'] as double;
+    speed = widget.savedSettings['speed'] as double? ?? 1.0;
     selectedFormat = widget.savedSettings['format'] as String;
 
     // 저장된 해상도가 현재 비디오의 해상도 옵션에서 사용할 수 없는 경우 원본으로 설정
@@ -192,232 +194,281 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
           ),
           padding: EdgeInsets.fromLTRB(
               24, 24, 24, 24 + MediaQuery.of(context).viewInsets.bottom),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: EdgeInsets.only(bottom: 24),
-                  decoration: BoxDecoration(
-                    color: Colors.grey[300],
-                    borderRadius: BorderRadius.circular(2),
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    margin: EdgeInsets.only(bottom: 24),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[300],
+                      borderRadius: BorderRadius.circular(2),
+                    ),
                   ),
                 ),
-              ),
-              Text(
-                'convert_options'.tr,
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-              ),
-              SizedBox(height: 24),
-              Text(
-                'resolution'.tr,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              SizedBox(height: 12),
-              Column(
-                children: List.generate(resolutions.length, (i) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 8.0),
-                    child: GestureDetector(
-                      onTap: widget.isUploading
-                          ? null
-                          : () => setState(() => selectedResolution = i),
-                      child: Container(
-                        padding:
-                            EdgeInsets.symmetric(vertical: 14, horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: selectedResolution == i
-                              ? Colors.blue[50]
-                              : Colors.grey[100],
-                          borderRadius: BorderRadius.circular(12),
-                          border: Border.all(
+                Text(
+                  'convert_options'.tr,
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                ),
+                SizedBox(height: 24),
+                Text(
+                  'resolution'.tr,
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                ),
+                SizedBox(height: 12),
+                Column(
+                  children: List.generate(resolutions.length, (i) {
+                    return Padding(
+                      padding: const EdgeInsets.only(bottom: 8.0),
+                      child: GestureDetector(
+                        onTap: widget.isUploading
+                            ? null
+                            : () => setState(() => selectedResolution = i),
+                        child: Container(
+                          padding: EdgeInsets.symmetric(
+                              vertical: 14, horizontal: 16),
+                          decoration: BoxDecoration(
                             color: selectedResolution == i
-                                ? Colors.blue
-                                : Colors.transparent,
-                            width: 2,
+                                ? Colors.blue[50]
+                                : Colors.grey[100],
+                            borderRadius: BorderRadius.circular(12),
+                            border: Border.all(
+                              color: selectedResolution == i
+                                  ? Colors.blue
+                                  : Colors.transparent,
+                              width: 2,
+                            ),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                  child: Text(resolutions[i]['label'],
+                                      style: TextStyle(fontSize: 16))),
+                              if (selectedResolution == i)
+                                Icon(Icons.check_circle, color: Colors.blue),
+                            ],
                           ),
                         ),
-                        child: Row(
-                          children: [
-                            Expanded(
-                                child: Text(resolutions[i]['label'],
-                                    style: TextStyle(fontSize: 16))),
-                            if (selectedResolution == i)
-                              Icon(Icons.check_circle, color: Colors.blue),
-                          ],
+                      ),
+                    );
+                  }),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'fps'.tr,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: Color(0xFF3182F6),
+                            inactiveTrackColor: Color(0xFFE5E8EB),
+                            thumbColor: Color(0xFF3182F6),
+                          ),
+                          child: Slider(
+                            min: 1,
+                            max: 60,
+                            divisions: 59,
+                            value: fps,
+                            label: fps.round().toString(),
+                            onChanged: widget.isUploading
+                                ? null
+                                : (v) => setState(() => fps = v),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Container(
+                        width: 48,
+                        alignment: Alignment.centerRight,
+                        child: Text('${fps.round()}',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'quality'.tr,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: Color(0xFF3182F6),
+                            inactiveTrackColor: Color(0xFFE5E8EB),
+                            thumbColor: Color(0xFF3182F6),
+                          ),
+                          child: Slider(
+                            min: 1,
+                            max: 100,
+                            divisions: 99,
+                            value: quality,
+                            label: quality.round().toString(),
+                            onChanged: widget.isUploading
+                                ? null
+                                : (v) => setState(() => quality = v),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Container(
+                        width: 48,
+                        alignment: Alignment.centerRight,
+                        child: Text('${quality.round()}',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
+                SizedBox(height: 12),
+                Text(
+                  'playback_speed'.tr,
+                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                ),
+                Padding(
+                  padding: EdgeInsets.symmetric(horizontal: 4),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: Color(0xFF3182F6),
+                            inactiveTrackColor: Color(0xFFE5E8EB),
+                            thumbColor: Color(0xFF3182F6),
+                          ),
+                          child: Slider(
+                            min: 0.5,
+                            max: 2.0,
+                            divisions: 15,
+                            value: speed,
+                            label: '${speed.toStringAsFixed(2)}x',
+                            onChanged: widget.isUploading
+                                ? null
+                                : (v) => setState(() => speed = v),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 12),
+                      Container(
+                        width: 48,
+                        alignment: Alignment.centerRight,
+                        child: Text('${speed.toStringAsFixed(2)}x',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                ),
+                // SizedBox(height: 24),
+                // Text(
+                //   'estimated_file_size'
+                //       .trParams({'size': _calculateEstimatedSize()}),
+                //   style: TextStyle(
+                //       fontSize: 16,
+                //       fontWeight: FontWeight.w600,
+                //       color: Colors.grey[700]),
+                // ),
+                SizedBox(height: 8),
+                Text(
+                  'original_file_size'.trParams({
+                    'size':
+                        _formatFileSize(File(widget.videoFilePath).lengthSync())
+                  }),
+                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                ),
+                SizedBox(height: 32),
+                Row(
+                  children: [
+                    Expanded(
+                      child: SizedBox(
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: widget.isUploading
+                              ? null
+                              : () => Navigator.of(context).pop(),
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                            backgroundColor: Colors.grey[100],
+                            foregroundColor: Colors.black,
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'cancel'.tr,
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ),
-                  );
-                }),
-              ),
-              SizedBox(height: 24),
-              Text(
-                'fps'.tr,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: Color(0xFF3182F6),
-                        inactiveTrackColor: Color(0xFFE5E8EB),
-                        thumbColor: Color(0xFF3182F6),
-                      ),
-                      child: Slider(
-                        min: 1,
-                        max: 60,
-                        divisions: 59,
-                        value: fps,
-                        label: fps.round().toString(),
-                        onChanged: widget.isUploading
-                            ? null
-                            : (v) => setState(() => fps = v),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Container(
-                    width: 48,
-                    alignment: Alignment.centerRight,
-                    child: Text('${fps.round()}',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-              SizedBox(height: 24),
-              Text(
-                'quality'.tr,
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-              ),
-              Row(
-                children: [
-                  Expanded(
-                    child: SliderTheme(
-                      data: SliderTheme.of(context).copyWith(
-                        activeTrackColor: Color(0xFF3182F6),
-                        inactiveTrackColor: Color(0xFFE5E8EB),
-                        thumbColor: Color(0xFF3182F6),
-                      ),
-                      child: Slider(
-                        min: 1,
-                        max: 100,
-                        divisions: 99,
-                        value: quality,
-                        label: quality.round().toString(),
-                        onChanged: widget.isUploading
-                            ? null
-                            : (v) => setState(() => quality = v),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 12),
-                  Container(
-                    width: 48,
-                    alignment: Alignment.centerRight,
-                    child: Text('${quality.round()}',
-                        style: TextStyle(
-                            fontSize: 16, fontWeight: FontWeight.bold)),
-                  ),
-                ],
-              ),
-              SizedBox(height: 24),
-              Text(
-                'estimated_file_size'
-                    .trParams({'size': _calculateEstimatedSize()}),
-                style: TextStyle(
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                    color: Colors.grey[700]),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'original_file_size'.trParams({
-                  'size':
-                      _formatFileSize(File(widget.videoFilePath).lengthSync())
-                }),
-                style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-              ),
-              SizedBox(height: 32),
-              Row(
-                children: [
-                  Expanded(
-                    child: SizedBox(
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: widget.isUploading
-                            ? null
-                            : () => Navigator.of(context).pop(),
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)),
-                          backgroundColor: Colors.grey[100],
-                          foregroundColor: Colors.black,
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          'cancel'.tr,
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
-                        ),
-                      ),
-                    ),
-                  ),
-                  SizedBox(width: 16),
-                  Expanded(
-                    child: SizedBox(
-                      height: 56,
-                      child: ElevatedButton(
-                        onPressed: widget.isUploading
-                            ? null
-                            : () async {
-                                // FileSelectController에서 trim 설정 가져오기
-                                final controller =
-                                    Get.find<FileSelectController>();
+                    SizedBox(width: 16),
+                    Expanded(
+                      child: SizedBox(
+                        height: 56,
+                        child: ElevatedButton(
+                          onPressed: widget.isUploading
+                              ? null
+                              : () async {
+                                  // FileSelectController에서 trim 설정 가져오기
+                                  final controller =
+                                      Get.find<FileSelectController>();
 
-                                final options = ConvertOptions(
-                                  format: selectedFormat,
-                                  quality: quality.round(),
-                                  fps: fps.round(),
-                                  resolution:
-                                      '${resolutions[selectedResolution]['width']}x${resolutions[selectedResolution]['height']}',
-                                  startTime: controller.trimStartTime.value,
-                                  endTime: controller.trimEndTime.value,
-                                );
+                                  final options = ConvertOptions(
+                                    format: selectedFormat,
+                                    quality: quality.round(),
+                                    fps: fps.round(),
+                                    resolution:
+                                        '${resolutions[selectedResolution]['width']}x${resolutions[selectedResolution]['height']}',
+                                    startTime: controller.trimStartTime.value,
+                                    endTime: controller.trimEndTime.value,
+                                    speed: speed,
+                                  );
 
-                                // 설정 저장
-                                await controller.saveConvertSettings(
-                                  selectedResolution: selectedResolution,
-                                  fps: fps,
-                                  quality: quality,
-                                  format: selectedFormat,
-                                );
+                                  // 설정 저장
+                                  await controller.saveConvertSettings(
+                                    selectedResolution: selectedResolution,
+                                    fps: fps,
+                                    quality: quality,
+                                    format: selectedFormat,
+                                    speed: speed,
+                                  );
 
-                                widget.onConvert(options);
-                              },
-                        style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)),
-                          backgroundColor: Colors.blue,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                        ),
-                        child: Text(
-                          'convert'.tr,
-                          style: TextStyle(
-                              fontSize: 18, fontWeight: FontWeight.bold),
+                                  widget.onConvert(options);
+                                },
+                          style: ElevatedButton.styleFrom(
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(16)),
+                            backgroundColor: Colors.blue,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                          ),
+                          child: Text(
+                            'convert'.tr,
+                            style: TextStyle(
+                                fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),
-            ],
+                  ],
+                ),
+              ],
+            ),
           ),
         ),
         // 업로드 중일 때 로딩 오버레이

@@ -22,6 +22,9 @@ class ConvertCompleteController extends GetxController {
       if (args['downloadUrl'] != null) {
         downloadUrl.value = args['downloadUrl'];
       }
+
+      // 푸시 알림으로 전달된 데이터 처리
+      print('변환 완료 화면 초기화 - 전달된 데이터: $args');
     }
 
     // 자동 다운로드 시작
@@ -33,7 +36,7 @@ class ConvertCompleteController extends GetxController {
   void _startAutoDownload() {
     // 다운로드 URL이 있으면 자동으로 다운로드 시작
     if (downloadUrl.value.isNotEmpty) {
-      CommonSnackBar.info('auto_download'.tr, 'starting_download'.tr);
+      // CommonSnackBar.info('auto_download'.tr, 'starting_download'.tr);
       downloadFile();
     }
   }
@@ -41,7 +44,7 @@ class ConvertCompleteController extends GetxController {
   Future<void> downloadFile() async {
     final url = downloadUrl.value;
     if (url == null || url.isEmpty) {
-      CommonSnackBar.warn('warning'.tr, 'no_download_link'.tr);
+      // CommonSnackBar.warn('warning'.tr, 'no_download_link'.tr);
       return;
     }
 
@@ -51,12 +54,12 @@ class ConvertCompleteController extends GetxController {
       final bool? success = await GallerySaver.saveImage(url);
       if (success == true) {
         downloadCompleted.value = true;
-        CommonSnackBar.success('success'.tr, 'saved_to_gallery'.tr);
+        // CommonSnackBar.success('success'.tr, 'saved_to_gallery'.tr);
       } else {
-        CommonSnackBar.error('failure'.tr, 'failed_to_save'.tr);
+        // CommonSnackBar.error('failure'.tr, 'failed_to_save'.tr);
       }
     } catch (e) {
-      CommonSnackBar.error('error'.tr, '${'download_error'.tr}${e.toString()}');
+      // CommonSnackBar.error('error'.tr, '${'download_error'.tr}${e.toString()}');
     } finally {
       isDownloading.value = false;
     }
@@ -65,7 +68,7 @@ class ConvertCompleteController extends GetxController {
   Future<void> openInBrowser() async {
     final url = downloadUrl.value;
     if (url.isEmpty) {
-      CommonSnackBar.warn('warning'.tr, 'no_download_link'.tr);
+      // CommonSnackBar.warn('warning'.tr, 'no_download_link'.tr);
       return;
     }
 
@@ -75,10 +78,10 @@ class ConvertCompleteController extends GetxController {
         uri,
         mode: LaunchMode.externalApplication,
       );
-      CommonSnackBar.info('browser'.tr, 'opening_browser'.tr);
+      // CommonSnackBar.info('browser'.tr, 'opening_browser'.tr);
     } catch (e) {
-      CommonSnackBar.error(
-          'error'.tr, '${'browser_open_error'.tr}${e.toString()}');
+      // CommonSnackBar.error(
+      //     'error'.tr, '${'browser_open_error'.tr}${e.toString()}');
     }
   }
 }

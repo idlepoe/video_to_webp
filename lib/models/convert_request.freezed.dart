@@ -321,6 +321,7 @@ mixin _$ConvertOptions {
   String get resolution => throw _privateConstructorUsedError;
   double get startTime => throw _privateConstructorUsedError;
   double? get endTime => throw _privateConstructorUsedError;
+  double get speed => throw _privateConstructorUsedError;
 
   /// Serializes this ConvertOptions to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -344,7 +345,8 @@ abstract class $ConvertOptionsCopyWith<$Res> {
       int fps,
       String resolution,
       double startTime,
-      double? endTime});
+      double? endTime,
+      double speed});
 }
 
 /// @nodoc
@@ -368,6 +370,7 @@ class _$ConvertOptionsCopyWithImpl<$Res, $Val extends ConvertOptions>
     Object? resolution = null,
     Object? startTime = null,
     Object? endTime = freezed,
+    Object? speed = null,
   }) {
     return _then(_value.copyWith(
       format: null == format
@@ -394,6 +397,10 @@ class _$ConvertOptionsCopyWithImpl<$Res, $Val extends ConvertOptions>
           ? _value.endTime
           : endTime // ignore: cast_nullable_to_non_nullable
               as double?,
+      speed: null == speed
+          ? _value.speed
+          : speed // ignore: cast_nullable_to_non_nullable
+              as double,
     ) as $Val);
   }
 }
@@ -412,7 +419,8 @@ abstract class _$$ConvertOptionsImplCopyWith<$Res>
       int fps,
       String resolution,
       double startTime,
-      double? endTime});
+      double? endTime,
+      double speed});
 }
 
 /// @nodoc
@@ -434,6 +442,7 @@ class __$$ConvertOptionsImplCopyWithImpl<$Res>
     Object? resolution = null,
     Object? startTime = null,
     Object? endTime = freezed,
+    Object? speed = null,
   }) {
     return _then(_$ConvertOptionsImpl(
       format: null == format
@@ -460,6 +469,10 @@ class __$$ConvertOptionsImplCopyWithImpl<$Res>
           ? _value.endTime
           : endTime // ignore: cast_nullable_to_non_nullable
               as double?,
+      speed: null == speed
+          ? _value.speed
+          : speed // ignore: cast_nullable_to_non_nullable
+              as double,
     ));
   }
 }
@@ -473,7 +486,8 @@ class _$ConvertOptionsImpl implements _ConvertOptions {
       required this.fps,
       required this.resolution,
       this.startTime = 0.0,
-      this.endTime});
+      this.endTime,
+      this.speed = 1.0});
 
   factory _$ConvertOptionsImpl.fromJson(Map<String, dynamic> json) =>
       _$$ConvertOptionsImplFromJson(json);
@@ -491,10 +505,13 @@ class _$ConvertOptionsImpl implements _ConvertOptions {
   final double startTime;
   @override
   final double? endTime;
+  @override
+  @JsonKey()
+  final double speed;
 
   @override
   String toString() {
-    return 'ConvertOptions(format: $format, quality: $quality, fps: $fps, resolution: $resolution, startTime: $startTime, endTime: $endTime)';
+    return 'ConvertOptions(format: $format, quality: $quality, fps: $fps, resolution: $resolution, startTime: $startTime, endTime: $endTime, speed: $speed)';
   }
 
   @override
@@ -509,13 +526,14 @@ class _$ConvertOptionsImpl implements _ConvertOptions {
                 other.resolution == resolution) &&
             (identical(other.startTime, startTime) ||
                 other.startTime == startTime) &&
-            (identical(other.endTime, endTime) || other.endTime == endTime));
+            (identical(other.endTime, endTime) || other.endTime == endTime) &&
+            (identical(other.speed, speed) || other.speed == speed));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
   @override
   int get hashCode => Object.hash(
-      runtimeType, format, quality, fps, resolution, startTime, endTime);
+      runtimeType, format, quality, fps, resolution, startTime, endTime, speed);
 
   /// Create a copy of ConvertOptions
   /// with the given fields replaced by the non-null parameter values.
@@ -541,7 +559,8 @@ abstract class _ConvertOptions implements ConvertOptions {
       required final int fps,
       required final String resolution,
       final double startTime,
-      final double? endTime}) = _$ConvertOptionsImpl;
+      final double? endTime,
+      final double speed}) = _$ConvertOptionsImpl;
 
   factory _ConvertOptions.fromJson(Map<String, dynamic> json) =
       _$ConvertOptionsImpl.fromJson;
@@ -558,6 +577,8 @@ abstract class _ConvertOptions implements ConvertOptions {
   double get startTime;
   @override
   double? get endTime;
+  @override
+  double get speed;
 
   /// Create a copy of ConvertOptions
   /// with the given fields replaced by the non-null parameter values.

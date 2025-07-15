@@ -8,7 +8,7 @@ class CommonSnackBar {
     required String title,
     required String message,
     SnackBarType type = SnackBarType.info,
-    Duration duration = const Duration(seconds: 3),
+    Duration duration = const Duration(milliseconds: 500),
   }) {
     Color backgroundColor;
     Color textColor = Colors.white;
@@ -39,7 +39,7 @@ class CommonSnackBar {
       backgroundColor: backgroundColor,
       colorText: textColor,
       icon: Icon(icon, color: textColor, size: 28),
-      snackPosition: SnackPosition.BOTTOM,
+      snackPosition: SnackPosition.TOP,
       margin: const EdgeInsets.all(16),
       borderRadius: 12,
       duration: duration,
@@ -58,7 +58,7 @@ class CommonSnackBar {
       title: title,
       message: message,
       type: SnackBarType.info,
-      duration: duration ?? const Duration(seconds: 3),
+      duration: duration ?? const Duration(milliseconds: 500),
     );
   }
 
@@ -67,7 +67,7 @@ class CommonSnackBar {
       title: title,
       message: message,
       type: SnackBarType.warn,
-      duration: duration ?? const Duration(seconds: 3),
+      duration: duration ?? const Duration(milliseconds: 500),
     );
   }
 
@@ -76,7 +76,7 @@ class CommonSnackBar {
       title: title,
       message: message,
       type: SnackBarType.success,
-      duration: duration ?? const Duration(seconds: 3),
+      duration: duration ?? const Duration(milliseconds: 500),
     );
   }
 
@@ -85,7 +85,7 @@ class CommonSnackBar {
       title: title,
       message: message,
       type: SnackBarType.error,
-      duration: duration ?? const Duration(seconds: 5),
+      duration: duration ?? const Duration(milliseconds: 500),
     );
   }
 }

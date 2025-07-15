@@ -12,6 +12,7 @@ import '../../routes/app_routes.dart';
 import '../loading/loading_controller.dart';
 import '../video_trim/video_trim_screen.dart';
 import '../../widgets/common_snackbar.dart';
+import '../../services/fcm_service.dart';
 
 class FileSelectController extends GetxController {
   final ImagePicker _picker = ImagePicker();
@@ -31,10 +32,13 @@ class FileSelectController extends GetxController {
   final RxDouble trimStartTime = 0.0.obs;
   final Rx<double?> trimEndTime = Rx<double?>(null);
 
+  final RxBool notificationSubscribed = true.obs;
+
   @override
   void onReady() {
     super.onReady();
     _initializeFirebase();
+    _loadNotificationPreference();
   }
 
   Future<void> _initializeFirebase() async {
@@ -45,9 +49,34 @@ class FileSelectController extends GetxController {
         final userCredential = await auth.signInAnonymously();
       }
 
+      // FCM 토픽 업데이트
+      final fcmService = Get.find<FCMService>();
+      await fcmService.updateUserTopic();
+
       isInitialized.value = true;
     } catch (e) {
-      CommonSnackBar.error('Error'.tr, 'Initialization failed.'.tr);
+      // CommonSnackBar.error('Error'.tr, 'Initialization failed.'.tr);
+    }
+  }
+
+  Future<void> _loadNotificationPreference() async {
+    final prefs = await SharedPreferences.getInstance();
+    final value = prefs.getBool('notification_subscribed') ?? true;
+    notificationSubscribed.value = value;
+  }
+
+  Future<void> setNotificationSubscribed(bool value) async {
+    notificationSubscribed.value = value;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notification_subscribed', value);
+    final fcmService = Get.find<FCMService>();
+    final user = FirebaseAuth.instance.currentUser;
+    if (user != null) {
+      if (value) {
+        await fcmService.subscribeToUser(user.uid);
+      } else {
+        await fcmService.unsubscribeFromUser(user.uid);
+      }
     }
   }
 
@@ -61,8 +90,8 @@ class FileSelectController extends GetxController {
         await _initVideoPlayer(file);
       }
     } catch (e) {
-      CommonSnackBar.error(
-          'error'.tr, 'An error occurred while selecting the video.'.tr);
+      // CommonSnackBar.error(
+      //     'error'.tr, 'An error occurred while selecting the video.'.tr);
     }
   }
 
@@ -89,7 +118,7 @@ class FileSelectController extends GetxController {
   // Trim 화면으로 이동
   void openTrimScreen() async {
     if (videoFile.value == null) {
-      CommonSnackBar.error('error'.tr, 'select_file_error'.tr);
+      // CommonSnackBar.error('error'.tr, 'select_file_error'.tr);
       return;
     }
 
@@ -109,14 +138,14 @@ class FileSelectController extends GetxController {
       isTrimmed.value = true; // Trim 상태 업데이트
       await _initVideoPlayer(trimmedFile);
 
-      CommonSnackBar.success('success'.tr, 'trim_applied_message'.tr);
+      // CommonSnackBar.success('success'.tr, 'trim_applied_message'.tr);
     }
   }
 
   // 원본으로 되돌리기
   Future<void> restoreOriginal() async {
     if (originalVideoFile.value == null) {
-      CommonSnackBar.error('error'.tr, 'no_original_file'.tr);
+      // CommonSnackBar.error('error'.tr, 'no_original_file'.tr);
       return;
     }
 
@@ -124,9 +153,9 @@ class FileSelectController extends GetxController {
       videoFile.value = originalVideoFile.value;
       isTrimmed.value = false;
       await _initVideoPlayer(originalVideoFile.value!);
-      CommonSnackBar.success('success'.tr, 'original_restored'.tr);
+      // CommonSnackBar.success('success'.tr, 'original_restored'.tr);
     } catch (e) {
-      CommonSnackBar.error('error'.tr, 'restore_error'.tr);
+      // CommonSnackBar.error('error'.tr, 'restore_error'.tr);
     }
   }
 
@@ -136,7 +165,7 @@ class FileSelectController extends GetxController {
     final fileSizeMB = fileSize / (1024 * 1024);
 
     if (fileSizeMB > 20) {
-      CommonSnackBar.error('error'.tr, 'file_size_error'.tr);
+      // CommonSnackBar.error('error'.tr, 'file_size_error'.tr);
       return false;
     }
     return true;
@@ -144,12 +173,12 @@ class FileSelectController extends GetxController {
 
   Future<void> uploadAndRequestConvert(ConvertOptions options) async {
     if (!isInitialized.value) {
-      CommonSnackBar.error('error'.tr, 'initialization_error'.tr);
+      // CommonSnackBar.error('error'.tr, 'initialization_error'.tr);
       return;
     }
 
     if (videoFile.value == null) {
-      CommonSnackBar.error('error'.tr, 'select_file_error'.tr);
+      // CommonSnackBar.error('error'.tr, 'select_file_error'.tr);
       return;
     }
 
@@ -163,7 +192,7 @@ class FileSelectController extends GetxController {
       uploadPercent.value = 0.0;
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        CommonSnackBar.error('error'.tr, 'login_required'.tr);
+        // CommonSnackBar.error('error'.tr, 'login_required'.tr);
         isUploading.value = false;
         return;
       }
@@ -217,14 +246,14 @@ class FileSelectController extends GetxController {
       }, onError: (uploadError) {
         isUploading.value = false;
         uploadPercent.value = 0.0;
-        CommonSnackBar.error('error'.tr, 'upload_error'.tr,
-            duration: Duration(seconds: 5));
+        // CommonSnackBar.error('error'.tr, 'upload_error'.tr,
+        //     duration: Duration(seconds: 5));
       });
     } catch (e, stack) {
       isUploading.value = false;
       uploadPercent.value = 0.0;
-      CommonSnackBar.error('error'.tr, 'upload_error'.tr,
-          duration: Duration(seconds: 5));
+      // CommonSnackBar.error('error'.tr, 'upload_error'.tr,
+      //     duration: Duration(seconds: 5));
     }
   }
 
@@ -234,6 +263,7 @@ class FileSelectController extends GetxController {
     required double fps,
     required double quality,
     required String format,
+    required double speed,
   }) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -241,6 +271,7 @@ class FileSelectController extends GetxController {
       await prefs.setDouble('convert_fps', fps);
       await prefs.setDouble('convert_quality', quality);
       await prefs.setString('convert_format', format);
+      await prefs.setDouble('convert_speed', speed);
     } catch (e) {
       // 변환 설정 저장 중 오류 처리
     }
@@ -257,6 +288,7 @@ class FileSelectController extends GetxController {
         'fps': prefs.getDouble('convert_fps') ?? 30.0,
         'quality': prefs.getDouble('convert_quality') ?? 75.0,
         'format': prefs.getString('convert_format') ?? 'webp',
+        'speed': prefs.getDouble('convert_speed') ?? 1.0,
       };
     } catch (e) {
       return {
@@ -264,6 +296,7 @@ class FileSelectController extends GetxController {
         'fps': 30.0,
         'quality': 75.0,
         'format': 'webp',
+        'speed': 1.0,
       };
     }
   }

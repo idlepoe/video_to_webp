@@ -85,14 +85,19 @@ export const convertVideo = onObjectFinalized({
     console.log('비디오 다운로드 완료');
 
     // 변환 옵션 설정 (기존 호환성 유지)
-    const { resolution, fps, quality, format, startTime = 0, endTime = null } = options;
+    const { resolution, fps, quality, format, startTime = 0, endTime = null, speed = 1.0 } = options;
     const ffmpegFormat = typeof format === 'string' ? format.toLowerCase() : 'webp';
     const [width, height] = resolution.split('x').map(Number);
-    console.log('변환 설정:', { width, height, fps, quality, format: ffmpegFormat });
+    console.log('변환 설정:', { width, height, fps, quality, format: ffmpegFormat, speed });
     
     // Trim 설정 로깅 (있는 경우만)
     if (startTime > 0 || endTime) {
       console.log('Trim 설정:', { startTime, endTime });
+    }
+    
+    // 배속 설정 로깅 (1.0이 아닌 경우만)
+    if (speed !== 1.0) {
+      console.log('배속 설정:', { speed });
     }
 
     // ffprobe로 원본 비디오의 비트레이트 및 fps 추출
@@ -154,6 +159,13 @@ export const convertVideo = onObjectFinalized({
     }
 
     // FFmpeg 옵션 설정 (qualityPercent만 -quality에 반영)
+    let vfOptions = [`scale=${width}:${height}`];
+    
+    // 배속 설정이 1.0이 아닌 경우 setpts 필터 추가
+    if (speed !== 1.0) {
+      vfOptions.push(`setpts=${1/speed}*PTS`);
+    }
+    
     command = command
       .fps(targetFps)
       .videoBitrate(`${targetBitrateK}k`)
@@ -162,19 +174,26 @@ export const convertVideo = onObjectFinalized({
         '-loop 0',
         '-progress', 'pipe:1',
         `-quality ${qualityPercent}`,
-        `-vf scale=${width}:${height}`
+        `-vf ${vfOptions.join(',')}`
       ]);
 
-    // 예상 용량 계산 (trim 적용 시 조정)
+    // 예상 용량 계산 (trim 및 배속 적용 시 조정)
     let actualDuration = duration;
     if (hasTrimSettings && endTime && startTime) {
       actualDuration = endTime - startTime;
       console.log(`Trim 적용으로 실제 변환 시간: ${actualDuration}초 (원본: ${duration}초)`);
     }
     
+    // 배속 적용 시 실제 재생 시간 계산
+    let playbackDuration = actualDuration;
+    if (speed !== 1.0) {
+      playbackDuration = actualDuration / speed;
+      console.log(`배속 적용으로 실제 재생 시간: ${playbackDuration}초 (원본: ${actualDuration}초, 배속: ${speed}x)`);
+    }
+    
     const baseFrameSize = width * height * 0.1;
     const qualityFactor = (quality / 75) * 0.5;
-    const totalFrames = Math.round(actualDuration * fps);
+    const totalFrames = Math.round(playbackDuration * fps);
     const estimatedSize = baseFrameSize * qualityFactor * totalFrames;
 
     // percent 변수를 함수 스코프에 선언
@@ -251,6 +270,24 @@ export const convertVideo = onObjectFinalized({
       completedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
     console.log('Firestore 상태 업데이트 완료');
+
+    // FCM 푸시 알림 전송
+    try {
+      await sendPushNotification(requestData.userId, {
+        publicUrl: publicUrl,
+        downloadUrl: downloadUrl,
+        convertedFile: outputFileName,
+        requestId: doc.id,
+      }, {
+        resolution: `${width}x${height}`,
+        fps: targetFps,
+        quality: qualityPercent,
+        format: ffmpegFormat,
+      });
+      console.log('FCM 푸시 알림 전송 완료');
+    } catch (error) {
+      console.error('FCM 푸시 알림 전송 실패:', error);
+    }
 
     // 임시 파일 정리
     console.log('임시 파일 정리 시작');
@@ -336,3 +373,62 @@ export const cleanupOldFiles = onSchedule({
     console.error('자동 파일 정리 중 오류 발생:', error);
   }
 });
+
+// FCM 푸시 알림 전송 함수
+async function sendPushNotification(userId: string, fileData: {
+  publicUrl: string;
+  downloadUrl: string;
+  convertedFile: string;
+  requestId: string;
+}, videoInfo?: {
+  resolution: string;
+  fps: number;
+  quality: number;
+  format: string;
+}) {
+  try {
+    // 비디오 정보를 포함한 메시지 생성
+    let body = 'Video conversion completed!';
+    if (videoInfo) {
+      body = `Video converted to ${videoInfo.format.toUpperCase()} (${videoInfo.resolution}, ${videoInfo.fps}fps, ${videoInfo.quality}% quality)`;
+    }
+
+    const message = {
+      notification: {
+        title: 'Conversion Complete',
+        body: body,
+      },
+      android: {
+        notification: {
+          icon: 'notification_icon',
+          color: '#3182F6',
+          priority: 'high' as const,
+          defaultSound: true,
+          defaultVibrateTimings: true,
+        },
+      },
+      data: {
+        screen: 'convert_complete',
+        userId: userId,
+        timestamp: Date.now().toString(),
+        publicUrl: fileData.publicUrl,
+        downloadUrl: fileData.downloadUrl,
+        convertedFile: fileData.convertedFile,
+        requestId: fileData.requestId,
+        // 비디오 정보도 데이터에 포함
+        resolution: videoInfo?.resolution || '',
+        fps: videoInfo?.fps?.toString() || '',
+        quality: videoInfo?.quality?.toString() || '',
+        format: videoInfo?.format || '',
+      },
+      topic: userId, // 사용자별 토픽으로 전송
+    };
+
+    const response = await admin.messaging().send(message);
+    console.log('FCM 메시지 전송 성공:', response);
+    return response;
+  } catch (error) {
+    console.error('FCM 메시지 전송 실패:', error);
+    throw error;
+  }
+}
