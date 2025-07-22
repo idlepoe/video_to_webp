@@ -10,6 +10,7 @@ class ConvertCompleteController extends GetxController {
   final RxBool isDownloading = false.obs;
   final RxDouble downloadProgress = 0.0.obs;
   final RxBool downloadCompleted = false.obs;
+  final RxInt fileSize = 0.obs;
 
   @override
   void onInit() {
@@ -21,6 +22,11 @@ class ConvertCompleteController extends GetxController {
       }
       if (args['downloadUrl'] != null) {
         downloadUrl.value = args['downloadUrl'];
+      }
+      if (args['fileSize'] != null) {
+        fileSize.value = args['fileSize'] is int
+            ? args['fileSize']
+            : int.tryParse(args['fileSize'].toString()) ?? 0;
       }
 
       // 푸시 알림으로 전달된 데이터 처리
@@ -82,6 +88,19 @@ class ConvertCompleteController extends GetxController {
     } catch (e) {
       // CommonSnackBar.error(
       //     'error'.tr, '${'browser_open_error'.tr}${e.toString()}');
+    }
+  }
+
+  // 파일 크기 포맷팅 함수
+  String formatFileSize(int size) {
+    if (size < 1024) {
+      return "$size bytes";
+    } else if (size < 1024 * 1024) {
+      return "${(size / 1024).toStringAsFixed(2)} KB";
+    } else if (size < 1024 * 1024 * 1024) {
+      return "${(size / (1024 * 1024)).toStringAsFixed(2)} MB";
+    } else {
+      return "${(size / (1024 * 1024 * 1024)).toStringAsFixed(2)} GB";
     }
   }
 }

@@ -24,6 +24,7 @@ dependencies:
   shared_preferences: ^2.5.3
   video_trimmer: ^5.0.0
   path_provider: ^2.1.4
+  dio: ^5.4.0
 
 dev_dependencies:
   flutter_test:

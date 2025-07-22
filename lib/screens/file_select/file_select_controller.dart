@@ -2,11 +2,15 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
 import 'dart:io';
+import 'dart:async';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter/material.dart';
+import 'package:video_trimmer/video_trimmer.dart';
+import 'package:path_provider/path_provider.dart';
+import 'package:dio/dio.dart';
 import '../../models/convert_request.dart';
 import '../../routes/app_routes.dart';
 import '../loading/loading_controller.dart';
@@ -159,16 +163,11 @@ class FileSelectController extends GetxController {
     }
   }
 
-  // 업로드 전 파일 크기 확인
+  // 업로드 전 파일 크기 확인 (다이얼로그에서 이미 확인했으므로 단순화)
   bool validateFileSize(String filePath) {
     final fileSize = File(filePath).lengthSync();
     final fileSizeMB = fileSize / (1024 * 1024);
-
-    if (fileSizeMB > 20) {
-      // CommonSnackBar.error('error'.tr, 'file_size_error'.tr);
-      return false;
-    }
-    return true;
+    return fileSizeMB <= 20;
   }
 
   Future<void> uploadAndRequestConvert(ConvertOptions options) async {
@@ -298,6 +297,273 @@ class FileSelectController extends GetxController {
         'format': 'webp',
         'speed': 1.0,
       };
+    }
+  }
+
+  // 1초 샘플 생성 함수 (trim 기능 활용)
+  Future<String> _createOnSecondSample(String originalFilePath) async {
+    final trimmer = Trimmer();
+    String? savedPath;
+
+    try {
+      // 비디오 로드
+      await trimmer.loadVideo(videoFile: File(originalFilePath));
+
+      // 임시 디렉토리에 샘플 파일 생성
+      final directory = await getTemporaryDirectory();
+      final timestamp = DateTime.now().millisecondsSinceEpoch;
+      final samplePath = '${directory.path}/sample_${timestamp}.mp4';
+
+      // Completer를 사용하여 비동기 콜백 처리
+      final completer = Completer<String>();
+
+      // 1초 샘플 생성 (0초부터 1초까지)
+      await trimmer.saveTrimmedVideo(
+        startValue: 0.0,
+        endValue: 1000.0, // 1초 = 1000ms
+        onSave: (String? outputPath) {
+          if (outputPath != null) {
+            savedPath = outputPath;
+            completer.complete(outputPath);
+          } else {
+            completer.completeError('샘플 파일 저장 실패');
+          }
+        },
+      );
+
+      // 저장 완료까지 대기
+      return await completer.future;
+    } catch (e) {
+      trimmer.dispose();
+      throw Exception('1초 샘플 생성 실패: ${e.toString()}');
+    } finally {
+      trimmer.dispose();
+    }
+  }
+
+  // 임시 파일 정리 함수
+  void _cleanupTempFile(String filePath) {
+    try {
+      final file = File(filePath);
+      if (file.existsSync()) {
+        file.deleteSync();
+      }
+    } catch (e) {
+      // 임시 파일 정리 실패는 무시
+      print('임시 파일 정리 실패: $e');
+    }
+  }
+
+  // URL로부터 파일 크기 확인 함수 (dio 사용)
+  Future<int?> _getFileSizeFromUrl(String url) async {
+    try {
+      final dio = Dio();
+      print('파일 크기 확인 URL: $url');
+
+      // HEAD 요청으로 Content-Length 헤더만 가져오기
+      final response = await dio.head(url);
+
+      if (response.statusCode == 200) {
+        final contentLength = response.headers.value('content-length');
+        print('Content-Length 헤더: $contentLength');
+
+        if (contentLength != null) {
+          final size = int.tryParse(contentLength);
+          print('파싱된 파일 크기: $size bytes');
+          return size;
+        }
+      }
+
+      print('Content-Length 헤더를 찾을 수 없음');
+      return null;
+    } catch (e) {
+      print('URL에서 파일 크기 확인 오류: $e');
+      return null;
+    }
+  }
+
+  // 1초 샘플 변환을 위한 API 호출 (trim 기능 활용)
+  Future<Map<String, dynamic>?> convertVideoSample(
+      String filePath, ConvertOptions options) async {
+    if (!isInitialized.value) {
+      throw Exception('Firebase가 초기화되지 않았습니다.');
+    }
+
+    String? sampleFilePath;
+
+    try {
+      final user = FirebaseAuth.instance.currentUser;
+      if (user == null) {
+        throw Exception('로그인이 필요합니다.');
+      }
+
+      // 1초 샘플 생성을 위해 trim 기능 사용
+      sampleFilePath = await _createOnSecondSample(filePath);
+
+      // 일반 변환 요청 컬렉션 사용 (샘플용 옵션으로)
+      final requestRef =
+          FirebaseFirestore.instance.collection('convertRequests').doc();
+      final requestId = requestRef.id;
+      final originalFilePath = 'original/${user.uid}/$requestId.mp4';
+
+      // 샘플 변환 요청 생성 (기존 변환 API와 동일한 구조)
+      await requestRef.set({
+        'userId': user.uid,
+        'status': 'pending',
+        'options': options.toJson(),
+        'createdAt': FieldValue.serverTimestamp(),
+        'originalFile': originalFilePath,
+        'isSample': true, // 샘플임을 표시하는 플래그
+      });
+
+      // trim된 1초 샘플 파일을 Firebase Storage에 업로드
+      final storageRef = FirebaseStorage.instance
+          .ref()
+          .child('original')
+          .child(user.uid)
+          .child('$requestId.mp4');
+
+      await storageRef.putFile(
+        File(sampleFilePath),
+        SettableMetadata(
+          contentType: 'video/mp4',
+          customMetadata: {
+            'uploadedAt': DateTime.now().toIso8601String(),
+            'isSample': 'true',
+          },
+        ),
+      );
+
+      // Completer를 사용하여 비동기 결과 처리
+      final completer = Completer<Map<String, dynamic>>();
+      StreamSubscription? listener;
+
+      // 실시간 listener 설정 (LoadingController와 동일한 방식)
+      listener = requestRef.snapshots().listen((doc) {
+        if (!doc.exists) return;
+
+        final data = doc.data();
+        final status = data?['status'];
+
+        if (status == 'completed') {
+          print('샘플 변환 상태: completed');
+          print('샘플 변환 데이터: $data');
+
+          // Firestore 데이터에서 직접 size 확인
+          if (data?['size'] != null && data!['size'] > 0) {
+            print('샘플 변환 Firestore에서 직접 size: ${data!['size']}');
+            if (!completer.isCompleted) {
+              completer.complete({
+                'size': data!['size'],
+                'downloadUrl': data?['downloadUrl'] ?? '',
+                'status': 'completed',
+              });
+            }
+            return;
+          }
+
+          // Firestore에 downloadUrl이 있고 size가 0이거나 없는 경우 URL로부터 직접 확인
+          if (data?['downloadUrl'] != null) {
+            print('Firestore downloadUrl로부터 크기 확인: ${data!['downloadUrl']}');
+            _getFileSizeFromUrl(data!['downloadUrl']).then((urlSize) {
+              if (urlSize != null && urlSize > 0) {
+                print('Firestore downloadUrl로부터 확인한 크기: $urlSize bytes');
+                if (!completer.isCompleted) {
+                  completer.complete({
+                    'size': urlSize,
+                    'downloadUrl': data['downloadUrl'],
+                    'status': 'completed',
+                  });
+                }
+              }
+            }).catchError((e) {
+              print('Firestore downloadUrl 크기 확인 오류: $e');
+            });
+            return;
+          }
+
+          // 변환된 파일의 메타데이터에서 크기 정보 가져오기
+          if (data?['resultFile'] != null) {
+            print('샘플 변환 resultFile: ${data!['resultFile']}');
+            final resultRef = FirebaseStorage.instance.ref(data!['resultFile']);
+
+            resultRef.getMetadata().then((metadata) {
+              print(
+                  '샘플 변환 메타데이터: size=${metadata.size}, name=${metadata.name}');
+              print('샘플 변환 메타데이터 전체: $metadata');
+
+              return resultRef.getDownloadURL().then((downloadUrl) async {
+                print('샘플 변환 downloadUrl: $downloadUrl');
+
+                // 메타데이터에서 크기를 가져올 수 없거나 0인 경우 URL로부터 직접 확인
+                int finalSize = metadata.size ?? 0;
+                if (finalSize == 0) {
+                  print('메타데이터 크기가 0이므로 URL로부터 직접 확인');
+                  final urlSize = await _getFileSizeFromUrl(downloadUrl);
+                  if (urlSize != null && urlSize > 0) {
+                    finalSize = urlSize;
+                    print('URL로부터 확인한 파일 크기: $finalSize bytes');
+                  }
+                }
+
+                if (!completer.isCompleted) {
+                  completer.complete({
+                    'size': finalSize,
+                    'downloadUrl': downloadUrl,
+                    'status': 'completed',
+                  });
+                }
+              });
+            }).catchError((e) {
+              print('샘플 변환 메타데이터/URL 가져오기 오류: $e');
+              print('샘플 변환 오류 스택: ${StackTrace.current}');
+              if (!completer.isCompleted) {
+                completer.complete({
+                  'size': 0,
+                  'status': 'completed',
+                });
+              }
+            });
+          } else {
+            if (!completer.isCompleted) {
+              completer.complete({
+                'size': 0,
+                'status': 'completed',
+              });
+            }
+          }
+        } else if (status == 'failed') {
+          if (!completer.isCompleted) {
+            completer.completeError(data?['error'] ?? '샘플 변환에 실패했습니다.');
+          }
+        }
+      }, onError: (e) {
+        if (!completer.isCompleted) {
+          completer.completeError('샘플 변환 모니터링 중 오류: ${e.toString()}');
+        }
+      });
+
+      // 타임아웃 설정 (30초)
+      Timer(Duration(seconds: 30), () {
+        if (!completer.isCompleted) {
+          completer.completeError('샘플 변환 시간이 초과되었습니다.');
+        }
+      });
+
+      // 결과 대기
+      final result = await completer.future;
+
+      // 리스너 정리
+      listener?.cancel();
+
+      return result;
+    } catch (e) {
+      throw Exception('샘플 변환 중 오류가 발생했습니다: ${e.toString()}');
+    } finally {
+      // 임시 샘플 파일 정리
+      if (sampleFilePath != null) {
+        _cleanupTempFile(sampleFilePath);
+      }
     }
   }
 

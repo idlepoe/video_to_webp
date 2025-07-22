@@ -40,6 +40,7 @@ class LoadingController extends GetxController {
         'convertedFile': data?['convertedFile'],
         'publicUrl': data?['publicUrl'],
         'downloadUrl': data?['downloadUrl'],
+        'fileSize': data?['fileSize'],
       });
       return;
     } else if (status == 'error') {
@@ -67,6 +68,7 @@ class LoadingController extends GetxController {
           'convertedFile': data?['convertedFile'],
           'publicUrl': data?['publicUrl'],
           'downloadUrl': data?['downloadUrl'],
+          'fileSize': data?['fileSize'],
         });
       } else if (status == 'error') {
         Get.back();

@@ -39,11 +39,32 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
   late String selectedFormat;
   late List<Map<String, dynamic>> resolutions;
 
+  // 용량 예측 관련 상태
+  bool _isPredicting = false;
+  String? _predictedSize;
+  String? _predictionError;
+
+  // 파일 크기 제한 관련 상태
+  String? _fileSizeError;
+
   @override
   void initState() {
     super.initState();
     _initializeResolutions();
     _loadSettings();
+    _checkFileSize();
+  }
+
+  // 파일 크기 확인 함수
+  void _checkFileSize() {
+    final fileSize = File(widget.videoFilePath).lengthSync();
+    final fileSizeMB = fileSize / (1024 * 1024);
+
+    if (fileSizeMB > 20) {
+      setState(() {
+        _fileSizeError = 'file_size_error'.tr;
+      });
+    }
   }
 
   void _initializeResolutions() {
@@ -183,6 +204,68 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
     }
   }
 
+  // 1초 샘플로 용량 예측하는 함수
+  Future<void> _predictFileSize() async {
+    setState(() {
+      _isPredicting = true;
+      _predictedSize = null;
+      _predictionError = null;
+    });
+
+    try {
+      final controller = Get.find<FileSelectController>();
+
+      // 1초 샘플 변환 옵션 생성
+      final sampleOptions = ConvertOptions(
+        format: selectedFormat,
+        quality: quality.round(),
+        fps: fps.round(),
+        resolution:
+            '${resolutions[selectedResolution]['width']}x${resolutions[selectedResolution]['height']}',
+        startTime: 0.0, // 처음부터
+        endTime: 1.0, // 1초까지
+        speed: speed,
+      );
+
+      // 1초 샘플 변환 API 호출
+      final sampleResult = await controller.convertVideoSample(
+          widget.videoFilePath, sampleOptions);
+
+      if (sampleResult != null && sampleResult['size'] != null) {
+        // 샘플 크기와 전체 예상 크기 계산
+        final sampleSize = sampleResult['size'] as int;
+        final totalDuration = widget.videoDurationSeconds.toDouble();
+        final sampleDuration = 1.0; // 1초
+
+        print('샘플 변환 결과:');
+        print('- sampleSize: $sampleSize bytes');
+        print('- totalDuration: $totalDuration seconds');
+        print('- sampleDuration: $sampleDuration seconds');
+
+        // 비례 계산으로 전체 크기 예측
+        final predictedTotalSize =
+            (sampleSize * totalDuration / sampleDuration).round();
+
+        print('- predictedTotalSize: $predictedTotalSize bytes');
+        print('- formatted size: ${_formatFileSize(predictedTotalSize)}');
+
+        setState(() {
+          _predictedSize = _formatFileSize(predictedTotalSize);
+          _isPredicting = false;
+        });
+      } else {
+        print('샘플 변환 결과가 null이거나 size가 없습니다:');
+        print('- sampleResult: $sampleResult');
+        throw Exception('샘플 변환 결과를 받을 수 없습니다.');
+      }
+    } catch (e) {
+      setState(() {
+        _predictionError = e.toString();
+        _isPredicting = false;
+      });
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Stack(
@@ -214,6 +297,39 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                   'convert_options'.tr,
                   style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 ),
+
+                // 파일 크기 제한 오류 표시
+                if (_fileSizeError != null) ...[
+                  SizedBox(height: 16),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red[300]!, width: 1),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.error, color: Colors.red[700], size: 20),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            _fileSizeError!,
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.red[700],
+                              fontWeight: FontWeight.w600,
+                              height: 1.4,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 SizedBox(height: 24),
                 Text(
                   'resolution'.tr,
@@ -227,7 +343,11 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                       child: GestureDetector(
                         onTap: widget.isUploading
                             ? null
-                            : () => setState(() => selectedResolution = i),
+                            : () => setState(() {
+                                  selectedResolution = i;
+                                  _predictedSize = null;
+                                  _predictionError = null;
+                                }),
                         child: Container(
                           padding: EdgeInsets.symmetric(
                               vertical: 14, horizontal: 16),
@@ -281,7 +401,11 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                             label: fps.round().toString(),
                             onChanged: widget.isUploading
                                 ? null
-                                : (v) => setState(() => fps = v),
+                                : (v) => setState(() {
+                                      fps = v;
+                                      _predictedSize = null;
+                                      _predictionError = null;
+                                    }),
                           ),
                         ),
                       ),
@@ -320,7 +444,11 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                             label: quality.round().toString(),
                             onChanged: widget.isUploading
                                 ? null
-                                : (v) => setState(() => quality = v),
+                                : (v) => setState(() {
+                                      quality = v;
+                                      _predictedSize = null;
+                                      _predictionError = null;
+                                    }),
                           ),
                         ),
                       ),
@@ -359,7 +487,11 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                             label: '${speed.toStringAsFixed(2)}x',
                             onChanged: widget.isUploading
                                 ? null
-                                : (v) => setState(() => speed = v),
+                                : (v) => setState(() {
+                                      speed = v;
+                                      _predictedSize = null;
+                                      _predictionError = null;
+                                    }),
                           ),
                         ),
                       ),
@@ -391,6 +523,106 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                   }),
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
+                SizedBox(height: 16),
+
+                // 용량 예측 버튼
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: OutlinedButton.icon(
+                    onPressed: widget.isUploading || _isPredicting
+                        ? null
+                        : _predictFileSize,
+                    icon: _isPredicting
+                        ? SizedBox(
+                            width: 16,
+                            height: 16,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.blue),
+                            ),
+                          )
+                        : Icon(Icons.analytics_outlined),
+                    label: Text(
+                      _isPredicting
+                          ? 'predicting'.tr
+                          : 'predict_converted_size'.tr,
+                      style:
+                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                    ),
+                    style: OutlinedButton.styleFrom(
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      side: BorderSide(color: Colors.blue, width: 1.5),
+                      foregroundColor: Colors.blue,
+                    ),
+                  ),
+                ),
+
+                // 예측 결과 표시
+                if (_predictedSize != null) ...[
+                  SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.green[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.green[200]!),
+                    ),
+                    child: Row(
+                      children: [
+                        Icon(Icons.check_circle, color: Colors.green, size: 20),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'predicted_size_result'
+                                .trParams({'size': _predictedSize!}),
+                            style: TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                              color: Colors.green[700],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
+                // 예측 오류 표시
+                if (_predictionError != null) ...[
+                  SizedBox(height: 12),
+                  Container(
+                    width: double.infinity,
+                    padding: EdgeInsets.all(16),
+                    decoration: BoxDecoration(
+                      color: Colors.red[50],
+                      borderRadius: BorderRadius.circular(12),
+                      border: Border.all(color: Colors.red[200]!),
+                    ),
+                    child: Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Icon(Icons.error, color: Colors.red, size: 20),
+                        SizedBox(width: 8),
+                        Expanded(
+                          child: Text(
+                            'prediction_failed'
+                                .trParams({'error': _predictionError!}),
+                            style: TextStyle(
+                              fontSize: 14,
+                              color: Colors.red[700],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+
                 SizedBox(height: 32),
                 Row(
                   children: [
@@ -421,7 +653,8 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                       child: SizedBox(
                         height: 56,
                         child: ElevatedButton(
-                          onPressed: widget.isUploading
+                          onPressed: widget.isUploading ||
+                                  _fileSizeError != null
                               ? null
                               : () async {
                                   // FileSelectController에서 trim 설정 가져오기

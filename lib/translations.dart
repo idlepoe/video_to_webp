@@ -90,7 +90,15 @@ class AppTranslations extends Translations {
           're_download': 'Re-download',
           'browser': 'Browser',
           'convert_another': 'Convert Another Video',
+          'conversion_success': 'Conversion Successful',
+          'converted_file_size': 'File Size',
           'opening_browser': 'Opening download link in browser...',
+
+          // File Size Prediction
+          'predicting': 'Predicting...',
+          'predict_converted_size': 'Predict Converted Size',
+          'predicted_size_result': 'Predicted Converted Size: @size',
+          'prediction_failed': 'Prediction Failed: @error',
 
           // File Deletion Notice
           'file_deletion_notice': 'File Deletion Notice',
@@ -231,7 +239,15 @@ class AppTranslations extends Translations {
           're_download': '재다운로드',
           'browser': '브라우저',
           'convert_another': '다른 비디오 변환하기',
+          'conversion_success': '변환 성공',
+          'converted_file_size': '파일 크기',
           'opening_browser': '브라우저에서 다운로드 링크를 여는 중...',
+
+          // File Size Prediction
+          'predicting': '예측 중...',
+          'predict_converted_size': '변환 후 용량 예측',
+          'predicted_size_result': '예상 변환 후 용량: @size',
+          'prediction_failed': '예측 실패: @error',
 
           // File Deletion Notice
           'file_deletion_notice': '파일 삭제 안내',

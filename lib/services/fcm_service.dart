@@ -77,6 +77,7 @@ class FCMService extends GetxService {
             'convertedFile': data['convertedFile'] ?? '',
             'publicUrl': data['publicUrl'] ?? '',
             'downloadUrl': data['downloadUrl'] ?? '',
+            'fileSize': int.tryParse(data['fileSize'] ?? '0') ?? 0,
           };
 
           Get.offAllNamed(AppRoutes.complete, arguments: arguments);
@@ -275,6 +276,7 @@ class FCMService extends GetxService {
           'convertedFile': message.data['convertedFile'] ?? '',
           'publicUrl': message.data['publicUrl'] ?? '',
           'downloadUrl': message.data['downloadUrl'] ?? '',
+          'fileSize': int.tryParse(message.data['fileSize'] ?? '0') ?? 0,
         };
 
         print('네비게이션 실행 - 화면: $screen, 데이터: $arguments');

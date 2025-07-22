@@ -68,7 +68,9 @@ export const convertVideo = onObjectFinalized({
     const doc = snapshot.docs[0];
     const requestData = doc.data();
     const options = requestData.options;
+    const isSample = requestData.isSample || false;
     console.log('변환 옵션:', options);
+    console.log('샘플 변환 여부:', isSample);
 
     const duration = options.duration || 1;
 
@@ -267,26 +269,32 @@ export const convertVideo = onObjectFinalized({
       convertedFile: outputFileName,
       publicUrl: publicUrl, // 이미지 표시용 URL
       downloadUrl: downloadUrl, // 다운로드용 URL
+      fileSize: stats.size, // 변환된 파일 크기 추가
       completedAt: admin.firestore.FieldValue.serverTimestamp(),
     });
     console.log('Firestore 상태 업데이트 완료');
 
-    // FCM 푸시 알림 전송
-    try {
-      await sendPushNotification(requestData.userId, {
-        publicUrl: publicUrl,
-        downloadUrl: downloadUrl,
-        convertedFile: outputFileName,
-        requestId: doc.id,
-      }, {
-        resolution: `${width}x${height}`,
-        fps: targetFps,
-        quality: qualityPercent,
-        format: ffmpegFormat,
-      });
-      console.log('FCM 푸시 알림 전송 완료');
-    } catch (error) {
-      console.error('FCM 푸시 알림 전송 실패:', error);
+    // FCM 푸시 알림 전송 (샘플 변환이 아닌 경우만)
+    if (!isSample) {
+      try {
+        await sendPushNotification(requestData.userId, {
+          publicUrl: publicUrl,
+          downloadUrl: downloadUrl,
+          convertedFile: outputFileName,
+          requestId: doc.id,
+          fileSize: stats.size,
+        }, {
+          resolution: `${width}x${height}`,
+          fps: targetFps,
+          quality: qualityPercent,
+          format: ffmpegFormat,
+        });
+        console.log('FCM 푸시 알림 전송 완료');
+      } catch (error) {
+        console.error('FCM 푸시 알림 전송 실패:', error);
+      }
+    } else {
+      console.log('샘플 변환이므로 FCM 알림 전송 생략');
     }
 
     // 임시 파일 정리
@@ -380,6 +388,7 @@ async function sendPushNotification(userId: string, fileData: {
   downloadUrl: string;
   convertedFile: string;
   requestId: string;
+  fileSize: number;
 }, videoInfo?: {
   resolution: string;
   fps: number;
@@ -415,6 +424,7 @@ async function sendPushNotification(userId: string, fileData: {
         downloadUrl: fileData.downloadUrl,
         convertedFile: fileData.convertedFile,
         requestId: fileData.requestId,
+        fileSize: fileData.fileSize?.toString() || '0',
         // 비디오 정보도 데이터에 포함
         resolution: videoInfo?.resolution || '',
         fps: videoInfo?.fps?.toString() || '',
