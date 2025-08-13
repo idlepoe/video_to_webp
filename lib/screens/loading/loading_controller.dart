@@ -3,6 +3,7 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../../routes/app_routes.dart';
 import '../../widgets/common_snackbar.dart';
+import '../../services/fcm_service.dart';
 
 class LoadingController extends GetxController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
@@ -13,6 +14,11 @@ class LoadingController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+
+    // FCM 서비스에 현재 화면 알림
+    final fcmService = Get.find<FCMService>();
+    fcmService.updateCurrentScreen('/loading');
+
     final args = Get.arguments as Map<String, dynamic>?;
     final requestId = args?['requestId'] as String?;
     if (requestId != null) {

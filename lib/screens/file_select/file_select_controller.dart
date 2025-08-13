@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:video_player/video_player.dart';
@@ -37,6 +38,15 @@ class FileSelectController extends GetxController {
   final Rx<double?> trimEndTime = Rx<double?>(null);
 
   final RxBool notificationSubscribed = true.obs;
+
+  @override
+  void onInit() {
+    super.onInit();
+
+    // FCM 서비스에 현재 화면 알림
+    final fcmService = Get.find<FCMService>();
+    fcmService.updateCurrentScreen('/file_select');
+  }
 
   @override
   void onReady() {

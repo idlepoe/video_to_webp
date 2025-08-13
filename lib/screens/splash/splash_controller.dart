@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../routes/app_routes.dart';
+import '../../services/fcm_service.dart';
 
 class SplashController extends GetxController {
   final _isLoading = true.obs;
@@ -10,6 +11,11 @@ class SplashController extends GetxController {
   @override
   void onReady() {
     super.onReady();
+
+    // FCM 서비스에 현재 화면 알림
+    final fcmService = Get.find<FCMService>();
+    fcmService.updateCurrentScreen('/splash');
+
     _initializeApp();
   }
 

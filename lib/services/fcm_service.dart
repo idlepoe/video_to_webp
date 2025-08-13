@@ -12,12 +12,18 @@ class FCMService extends GetxService {
   final FlutterLocalNotificationsPlugin _localNotifications =
       FlutterLocalNotificationsPlugin();
 
+  // 현재 화면 추적
+  String? _currentScreen;
+
   @override
   void onInit() {
     super.onInit();
     _initializeLocalNotifications();
     _initializeFCM();
     _handleInitialMessage();
+
+    // 초기 화면 설정
+    _currentScreen = Get.currentRoute;
   }
 
   Future<void> _initializeLocalNotifications() async {
@@ -55,6 +61,15 @@ class FCMService extends GetxService {
 
   void _onNotificationTapped(NotificationResponse response) {
     print('로컬 알림 탭됨: ${response.payload}');
+
+    // 이미 완료 화면이나 로딩 화면에 있는 경우 스킵
+    if (_currentScreen == AppRoutes.complete ||
+        _currentScreen == '/complete' ||
+        _currentScreen == AppRoutes.loading ||
+        _currentScreen == '/loading') {
+      print('이미 완료/로딩 화면에 있으므로 네비게이션 스킵 (현재 화면: $_currentScreen)');
+      return;
+    }
 
     // 페이로드에서 메시지 데이터 추출
     if (response.payload != null) {
@@ -270,6 +285,15 @@ class FCMService extends GetxService {
     if (message.data.containsKey('screen')) {
       String screen = message.data['screen'];
       if (screen == 'convert_complete') {
+        // 이미 완료 화면이나 로딩 화면에 있는 경우 스킵
+        if (_currentScreen == AppRoutes.complete ||
+            _currentScreen == '/complete' ||
+            _currentScreen == AppRoutes.loading ||
+            _currentScreen == '/loading') {
+          print('이미 완료/로딩 화면에 있으므로 네비게이션 스킵 (현재 화면: $_currentScreen)');
+          return;
+        }
+
         // 변환 완료 화면으로 이동 (데이터 포함)
         Map<String, dynamic> arguments = {
           'requestId': message.data['requestId'] ?? '',
@@ -283,6 +307,12 @@ class FCMService extends GetxService {
         Get.offAllNamed(AppRoutes.complete, arguments: arguments);
       }
     }
+  }
+
+  // 화면 변경 감지를 위한 메서드 추가
+  void updateCurrentScreen(String route) {
+    _currentScreen = route;
+    print('현재 화면 업데이트: $_currentScreen');
   }
 }
 

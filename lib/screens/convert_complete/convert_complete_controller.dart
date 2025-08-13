@@ -3,6 +3,7 @@ import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../widgets/common_snackbar.dart';
+import '../../services/fcm_service.dart';
 
 class ConvertCompleteController extends GetxController {
   final RxString imageUrl = ''.obs;
@@ -15,6 +16,11 @@ class ConvertCompleteController extends GetxController {
   @override
   void onInit() {
     super.onInit();
+    
+    // FCM 서비스에 현재 화면 알림
+    final fcmService = Get.find<FCMService>();
+    fcmService.updateCurrentScreen('/complete');
+    
     final args = Get.arguments;
     if (args != null) {
       if (args['publicUrl'] != null) {
