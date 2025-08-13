@@ -74,7 +74,6 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
         if (controller.videoFile.value == null) {
           return EmptyVideoWidget(
             onPickVideo: controller.pickVideo,
-            onMediaScan: controller.manualMediaScan, // Media scan 콜백 추가
           );
         } else {
           final videoController = controller.videoPlayerController.value;

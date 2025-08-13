@@ -4,12 +4,10 @@ import '../file_select_controller.dart';
 
 class EmptyVideoWidget extends StatelessWidget {
   final VoidCallback onPickVideo;
-  final VoidCallback? onMediaScan; // Media scan 콜백 추가
 
   const EmptyVideoWidget({
     Key? key,
     required this.onPickVideo,
-    this.onMediaScan, // Media scan 콜백 추가
   }) : super(key: key);
 
   @override
@@ -70,7 +68,7 @@ class EmptyVideoWidget extends StatelessWidget {
           child: Column(
             children: [
               // Media scan 안내 및 버튼
-              if (onMediaScan != null) ...[
+              ...[
                 Container(
                   padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
@@ -122,13 +120,23 @@ class EmptyVideoWidget extends StatelessWidget {
                               ),
                               SizedBox(height: 8),
                               // Progress Bar
-                              LinearProgressIndicator(
-                                value: controller.mediaScanProgress.value,
-                                backgroundColor: Colors.orange.withOpacity(0.2),
-                                valueColor: AlwaysStoppedAnimation<Color>(
-                                  Colors.orange[700]!,
+                              Container(
+                                height: 6,
+                                decoration: BoxDecoration(
+                                  color: Colors.orange.withOpacity(0.2),
+                                  borderRadius: BorderRadius.circular(3),
                                 ),
-                                minHeight: 6,
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(3),
+                                  child: LinearProgressIndicator(
+                                    value: controller.mediaScanProgress.value,
+                                    backgroundColor: Colors.transparent,
+                                    valueColor: AlwaysStoppedAnimation<Color>(
+                                      Colors.orange[700]!,
+                                    ),
+                                    minHeight: 6,
+                                  ),
+                                ),
                               ),
                               SizedBox(height: 4),
                               // 진행률 텍스트
@@ -207,7 +215,7 @@ class EmptyVideoWidget extends StatelessWidget {
                         child: Obx(() => OutlinedButton.icon(
                               onPressed: controller.isMediaScanning.value
                                   ? null
-                                  : onMediaScan,
+                                  : () => controller.executeSelectedScanOption(),
                               style: OutlinedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -238,7 +246,7 @@ class EmptyVideoWidget extends StatelessWidget {
                               label: Text(
                                 controller.isMediaScanning.value
                                     ? '스캔 중...'
-                                    : '빠른 스캔',
+                                    : controller.selectedScanOption.value,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,

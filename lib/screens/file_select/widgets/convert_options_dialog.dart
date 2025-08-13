@@ -716,15 +716,20 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                     Stack(
                       alignment: Alignment.center,
                       children: [
-                        SizedBox(
+                        Container(
                           width: 64,
                           height: 64,
-                          child: CircularProgressIndicator(
-                            value: widget.uploadPercent,
-                            strokeWidth: 6,
-                            backgroundColor: Colors.grey[200],
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.blue),
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                          ),
+                          child: ClipOval(
+                            child: CircularProgressIndicator(
+                              value: widget.uploadPercent,
+                              strokeWidth: 6,
+                              backgroundColor: Colors.grey[200],
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.blue),
+                            ),
                           ),
                         ),
                         Text(

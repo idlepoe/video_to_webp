@@ -48,6 +48,10 @@ class FileSelectController extends GetxController {
   final RxInt mediaScanCurrent = 0.obs;
   final RxInt mediaScanTotal = 0.obs;
 
+  // 스캔 옵션 관련 변수 추가
+  final RxString selectedScanOption = '빠른 스캔'.obs;
+  final RxString selectedScanOptionKey = 'quick_scan'.obs;
+
   @override
   void onInit() {
     super.onInit();
@@ -117,6 +121,14 @@ class FileSelectController extends GetxController {
     final prefs = await SharedPreferences.getInstance();
     final value = prefs.getBool('notification_subscribed') ?? true;
     notificationSubscribed.value = value;
+
+    // 스캔 옵션 로드
+    final scanOptionKey =
+        prefs.getString('selected_scan_option') ?? 'quick_scan';
+    final scanOptionName =
+        prefs.getString('selected_scan_option_name') ?? '빠른 스캔';
+    selectedScanOptionKey.value = scanOptionKey;
+    selectedScanOption.value = scanOptionName;
   }
 
   Future<void> setNotificationSubscribed(bool value) async {
@@ -132,6 +144,16 @@ class FileSelectController extends GetxController {
         await fcmService.unsubscribeFromUser(user.uid);
       }
     }
+  }
+
+  // 스캔 옵션 설정 및 저장
+  Future<void> setScanOption(String optionKey, String optionName) async {
+    selectedScanOptionKey.value = optionKey;
+    selectedScanOption.value = optionName;
+
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('selected_scan_option', optionKey);
+    await prefs.setString('selected_scan_option_name', optionName);
   }
 
   Future<void> pickVideo() async {
@@ -312,6 +334,27 @@ class FileSelectController extends GetxController {
     } catch (e) {
       // CommonSnackBar.error('error'.tr, 'media_scan_failed'.tr);
       print('수동 Media scan 오류: $e');
+    }
+  }
+
+  // 선택된 스캔 옵션에 따라 스캔 실행
+  Future<void> executeSelectedScanOption() async {
+    try {
+      switch (selectedScanOptionKey.value) {
+        case 'quick_scan':
+          await quickMediaScan();
+          break;
+        case 'hybrid_scan':
+          await hybridMediaScan();
+          break;
+        case 'full_scan':
+          await fullMediaScan();
+          break;
+        default:
+          await quickMediaScan(); // 기본값
+      }
+    } catch (e) {
+      print('선택된 스캔 옵션 실행 오류: $e');
     }
   }
 
@@ -1330,27 +1373,27 @@ class FileSelectController extends GetxController {
               leading: Icon(Icons.flash_on, color: Colors.blue),
               title: Text('빠른 스캔'),
               subtitle: Text('주요 폴더만 빠르게 스캔'),
-              onTap: () {
+              onTap: () async {
+                await setScanOption('quick_scan', '빠른 스캔');
                 Get.back();
-                quickMediaScan();
               },
             ),
             ListTile(
               leading: Icon(Icons.balance, color: Colors.orange),
               title: Text('하이브리드 스캔'),
               subtitle: Text('고정 경로 + 동적 탐색 (권장)'),
-              onTap: () {
+              onTap: () async {
+                await setScanOption('hybrid_scan', '하이브리드 스캔');
                 Get.back();
-                hybridMediaScan();
               },
             ),
             ListTile(
               leading: Icon(Icons.explore, color: Colors.green),
               title: Text('전체 스캔'),
               subtitle: Text('모든 가능한 경로를 완전히 스캔'),
-              onTap: () {
+              onTap: () async {
+                await setScanOption('full_scan', '전체 스캔');
                 Get.back();
-                fullMediaScan();
               },
             ),
           ],
