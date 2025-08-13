@@ -17,9 +17,18 @@ class ConvertCompleteController extends GetxController {
   void onInit() {
     super.onInit();
     
-    // FCM 서비스에 현재 화면 알림
-    final fcmService = Get.find<FCMService>();
-    fcmService.updateCurrentScreen('/complete');
+    // FCM 서비스에 현재 화면 알림 (안전하게 처리)
+    try {
+      if (Get.isRegistered<FCMService>()) {
+        final fcmService = Get.find<FCMService>();
+        fcmService.updateCurrentScreen('/complete');
+      } else {
+        print('FCM 서비스가 아직 초기화되지 않았습니다.');
+      }
+    } catch (e) {
+      print('FCM 서비스 접근 오류: $e');
+      // FCM 서비스가 없어도 앱은 정상 동작
+    }
     
     final args = Get.arguments;
     if (args != null) {

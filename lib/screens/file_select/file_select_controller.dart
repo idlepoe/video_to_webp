@@ -12,6 +12,8 @@ import 'package:flutter/material.dart';
 import 'package:video_trimmer/video_trimmer.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
+import 'package:permission_handler/permission_handler.dart';
+import 'package:media_scanner/media_scanner.dart';
 import '../../models/convert_request.dart';
 import '../../routes/app_routes.dart';
 import '../loading/loading_controller.dart';
@@ -39,13 +41,29 @@ class FileSelectController extends GetxController {
 
   final RxBool notificationSubscribed = true.obs;
 
+  // 미디어 스캔 진행 상황 추적
+  final RxBool isMediaScanning = false.obs;
+  final RxDouble mediaScanProgress = 0.0.obs;
+  final RxString mediaScanStatus = ''.obs;
+  final RxInt mediaScanCurrent = 0.obs;
+  final RxInt mediaScanTotal = 0.obs;
+
   @override
   void onInit() {
     super.onInit();
 
-    // FCM 서비스에 현재 화면 알림
-    final fcmService = Get.find<FCMService>();
-    fcmService.updateCurrentScreen('/file_select');
+    // FCM 서비스에 현재 화면 알림 (안전하게 처리)
+    try {
+      if (Get.isRegistered<FCMService>()) {
+        final fcmService = Get.find<FCMService>();
+        fcmService.updateCurrentScreen('/file_select');
+      } else {
+        print('FCM 서비스가 아직 초기화되지 않았습니다.');
+      }
+    } catch (e) {
+      print('FCM 서비스 접근 오류: $e');
+      // FCM 서비스가 없어도 앱은 정상 동작
+    }
   }
 
   @override
@@ -53,6 +71,28 @@ class FileSelectController extends GetxController {
     super.onReady();
     _initializeFirebase();
     _loadNotificationPreference();
+    _requestPermissions();
+  }
+
+  // 권한 요청
+  Future<void> _requestPermissions() async {
+    try {
+      // Android 13+ 에서는 READ_MEDIA_VIDEO 권한 필요
+      if (Platform.isAndroid) {
+        final status = await Permission.videos.status;
+        if (status.isDenied) {
+          await Permission.videos.request();
+        }
+
+        // 저장소 권한도 요청 (하위 버전 호환성)
+        final storageStatus = await Permission.storage.status;
+        if (storageStatus.isDenied) {
+          await Permission.storage.request();
+        }
+      }
+    } catch (e) {
+      print('권한 요청 오류: $e');
+    }
   }
 
   Future<void> _initializeFirebase() async {
@@ -96,6 +136,9 @@ class FileSelectController extends GetxController {
 
   Future<void> pickVideo() async {
     try {
+      // Android: Media scan 실행으로 최신 영상 파일들을 갤러리에 인덱싱
+      await _triggerMediaScan();
+
       final XFile? file = await _picker.pickVideo(source: ImageSource.gallery);
       if (file != null) {
         videoFile.value = file;
@@ -107,6 +150,458 @@ class FileSelectController extends GetxController {
       // CommonSnackBar.error(
       //     'error'.tr, 'An error occurred while selecting the video.'.tr);
     }
+  }
+
+  // Media scan 실행으로 최신 영상 파일들을 갤러리에 인덱싱 (Android 전용)
+  Future<void> _triggerMediaScan() async {
+    try {
+      // Android에서만 실행
+      if (Platform.isAndroid) {
+        _startMediaScan(); // 스캔 시작
+        await _scanAndroidWithMediaScanner();
+        _completeMediaScan(); // 스캔 완료
+      }
+    } catch (e) {
+      print('Media scan 오류: $e');
+      _errorMediaScan(e.toString());
+    }
+  }
+
+  // Android: media_scanner 라이브러리를 사용한 미디어 스캔 (하이브리드 방식)
+  Future<void> _scanAndroidWithMediaScanner() async {
+    try {
+      print('Android Media Scanner 시작 (하이브리드 방식)...');
+
+      // 스캔된 디렉토리 목록 초기화
+      _clearScannedDirectories();
+
+      // 1단계: 기존 고정 경로 스캔
+      await _scanFixedPaths();
+
+      // 2단계: 동적 디렉토리 탐색 스캔
+      await _scanDynamicDirectories();
+
+      print('하이브리드 미디어 스캔 완료!');
+    } catch (e) {
+      print('Android Media Scanner 오류: $e');
+      _errorMediaScan(e.toString());
+    }
+  }
+
+  // 기존 고정 경로 스캔
+  Future<void> _scanFixedPaths() async {
+    try {
+      print('고정 경로 스캔 시작...');
+
+      // 주요 미디어 디렉토리들을 스캔 (중복 경로 제거)
+      final List<String> scanPaths = [
+        // 기본 시스템 폴더
+        '/storage/emulated/0/Download',
+        '/storage/emulated/0/DCIM',
+        '/storage/emulated/0/Pictures',
+        '/storage/emulated/0/Movies',
+        '/storage/emulated/0/Videos',
+
+        // 소셜 미디어 앱
+        '/storage/emulated/0/Android/data/com.zhiliaoapp.musically/files/videos', // TikTok
+        '/storage/emulated/0/Android/data/com.instagram.android/files/DCIM/Camera', // Instagram
+        '/storage/emulated/0/Android/data/com.facebook.katana/files/videos', // Facebook
+        '/storage/emulated/0/Android/data/com.twitter.android/files/videos', // Twitter/X
+        '/storage/emulated/0/Android/data/com.snapchat.android/files/videos', // Snapchat
+        '/storage/emulated/0/Android/data/com.google.android.youtube/files/videos', // YouTube
+
+        // 메신저 앱
+        '/storage/emulated/0/WhatsApp/Media/WhatsApp Video',
+        '/storage/emulated/0/Telegram/Telegram Video',
+        '/storage/emulated/0/Android/data/org.thoughtcrime.securesms/files/videos', // Signal
+        '/storage/emulated/0/Android/data/jp.naver.line.android/files/videos', // Line
+        '/storage/emulated/0/Android/data/com.tencent.mm/files/videos', // WeChat
+        '/storage/emulated/0/Android/data/com.discord/files/videos', // Discord
+
+        // 음악/비디오 스트리밍 앱
+        '/storage/emulated/0/Android/data/com.spotify.music/files/videos', // Spotify
+        '/storage/emulated/0/Android/data/com.apple.android.music/files/videos', // Apple Music
+        '/storage/emulated/0/Android/data/com.netflix.mediaclient/files/videos', // Netflix
+        '/storage/emulated/0/Android/data/com.amazon.avod.thirdpartyclient/files/videos', // Amazon Prime
+        '/storage/emulated/0/Android/data/com.disney.disneyplus/files/videos', // Disney+
+
+        // 기타 인기 앱
+        '/storage/emulated/0/Android/data/com.pinterest/files/videos', // Pinterest
+        '/storage/emulated/0/Android/data/com.reddit.frontpage/files/videos', // Reddit
+        '/storage/emulated/0/Android/data/com.linkedin.android/files/videos', // LinkedIn
+        '/storage/emulated/0/Android/data/com.microsoft.teams/files/videos', // Microsoft Teams
+        '/storage/emulated/0/Android/data/com.skype.raider/files/videos', // Skype
+
+        // 외부 SD카드 (있는 경우)
+        '/sdcard/Download',
+        '/sdcard/DCIM',
+        '/sdcard/Pictures',
+        '/sdcard/Movies',
+        '/sdcard/Videos',
+
+        // 사용자 정의 폴더 (일반적인 위치)
+        '/storage/emulated/0/My Videos',
+        '/storage/emulated/0/Video',
+        '/storage/emulated/0/Recordings',
+        '/storage/emulated/0/Screen Recordings',
+        '/storage/emulated/0/Bluetooth',
+        '/storage/emulated/0/Shareit',
+        '/storage/emulated/0/Xender',
+      ];
+
+      int successCount = 0;
+      int totalPaths = scanPaths.length;
+
+      // 스캔 시작
+      _updateMediaScanProgress(0, totalPaths, '고정 경로 스캔 시작...');
+
+      for (int i = 0; i < scanPaths.length; i++) {
+        String path = scanPaths[i];
+        try {
+          final directory = Directory(path);
+          if (await directory.exists()) {
+            // 진행 상황 업데이트
+            _updateMediaScanProgress(
+                i + 1, totalPaths, '고정 경로 스캔 중: ${path.split('/').last}');
+
+            print('디렉토리 스캔 중: $path');
+
+            // media_scanner 라이브러리를 사용하여 디렉토리 스캔
+            await MediaScanner.loadMedia(path: path);
+            print('디렉토리 스캔 완료: $path');
+            successCount++;
+
+            // 스캔된 디렉토리 목록에 추가
+            _addScannedDirectory(path);
+          } else {
+            print('디렉토리가 존재하지 않음: $path');
+            _updateMediaScanProgress(
+                i + 1, totalPaths, '건너뜀: ${path.split('/').last}');
+          }
+        } catch (e) {
+          print('디렉토리 스캔 실패: $path - $e');
+          _updateMediaScanProgress(
+              i + 1, totalPaths, '오류: ${path.split('/').last}');
+        }
+      }
+
+      print('고정 경로 스캔 완료: $successCount/$totalPaths 디렉토리 스캔 성공');
+
+      // 성공한 스캔이 있으면 사용자에게 알림
+      if (successCount > 0) {
+        _updateMediaScanProgress(
+            totalPaths, totalPaths, '고정 경로 스캔 완료! $successCount개 폴더 성공');
+      }
+    } catch (e) {
+      print('고정 경로 스캔 오류: $e');
+      throw e;
+    }
+  }
+
+  // 수동 Media scan 실행 (사용자가 직접 실행할 수 있는 기능)
+  Future<void> manualMediaScan() async {
+    try {
+      // 사용자에게 스캔 중임을 알림
+      // CommonSnackBar.info('info'.tr, 'scanning_media_files'.tr);
+
+      print('수동 미디어 스캔 시작...');
+      await _triggerMediaScan();
+
+      // CommonSnackBar.success('success'.tr, 'media_scan_complete'.tr);
+      print('수동 미디어 스캔 완료');
+    } catch (e) {
+      // CommonSnackBar.error('error'.tr, 'media_scan_failed'.tr);
+      print('수동 Media scan 오류: $e');
+    }
+  }
+
+  // 특정 파일을 미디어 스캔에 추가 (고급 기능)
+  Future<void> scanSpecificFile(String filePath) async {
+    try {
+      if (Platform.isAndroid) {
+        print('특정 파일 스캔: $filePath');
+
+        // 파일이 존재하는지 확인
+        final file = File(filePath);
+        if (await file.exists()) {
+          // media_scanner로 특정 파일 스캔
+          await MediaScanner.loadMedia(path: filePath);
+          print('파일 스캔 완료: $filePath');
+        } else {
+          print('파일이 존재하지 않음: $filePath');
+        }
+      }
+    } catch (e) {
+      print('특정 파일 스캔 오류: $filePath - $e');
+    }
+  }
+
+  // 최근 다운로드된 비디오 파일들을 찾아서 스캔 (고급 기능)
+  Future<void> scanRecentVideoFiles() async {
+    try {
+      if (Platform.isAndroid) {
+        print('최근 비디오 파일 스캔 시작...');
+
+        // 다운로드 폴더에서 최근 비디오 파일들 찾기
+        final downloadDir = Directory('/storage/emulated/0/Download');
+        if (await downloadDir.exists()) {
+          final List<FileSystemEntity> videoFiles = [];
+
+          await for (FileSystemEntity entity in downloadDir.list()) {
+            if (entity is File) {
+              final extension = entity.path.split('.').last.toLowerCase();
+              if ([
+                'mp4',
+                'avi',
+                'mov',
+                'mkv',
+                'wmv',
+                'flv',
+                'webm',
+                '3gp',
+                'm4v'
+              ].contains(extension)) {
+                // 최근 24시간 내에 수정된 파일만
+                final stat = await entity.stat();
+                final now = DateTime.now();
+                final difference = now.difference(stat.modified);
+
+                if (difference.inHours < 24) {
+                  videoFiles.add(entity);
+                }
+              }
+            }
+          }
+
+          print('최근 비디오 파일 ${videoFiles.length}개 발견');
+
+          // 각 파일을 개별적으로 스캔
+          for (FileSystemEntity file in videoFiles) {
+            try {
+              await MediaScanner.loadMedia(path: file.path);
+              print('비디오 파일 스캔 완료: ${file.path}');
+            } catch (e) {
+              print('비디오 파일 스캔 실패: ${file.path} - $e');
+            }
+          }
+
+          print('최근 비디오 파일 스캔 완료');
+        }
+      }
+    } catch (e) {
+      print('최근 비디오 파일 스캔 오류: $e');
+    }
+  }
+
+  // 동적으로 설치된 앱의 비디오 폴더를 감지하여 스캔 (고급 기능)
+  Future<void> scanInstalledAppsVideoFolders() async {
+    try {
+      if (Platform.isAndroid) {
+        print('설치된 앱의 비디오 폴더 스캔 시작...');
+
+        // 주요 앱들의 패키지명과 비디오 폴더 경로 매핑
+        final Map<String, List<String>> appVideoPaths = {
+          'com.zhiliaoapp.musically': [
+            // TikTok
+            '/storage/emulated/0/Android/data/com.zhiliaoapp.musically/files/videos',
+            '/storage/emulated/0/Android/data/com.zhiliaoapp.musically/files/DCIM',
+          ],
+          'com.instagram.android': [
+            // Instagram
+            '/storage/emulated/0/Android/data/com.instagram.android/files/DCIM/Camera',
+            '/storage/emulated/0/Android/data/com.instagram.android/files/DCIM/Instagram',
+          ],
+          'com.facebook.katana': [
+            // Facebook
+            '/storage/emulated/0/Android/data/com.facebook.katana/files/videos',
+            '/storage/emulated/0/Android/data/com.facebook.katana/files/DCIM',
+          ],
+          'com.twitter.android': [
+            // Twitter/X
+            '/storage/emulated/0/Android/data/com.twitter.android/files/videos',
+            '/storage/emulated/0/Android/data/com.twitter.android/files/DCIM',
+          ],
+          'com.snapchat.android': [
+            // Snapchat
+            '/storage/emulated/0/Android/data/com.snapchat.android/files/videos',
+            '/storage/emulated/0/Android/data/com.snapchat.android/files/DCIM',
+          ],
+          'com.google.android.youtube': [
+            // YouTube
+            '/storage/emulated/0/Android/data/com.google.android.youtube/files/videos',
+            '/storage/emulated/0/Android/data/com.google.android.youtube/files/DCIM',
+          ],
+          'com.whatsapp': [
+            // WhatsApp
+            '/storage/emulated/0/WhatsApp/Media/WhatsApp Video',
+            '/storage/emulated/0/WhatsApp/Media/WhatsApp Images',
+          ],
+          'org.telegram.messenger': [
+            // Telegram
+            '/storage/emulated/0/Telegram/Telegram Video',
+            '/storage/emulated/0/Telegram/Telegram Images',
+          ],
+          'org.thoughtcrime.securesms': [
+            // Signal
+            '/storage/emulated/0/Android/data/org.thoughtcrime.securesms/files/videos',
+            '/storage/emulated/0/Android/data/org.thoughtcrime.securesms/files/DCIM',
+          ],
+          'jp.naver.line.android': [
+            // Line
+            '/storage/emulated/0/Android/data/jp.naver.line.android/files/videos',
+            '/storage/emulated/0/Android/data/jp.naver.line.android/files/DCIM',
+          ],
+          'com.tencent.mm': [
+            // WeChat
+            '/storage/emulated/0/Android/data/com.tencent.mm/files/videos',
+            '/storage/emulated/0/Android/data/com.tencent.mm/files/DCIM',
+          ],
+          'com.discord': [
+            // Discord
+            '/storage/emulated/0/Android/data/com.discord/files/videos',
+            '/storage/emulated/0/Android/data/com.discord/files/DCIM',
+          ],
+          'com.spotify.music': [
+            // Spotify
+            '/storage/emulated/0/Android/data/com.spotify.music/files/videos',
+            '/storage/emulated/0/Android/data/com.spotify.music/files/DCIM',
+          ],
+          'com.netflix.mediaclient': [
+            // Netflix
+            '/storage/emulated/0/Android/data/com.netflix.mediaclient/files/videos',
+            '/storage/emulated/0/Android/data/com.netflix.mediaclient/files/DCIM',
+          ],
+          'com.pinterest': [
+            // Pinterest
+            '/storage/emulated/0/Android/data/com.pinterest/files/videos',
+            '/storage/emulated/0/Android/data/com.pinterest/files/DCIM',
+          ],
+          'com.reddit.frontpage': [
+            // Reddit
+            '/storage/emulated/0/Android/data/com.reddit.frontpage/files/videos',
+            '/storage/emulated/0/Android/data/com.reddit.frontpage/files/DCIM',
+          ],
+        };
+
+        int totalScanned = 0;
+        int totalFound = 0;
+
+        // 각 앱의 비디오 폴더를 순회하며 스캔
+        for (String packageName in appVideoPaths.keys) {
+          final paths = appVideoPaths[packageName]!;
+
+          for (String path in paths) {
+            try {
+              final directory = Directory(path);
+              if (await directory.exists()) {
+                print('앱 비디오 폴더 스캔 중: $path');
+
+                // media_scanner로 디렉토리 스캔
+                await MediaScanner.loadMedia(path: path);
+                print('앱 비디오 폴더 스캔 완료: $path');
+                totalScanned++;
+              }
+            } catch (e) {
+              print('앱 비디오 폴더 스캔 실패: $path - $e');
+            }
+          }
+          totalFound++;
+        }
+
+        print('설치된 앱 비디오 폴더 스캔 완료: $totalScanned개 폴더 스캔, $totalFound개 앱 처리');
+      }
+    } catch (e) {
+      print('설치된 앱 비디오 폴더 스캔 오류: $e');
+    }
+  }
+
+  // 특정 앱의 비디오 폴더만 스캔 (사용자 지정)
+  Future<void> scanSpecificAppVideos(
+      String appName, List<String> videoPaths) async {
+    try {
+      if (Platform.isAndroid) {
+        print('$appName 앱 비디오 폴더 스캔 시작...');
+
+        int successCount = 0;
+        for (String path in videoPaths) {
+          try {
+            final directory = Directory(path);
+            if (await directory.exists()) {
+              print('$appName 비디오 폴더 스캔 중: $path');
+
+              await MediaScanner.loadMedia(path: path);
+              print('$appName 비디오 폴더 스캔 완료: $path');
+              successCount++;
+            } else {
+              print('$appName 비디오 폴더가 존재하지 않음: $path');
+            }
+          } catch (e) {
+            print('$appName 비디오 폴더 스캔 실패: $path - $e');
+          }
+        }
+
+        print(
+            '$appName 앱 비디오 폴더 스캔 완료: $successCount/${videoPaths.length} 폴더 성공');
+      }
+    } catch (e) {
+      print('$appName 앱 비디오 폴더 스캔 오류: $e');
+    }
+  }
+
+  // 고급 미디어 스캔 실행 (모든 기능 포함)
+  Future<void> advancedMediaScan() async {
+    try {
+      print('고급 미디어 스캔 시작...');
+
+      // 1. 기본 시스템 폴더 스캔
+      await _scanAndroidWithMediaScanner();
+
+      // 2. 설치된 앱의 비디오 폴더 스캔
+      await scanInstalledAppsVideoFolders();
+
+      // 3. 최근 비디오 파일 스캔
+      await scanRecentVideoFiles();
+
+      print('고급 미디어 스캔 완료!');
+    } catch (e) {
+      print('고급 미디어 스캔 오류: $e');
+    }
+  }
+
+  // TikTok 전용 스캔
+  Future<void> scanTikTokVideos() async {
+    await scanSpecificAppVideos('TikTok', [
+      '/storage/emulated/0/Android/data/com.zhiliaoapp.musically/files/videos',
+      '/storage/emulated/0/Android/data/com.zhiliaoapp.musically/files/DCIM',
+      '/storage/emulated/0/Android/data/com.zhiliaoapp.musically/files/downloads',
+    ]);
+  }
+
+  // Instagram 전용 스캔
+  Future<void> scanInstagramVideos() async {
+    await scanSpecificAppVideos('Instagram', [
+      '/storage/emulated/0/Android/data/com.instagram.android/files/DCIM/Camera',
+      '/storage/emulated/0/Android/data/com.instagram.android/files/DCIM/Instagram',
+      '/storage/emulated/0/Android/data/com.instagram.android/files/videos',
+    ]);
+  }
+
+  // WhatsApp 전용 스캔
+  Future<void> scanWhatsAppVideos() async {
+    await scanSpecificAppVideos('WhatsApp', [
+      '/storage/emulated/0/WhatsApp/Media/WhatsApp Video',
+      '/storage/emulated/0/WhatsApp/Media/WhatsApp Images',
+      '/storage/emulated/0/WhatsApp/Media/WhatsApp Documents',
+    ]);
+  }
+
+  // Telegram 전용 스캔
+  Future<void> scanTelegramVideos() async {
+    await scanSpecificAppVideos('Telegram', [
+      '/storage/emulated/0/Telegram/Telegram Video',
+      '/storage/emulated/0/Telegram/Telegram Images',
+      '/storage/emulated/0/Telegram/Telegram Documents',
+    ]);
   }
 
   Future<void> _initVideoPlayer(XFile file) async {
@@ -575,6 +1070,299 @@ class FileSelectController extends GetxController {
         _cleanupTempFile(sampleFilePath);
       }
     }
+  }
+
+  // 미디어 스캔 진행 상황 업데이트
+  void _updateMediaScanProgress(int current, int total, String status) {
+    mediaScanCurrent.value = current;
+    mediaScanTotal.value = total;
+    mediaScanProgress.value = total > 0 ? current / total : 0.0;
+    mediaScanStatus.value = status;
+  }
+
+  // 미디어 스캔 시작
+  void _startMediaScan() {
+    isMediaScanning.value = true;
+    mediaScanProgress.value = 0.0;
+    mediaScanCurrent.value = 0;
+    mediaScanTotal.value = 0;
+    mediaScanStatus.value = '미디어 스캔 준비 중...';
+  }
+
+  // 미디어 스캔 완료
+  void _completeMediaScan() {
+    isMediaScanning.value = false;
+    mediaScanProgress.value = 1.0;
+    mediaScanStatus.value = '미디어 스캔 완료!';
+  }
+
+  // 미디어 스캔 오류
+  void _errorMediaScan(String error) {
+    isMediaScanning.value = false;
+    mediaScanStatus.value = '스캔 오류: $error';
+  }
+
+  // 동적 디렉토리 탐색을 통한 미디어 스캔 (고급 기능)
+  Future<void> _scanDynamicDirectories() async {
+    try {
+      print('동적 디렉토리 탐색 시작...');
+      _updateMediaScanProgress(0, 0, '동적 디렉토리 탐색 시작...');
+
+      // 탐색할 루트 디렉토리들
+      final List<String> rootDirectories = [
+        '/storage/emulated/0',
+        '/sdcard',
+      ];
+
+      int totalScanned = 0;
+      int totalFound = 0;
+
+      for (int i = 0; i < rootDirectories.length; i++) {
+        String rootDir = rootDirectories[i];
+        try {
+          final directory = Directory(rootDir);
+          if (await directory.exists()) {
+            _updateMediaScanProgress(
+                0, 0, '동적 탐색 중: ${rootDir.split('/').last}');
+            print('루트 디렉토리 탐색 중: $rootDir');
+            final scanResult =
+                await _scanDirectoryRecursively(directory, maxDepth: 3);
+            totalScanned += scanResult['scanned'] ?? 0;
+            totalFound += scanResult['found'] ?? 0;
+          }
+        } catch (e) {
+          print('루트 디렉토리 접근 실패: $rootDir - $e');
+        }
+      }
+
+      _updateMediaScanProgress(0, 0, '동적 탐색 완료! $totalFound개 비디오 폴더 발견');
+      print('동적 디렉토리 탐색 완료: $totalScanned개 폴더 스캔, $totalFound개 비디오 폴더 발견');
+    } catch (e) {
+      print('동적 디렉토리 탐색 오류: $e');
+      _updateMediaScanProgress(0, 0, '동적 탐색 오류: $e');
+    }
+  }
+
+  // 재귀적으로 디렉토리를 탐색하여 비디오 파일이 있는 폴더 찾기
+  Future<Map<String, int>> _scanDirectoryRecursively(Directory directory,
+      {int maxDepth = 3, int currentDepth = 0}) async {
+    Map<String, int> result = {'scanned': 0, 'found': 0};
+
+    try {
+      if (currentDepth >= maxDepth) return result;
+
+      // 디렉토리 내 파일/폴더 목록 가져오기
+      await for (FileSystemEntity entity in directory.list()) {
+        try {
+          if (entity is Directory) {
+            // 하위 디렉토리 재귀 탐색
+            final subResult = await _scanDirectoryRecursively(entity,
+                maxDepth: maxDepth, currentDepth: currentDepth + 1);
+            result['scanned'] =
+                (result['scanned'] ?? 0) + (subResult['scanned'] ?? 0);
+            result['found'] =
+                (result['found'] ?? 0) + (subResult['found'] ?? 0);
+          } else if (entity is File) {
+            // 비디오 파일인지 확인
+            if (_isVideoFile(entity.path)) {
+              // 비디오 파일이 있는 디렉토리 발견
+              final parentDir = entity.parent.path;
+              if (!_isSystemDirectory(parentDir) &&
+                  !_isAlreadyScanned(parentDir)) {
+                try {
+                  print('비디오 파일 발견: ${entity.path}');
+                  print('해당 디렉토리 스캔: $parentDir');
+
+                  // media_scanner로 디렉토리 스캔
+                  await MediaScanner.loadMedia(path: parentDir);
+                  print('동적 디렉토리 스캔 완료: $parentDir');
+
+                  result['found'] = (result['found'] ?? 0) + 1;
+                  _addScannedDirectory(parentDir);
+                } catch (e) {
+                  print('동적 디렉토리 스캔 실패: $parentDir - $e');
+                }
+              }
+            }
+          }
+        } catch (e) {
+          // 개별 엔티티 처리 실패는 무시하고 계속 진행
+          continue;
+        }
+      }
+
+      result['scanned'] = (result['scanned'] ?? 0) + 1;
+    } catch (e) {
+      print('디렉토리 탐색 실패: ${directory.path} - $e');
+    }
+
+    return result;
+  }
+
+  // 비디오 파일인지 확인
+  bool _isVideoFile(String filePath) {
+    final extension = filePath.split('.').last.toLowerCase();
+    return [
+      'mp4',
+      'avi',
+      'mov',
+      'mkv',
+      'wmv',
+      'flv',
+      'webm',
+      '3gp',
+      'm4v',
+      'ts',
+      'mts',
+      'm2ts',
+      'vob',
+      'ogv',
+      'mxf',
+      'rm',
+      'rmvb',
+      'asf'
+    ].contains(extension);
+  }
+
+  // 시스템 디렉토리인지 확인 (스캔에서 제외할 디렉토리)
+  bool _isSystemDirectory(String path) {
+    final lowerPath = path.toLowerCase();
+    return lowerPath.contains('/android/') ||
+        lowerPath.contains('/system/') ||
+        lowerPath.contains('/data/') ||
+        lowerPath.contains('/cache/') ||
+        lowerPath.contains('/temp/') ||
+        lowerPath.contains('/tmp/') ||
+        lowerPath.contains('/.') || // 숨김 폴더
+        lowerPath.contains('/bin/') ||
+        lowerPath.contains('/lib/') ||
+        lowerPath.contains('/etc/') ||
+        lowerPath.contains('/proc/') ||
+        lowerPath.contains('/sys/');
+  }
+
+  // 이미 스캔된 디렉토리인지 확인
+  final Set<String> _scannedDirectories = <String>{};
+
+  bool _isAlreadyScanned(String path) {
+    return _scannedDirectories.contains(path);
+  }
+
+  // 스캔된 디렉토리 목록에 추가
+  void _addScannedDirectory(String path) {
+    _scannedDirectories.add(path);
+  }
+
+  // 스캔된 디렉토리 목록 초기화
+  void _clearScannedDirectories() {
+    _scannedDirectories.clear();
+  }
+
+  // 하이브리드 미디어 스캔 (기본 + 동적 탐색)
+  Future<void> hybridMediaScan() async {
+    try {
+      print('하이브리드 미디어 스캔 시작...');
+      _startMediaScan();
+
+      // 1단계: 기존 고정 경로 스캔
+      await _scanFixedPaths();
+
+      // 2단계: 동적 디렉토리 탐색 스캔
+      await _scanDynamicDirectories();
+
+      _completeMediaScan();
+      print('하이브리드 미디어 스캔 완료!');
+    } catch (e) {
+      print('하이브리드 미디어 스캔 오류: $e');
+      _errorMediaScan(e.toString());
+    }
+  }
+
+  // 빠른 스캔 (고정 경로만)
+  Future<void> quickMediaScan() async {
+    try {
+      print('빠른 미디어 스캔 시작...');
+      _startMediaScan();
+      await _scanFixedPaths();
+      _completeMediaScan();
+      print('빠른 미디어 스캔 완료!');
+    } catch (e) {
+      print('빠른 미디어 스캔 오류: $e');
+      _errorMediaScan(e.toString());
+    }
+  }
+
+  // 전체 스캔 (고정 경로 + 동적 탐색 + 앱별 스캔)
+  Future<void> fullMediaScan() async {
+    try {
+      print('전체 미디어 스캔 시작...');
+      _startMediaScan();
+
+      // 1단계: 기존 고정 경로 스캔
+      await _scanFixedPaths();
+
+      // 2단계: 동적 디렉토리 탐색 스캔
+      await _scanDynamicDirectories();
+
+      // 3단계: 설치된 앱의 비디오 폴더 스캔
+      await scanInstalledAppsVideoFolders();
+
+      // 4단계: 최근 비디오 파일 스캔
+      await scanRecentVideoFiles();
+
+      _completeMediaScan();
+      print('전체 미디어 스캔 완료!');
+    } catch (e) {
+      print('전체 미디어 스캔 오류: $e');
+      _errorMediaScan(e.toString());
+    }
+  }
+
+  // 스캔 방식 선택 다이얼로그
+  void showScanOptionsDialog() {
+    Get.dialog(
+      AlertDialog(
+        title: Text('스캔 방식 선택'),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            ListTile(
+              leading: Icon(Icons.flash_on, color: Colors.blue),
+              title: Text('빠른 스캔'),
+              subtitle: Text('주요 폴더만 빠르게 스캔'),
+              onTap: () {
+                Get.back();
+                quickMediaScan();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.balance, color: Colors.orange),
+              title: Text('하이브리드 스캔'),
+              subtitle: Text('고정 경로 + 동적 탐색 (권장)'),
+              onTap: () {
+                Get.back();
+                hybridMediaScan();
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.explore, color: Colors.green),
+              title: Text('전체 스캔'),
+              subtitle: Text('모든 가능한 경로를 완전히 스캔'),
+              onTap: () {
+                Get.back();
+                fullMediaScan();
+              },
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Get.back(),
+            child: Text('취소'),
+          ),
+        ],
+      ),
+    );
   }
 
   @override

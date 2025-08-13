@@ -23,11 +23,19 @@ Future<void> main() async {
     // LoadingController를 앱 시작 시 put
     Get.put(LoadingController(), permanent: true);
 
-    // FCM 서비스 초기화
-    Get.put(FCMService(), permanent: true);
+    // FCM 서비스 초기화 (안전하게 처리)
+    try {
+      Get.lazyPut(() => FCMService(), fenix: true);
+      print('FCM 서비스 lazy 초기화 완료');
+    } catch (e) {
+      print('FCM 서비스 초기화 실패: $e');
+      // FCM 서비스 초기화 실패 시에도 앱은 정상 동작
+    }
 
     runApp(MyApp());
   } catch (e, stackTrace) {
+    print('앱 초기화 오류: $e');
+    print('스택 트레이스: $stackTrace');
     // 오류가 발생해도 앱은 실행
     runApp(MyApp());
   }

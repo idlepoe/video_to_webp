@@ -18,12 +18,20 @@ class FCMService extends GetxService {
   @override
   void onInit() {
     super.onInit();
-    _initializeLocalNotifications();
-    _initializeFCM();
-    _handleInitialMessage();
 
-    // 초기 화면 설정
-    _currentScreen = Get.currentRoute;
+    try {
+      _initializeLocalNotifications();
+      _initializeFCM();
+      _handleInitialMessage();
+
+      // 초기 화면 설정
+      _currentScreen = Get.currentRoute;
+      print('FCM 서비스 초기화 완료');
+    } catch (e) {
+      print('FCM 서비스 초기화 중 오류 발생: $e');
+      // 초기화 실패 시에도 기본 기능은 유지
+      _currentScreen = Get.currentRoute;
+    }
   }
 
   Future<void> _initializeLocalNotifications() async {
@@ -60,46 +68,50 @@ class FCMService extends GetxService {
   }
 
   void _onNotificationTapped(NotificationResponse response) {
-    print('로컬 알림 탭됨: ${response.payload}');
+    try {
+      print('로컬 알림 탭됨: ${response.payload}');
 
-    // 이미 완료 화면이나 로딩 화면에 있는 경우 스킵
-    if (_currentScreen == AppRoutes.complete ||
-        _currentScreen == '/complete' ||
-        _currentScreen == AppRoutes.loading ||
-        _currentScreen == '/loading') {
-      print('이미 완료/로딩 화면에 있으므로 네비게이션 스킵 (현재 화면: $_currentScreen)');
-      return;
-    }
-
-    // 페이로드에서 메시지 데이터 추출
-    if (response.payload != null) {
-      try {
-        // 간단한 페이로드 파싱 (실제로는 JSON 형태로 저장하는 것이 좋습니다)
-        Map<String, String> data = {};
-        List<String> pairs = response.payload!.split('&');
-        for (String pair in pairs) {
-          List<String> keyValue = pair.split('=');
-          if (keyValue.length == 2) {
-            data[keyValue[0]] = keyValue[1];
-          }
-        }
-
-        // 변환 완료 화면으로 이동
-        if (data.containsKey('screen') &&
-            data['screen'] == 'convert_complete') {
-          Map<String, dynamic> arguments = {
-            'requestId': data['requestId'] ?? '',
-            'convertedFile': data['convertedFile'] ?? '',
-            'publicUrl': data['publicUrl'] ?? '',
-            'downloadUrl': data['downloadUrl'] ?? '',
-            'fileSize': int.tryParse(data['fileSize'] ?? '0') ?? 0,
-          };
-
-          Get.offAllNamed(AppRoutes.complete, arguments: arguments);
-        }
-      } catch (e) {
-        print('알림 페이로드 파싱 오류: $e');
+      // 이미 완료 화면이나 로딩 화면에 있는 경우 스킵
+      if (_currentScreen == AppRoutes.complete ||
+          _currentScreen == '/complete' ||
+          _currentScreen == AppRoutes.loading ||
+          _currentScreen == '/loading') {
+        print('이미 완료/로딩 화면에 있으므로 네비게이션 스킵 (현재 화면: $_currentScreen)');
+        return;
       }
+
+      // 페이로드에서 메시지 데이터 추출
+      if (response.payload != null) {
+        try {
+          // 간단한 페이로드 파싱 (실제로는 JSON 형태로 저장하는 것이 좋습니다)
+          Map<String, String> data = {};
+          List<String> pairs = response.payload!.split('&');
+          for (String pair in pairs) {
+            List<String> keyValue = pair.split('=');
+            if (keyValue.length == 2) {
+              data[keyValue[0]] = keyValue[1];
+            }
+          }
+
+          // 변환 완료 화면으로 이동
+          if (data.containsKey('screen') &&
+              data['screen'] == 'convert_complete') {
+            Map<String, dynamic> arguments = {
+              'requestId': data['requestId'] ?? '',
+              'convertedFile': data['convertedFile'] ?? '',
+              'publicUrl': data['publicUrl'] ?? '',
+              'downloadUrl': data['downloadUrl'] ?? '',
+              'fileSize': int.tryParse(data['fileSize'] ?? '0') ?? 0,
+            };
+
+            Get.offAllNamed(AppRoutes.complete, arguments: arguments);
+          }
+        } catch (e) {
+          print('알림 페이로드 파싱 오류: $e');
+        }
+      }
+    } catch (e) {
+      print('로컬 알림 처리 중 오류 발생: $e');
     }
   }
 
@@ -282,30 +294,34 @@ class FCMService extends GetxService {
 
   // 메시지 데이터를 기반으로 화면 이동 처리
   void _handleMessageNavigation(RemoteMessage message) {
-    if (message.data.containsKey('screen')) {
-      String screen = message.data['screen'];
-      if (screen == 'convert_complete') {
-        // 이미 완료 화면이나 로딩 화면에 있는 경우 스킵
-        if (_currentScreen == AppRoutes.complete ||
-            _currentScreen == '/complete' ||
-            _currentScreen == AppRoutes.loading ||
-            _currentScreen == '/loading') {
-          print('이미 완료/로딩 화면에 있으므로 네비게이션 스킵 (현재 화면: $_currentScreen)');
-          return;
+    try {
+      if (message.data.containsKey('screen')) {
+        String screen = message.data['screen'];
+        if (screen == 'convert_complete') {
+          // 이미 완료 화면이나 로딩 화면에 있는 경우 스킵
+          if (_currentScreen == AppRoutes.complete ||
+              _currentScreen == '/complete' ||
+              _currentScreen == AppRoutes.loading ||
+              _currentScreen == '/loading') {
+            print('이미 완료/로딩 화면에 있으므로 네비게이션 스킵 (현재 화면: $_currentScreen)');
+            return;
+          }
+
+          // 변환 완료 화면으로 이동 (데이터 포함)
+          Map<String, dynamic> arguments = {
+            'requestId': message.data['requestId'] ?? '',
+            'convertedFile': message.data['convertedFile'] ?? '',
+            'publicUrl': message.data['publicUrl'] ?? '',
+            'downloadUrl': message.data['downloadUrl'] ?? '',
+            'fileSize': int.tryParse(message.data['fileSize'] ?? '0') ?? 0,
+          };
+
+          print('네비게이션 실행 - 화면: $screen, 데이터: $arguments');
+          Get.offAllNamed(AppRoutes.complete, arguments: arguments);
         }
-
-        // 변환 완료 화면으로 이동 (데이터 포함)
-        Map<String, dynamic> arguments = {
-          'requestId': message.data['requestId'] ?? '',
-          'convertedFile': message.data['convertedFile'] ?? '',
-          'publicUrl': message.data['publicUrl'] ?? '',
-          'downloadUrl': message.data['downloadUrl'] ?? '',
-          'fileSize': int.tryParse(message.data['fileSize'] ?? '0') ?? 0,
-        };
-
-        print('네비게이션 실행 - 화면: $screen, 데이터: $arguments');
-        Get.offAllNamed(AppRoutes.complete, arguments: arguments);
       }
+    } catch (e) {
+      print('메시지 네비게이션 처리 중 오류 발생: $e');
     }
   }
 

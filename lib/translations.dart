@@ -155,6 +155,15 @@ class AppTranslations extends Translations {
               'Get notification when conversion is complete',
           'notification_subscribe_message':
               'Feel free to step out! We\'ll notify you when the conversion is done!',
+
+          // Media Scan
+          'media_scan_title': 'Gallery Refresh',
+          'media_scan_info':
+              'If you can\'t find recently downloaded videos, tap this button to refresh your gallery.',
+          'refresh_gallery': 'Refresh Gallery',
+          'scanning_media_files': 'Scanning media files...',
+          'media_scan_complete': 'Gallery refresh completed!',
+          'media_scan_failed': 'Gallery refresh failed. Please try again.',
         },
         'ko_KR': {
           // App Basic
@@ -296,6 +305,14 @@ class AppTranslations extends Translations {
           'convert_complete_message': '비디오가 성공적으로 WebP로 변환되었습니다!',
           'notification_subscribe': '변환 완료시 알림 받기',
           'notification_subscribe_message': '잠시 외출하셔도 돼요. 변환이 끝나면 바로 알려드릴게요!',
+
+          // Media Scan
+          'media_scan_title': '갤러리 새로고침',
+          'media_scan_info': '최근에 다운로드한 비디오를 찾을 수 없다면, 이 버튼을 탭하여 갤러리를 새로고침하세요.',
+          'refresh_gallery': '갤러리 새로고침',
+          'scanning_media_files': '미디어 파일 스캔 중...',
+          'media_scan_complete': '갤러리 새로고침이 완료되었습니다!',
+          'media_scan_failed': '갤러리 새로고침에 실패했습니다. 다시 시도해주세요.',
         }
       };
 }
