@@ -158,9 +158,6 @@ class FileSelectController extends GetxController {
 
   Future<void> pickVideo() async {
     try {
-      // Android: Media scan 실행으로 최신 영상 파일들을 갤러리에 인덱싱
-      await _triggerMediaScan();
-
       final XFile? file = await _picker.pickVideo(source: ImageSource.gallery);
       if (file != null) {
         videoFile.value = file;
