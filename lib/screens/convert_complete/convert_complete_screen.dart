@@ -220,6 +220,33 @@ class ConvertCompleteScreen extends StatelessWidget {
                           ],
                         ),
                       )
+                    else if (controller.isAlreadyDownloaded.value &&
+                        !controller.downloadCompleted.value)
+                      Container(
+                        padding: EdgeInsets.all(20),
+                        decoration: BoxDecoration(
+                          color: Color(0xFFF0F8F0),
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          children: [
+                            Icon(
+                              Icons.check_circle,
+                              color: Color(0xFF4CAF50),
+                              size: 32,
+                            ),
+                            SizedBox(height: 16),
+                            Text(
+                              'already_downloaded'.tr,
+                              style: TextStyle(
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                                color: Color(0xFF4CAF50),
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
                     else
                       Column(
                         children: [
@@ -230,7 +257,7 @@ class ConvertCompleteScreen extends StatelessWidget {
                                 child: Container(
                                   height: 56,
                                   child: ElevatedButton.icon(
-                                    onPressed: controller.downloadFile,
+                                    onPressed: controller.manualDownload,
                                     icon: Icon(
                                       controller.downloadCompleted.value
                                           ? Icons.download_done
@@ -239,9 +266,11 @@ class ConvertCompleteScreen extends StatelessWidget {
                                       color: Colors.white,
                                     ),
                                     label: Text(
-                                      controller.downloadCompleted.value
+                                      controller.isAlreadyDownloaded.value
                                           ? 're_download'.tr
-                                          : 'download'.tr,
+                                          : controller.downloadCompleted.value
+                                              ? 're_download'.tr
+                                              : 'download'.tr,
                                       style: TextStyle(
                                         fontSize: 16,
                                         fontWeight: FontWeight.w600,
@@ -249,10 +278,11 @@ class ConvertCompleteScreen extends StatelessWidget {
                                       ),
                                     ),
                                     style: ElevatedButton.styleFrom(
-                                      backgroundColor:
-                                          controller.downloadCompleted.value
-                                              ? Color(0xFF00C851)
-                                              : Color(0xFF3182F6),
+                                      backgroundColor: controller
+                                                  .isAlreadyDownloaded.value ||
+                                              controller.downloadCompleted.value
+                                          ? Color(0xFF00C851)
+                                          : Color(0xFF3182F6),
                                       elevation: 0,
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import '../../widgets/common_snackbar.dart';
 import '../../services/fcm_service.dart';
 
@@ -12,11 +13,14 @@ class ConvertCompleteController extends GetxController {
   final RxDouble downloadProgress = 0.0.obs;
   final RxBool downloadCompleted = false.obs;
   final RxInt fileSize = 0.obs;
+  final RxBool isAlreadyDownloaded = false.obs;
+
+  static const String _downloadHistoryKey = 'download_history';
 
   @override
   void onInit() {
     super.onInit();
-    
+
     // FCM 서비스에 현재 화면 알림 (안전하게 처리)
     try {
       if (Get.isRegistered<FCMService>()) {
@@ -29,7 +33,7 @@ class ConvertCompleteController extends GetxController {
       print('FCM 서비스 접근 오류: $e');
       // FCM 서비스가 없어도 앱은 정상 동작
     }
-    
+
     final args = Get.arguments;
     if (args != null) {
       if (args['publicUrl'] != null) {
@@ -48,24 +52,64 @@ class ConvertCompleteController extends GetxController {
       print('변환 완료 화면 초기화 - 전달된 데이터: $args');
     }
 
+    // 다운로드 URL이 있는 경우 이미 다운로드되었는지 확인
+    if (downloadUrl.value.isNotEmpty) {
+      _checkDownloadHistory();
+    }
+
     // 자동 다운로드 시작
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _startAutoDownload();
     });
   }
 
-  void _startAutoDownload() {
-    // 다운로드 URL이 있으면 자동으로 다운로드 시작
-    if (downloadUrl.value.isNotEmpty) {
-      // CommonSnackBar.info('auto_download'.tr, 'starting_download'.tr);
-      downloadFile();
+  /// 다운로드 기록 확인
+  Future<void> _checkDownloadHistory() async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final downloadHistory = prefs.getStringList(_downloadHistoryKey) ?? [];
+      isAlreadyDownloaded.value = downloadHistory.contains(downloadUrl.value);
+    } catch (e) {
+      print('다운로드 기록 확인 오류: $e');
+      isAlreadyDownloaded.value = false;
     }
   }
 
-  Future<void> downloadFile() async {
+  /// 다운로드 기록에 URL 추가
+  Future<void> _addToDownloadHistory(String url) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final downloadHistory = prefs.getStringList(_downloadHistoryKey) ?? [];
+
+      // 이미 존재하지 않는 경우에만 추가
+      if (!downloadHistory.contains(url)) {
+        downloadHistory.add(url);
+        await prefs.setStringList(_downloadHistoryKey, downloadHistory);
+        print('다운로드 기록에 추가됨: $url');
+      }
+    } catch (e) {
+      print('다운로드 기록 저장 오류: $e');
+    }
+  }
+
+  void _startAutoDownload() {
+    // 다운로드 URL이 있고, 아직 다운로드되지 않은 경우에만 자동 다운로드 시작
+    if (downloadUrl.value.isNotEmpty && !isAlreadyDownloaded.value) {
+      // CommonSnackBar.info('auto_download'.tr, 'starting_download'.tr);
+      downloadFile(isAutoDownload: true);
+    }
+  }
+
+  Future<void> downloadFile({bool isAutoDownload = false}) async {
     final url = downloadUrl.value;
     if (url == null || url.isEmpty) {
       // CommonSnackBar.warn('warning'.tr, 'no_download_link'.tr);
+      return;
+    }
+
+    // 자동 다운로드인 경우 이미 다운로드된 URL이면 동작하지 않음
+    if (isAutoDownload && isAlreadyDownloaded.value) {
+      print('이미 다운로드된 파일입니다: $url');
       return;
     }
 
@@ -75,6 +119,11 @@ class ConvertCompleteController extends GetxController {
       final bool? success = await GallerySaver.saveImage(url);
       if (success == true) {
         downloadCompleted.value = true;
+        isAlreadyDownloaded.value = true;
+
+        // 다운로드 기록에 URL 추가
+        await _addToDownloadHistory(url);
+
         // CommonSnackBar.success('success'.tr, 'saved_to_gallery'.tr);
       } else {
         // CommonSnackBar.error('failure'.tr, 'failed_to_save'.tr);
@@ -84,6 +133,11 @@ class ConvertCompleteController extends GetxController {
     } finally {
       isDownloading.value = false;
     }
+  }
+
+  /// 수동 다운로드 (사용자가 다운로드 버튼을 눌렀을 때)
+  Future<void> manualDownload() async {
+    await downloadFile(isAutoDownload: false);
   }
 
   Future<void> openInBrowser() async {
