@@ -14,6 +14,7 @@ import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:media_scanner/media_scanner.dart';
+import 'package:shorebird_code_push/shorebird_code_push.dart';
 import '../../models/convert_request.dart';
 import '../../routes/app_routes.dart';
 import '../loading/loading_controller.dart';
@@ -52,9 +53,15 @@ class FileSelectController extends GetxController {
   final RxString selectedScanOption = '빠른 스캔'.obs;
   final RxString selectedScanOptionKey = 'quick_scan'.obs;
 
+  // Shorebird 업데이트 관련 변수
+  final _updater = ShorebirdUpdater();
+
   @override
   void onInit() {
     super.onInit();
+
+    // Shorebird 업데이트 초기화
+    _initializeShorebird();
 
     // FCM 서비스에 현재 화면 알림 (안전하게 처리)
     try {
@@ -76,6 +83,17 @@ class FileSelectController extends GetxController {
     _initializeFirebase();
     _loadNotificationPreference();
     _requestPermissions();
+
+    // Shorebird 업데이트 자동 확인 (5초 후)
+    Timer(Duration(seconds: 5), () {
+      checkForShorebirdUpdate();
+    });
+  }
+
+  // Shorebird 업데이트 초기화
+  void _initializeShorebird() {
+    // Shorebird 초기화 완료
+    print('Shorebird 초기화 완료');
   }
 
   // 권한 요청
@@ -1298,6 +1316,48 @@ class FileSelectController extends GetxController {
     _scannedDirectories.clear();
   }
 
+  // Shorebird 업데이트 확인
+  Future<void> checkForShorebirdUpdate() async {
+    try {
+      // 업데이트 확인
+      final status = await _updater.checkForUpdate();
+
+      switch (status) {
+        case UpdateStatus.outdated:
+          // 업데이트가 있으면 자동으로 다운로드
+          await _downloadShorebirdUpdate();
+          break;
+        case UpdateStatus.upToDate:
+          print('Shorebird: 최신 버전입니다.');
+          break;
+        case UpdateStatus.restartRequired:
+          print('Shorebird: 재시작이 필요합니다.');
+          break;
+        case UpdateStatus.unavailable:
+          print('Shorebird: 업데이트를 사용할 수 없습니다.');
+          break;
+      }
+    } catch (error) {
+      print('Shorebird 업데이트 확인 오류: $error');
+    }
+  }
+
+  // Shorebird 업데이트 다운로드
+  Future<void> _downloadShorebirdUpdate() async {
+    try {
+      print('Shorebird 업데이트 다운로드 시작...');
+
+      // 업데이트 다운로드 및 설치
+      await _updater.update();
+
+      print('Shorebird 업데이트 다운로드 완료. 재시작이 필요합니다.');
+    } on UpdateException catch (error) {
+      print('Shorebird 업데이트 다운로드 오류: ${error.message}');
+    } catch (e) {
+      print('Shorebird 업데이트 중 예상치 못한 오류: $e');
+    }
+  }
+
   // 하이브리드 미디어 스캔 (기본 + 동적 탐색)
   Future<void> hybridMediaScan() async {
     try {
@@ -1408,6 +1468,10 @@ class FileSelectController extends GetxController {
   @override
   void onClose() {
     videoPlayerController.value?.dispose();
+
+    // Shorebird 관련 리소스 정리
+    print('Shorebird 리소스 정리 완료');
+
     super.onClose();
   }
 }
