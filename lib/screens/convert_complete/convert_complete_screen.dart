@@ -80,7 +80,7 @@ class ConvertCompleteScreen extends StatelessWidget {
                                 Container(
                               child: Center(
                                 child: Text(
-                                  'Image load failed',
+                                  'image_load_failed'.tr,
                                   style: TextStyle(
                                     color: Color(0xFF6B7684),
                                   ),

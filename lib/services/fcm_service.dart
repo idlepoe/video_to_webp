@@ -191,11 +191,11 @@ class FCMService extends GetxService {
       int notificationId = DateTime.now().millisecondsSinceEpoch ~/ 1000;
 
       // Android 알림 세부 설정
-      const AndroidNotificationDetails androidPlatformChannelSpecifics =
+      final AndroidNotificationDetails androidPlatformChannelSpecifics =
           AndroidNotificationDetails(
         'convert_complete_channel',
-        '변환 완료 알림',
-        channelDescription: '비디오 변환이 완료되었을 때 표시되는 알림',
+        'fcm_convert_complete_channel'.tr,
+        channelDescription: 'fcm_convert_complete_channel_description'.tr,
         importance: Importance.high,
         priority: Priority.high,
         showWhen: true,
@@ -214,7 +214,7 @@ class FCMService extends GetxService {
       );
 
       // 알림 세부 설정
-      const NotificationDetails platformChannelSpecifics = NotificationDetails(
+      final NotificationDetails platformChannelSpecifics = NotificationDetails(
         android: androidPlatformChannelSpecifics,
         iOS: iOSPlatformChannelSpecifics,
       );

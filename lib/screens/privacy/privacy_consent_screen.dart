@@ -286,7 +286,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
     final Uri emailUri = Uri(
       scheme: 'mailto',
       path: email,
-      query: 'subject=VideoToWebp 문의',
+      query: 'subject=${'email_query_subject'.tr}',
     );
 
     try {
@@ -294,7 +294,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('메일 앱을 열 수 없습니다. $email로 직접 문의해주세요.'),
+          content: Text('email_app_open_error'.trParams({'email': email})),
           backgroundColor: Colors.orange,
         ),
       );

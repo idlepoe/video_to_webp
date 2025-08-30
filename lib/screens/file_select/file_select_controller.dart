@@ -51,7 +51,7 @@ class FileSelectController extends GetxController {
   final RxInt mediaScanTotal = 0.obs;
 
   // 스캔 옵션 관련 변수 추가
-  final RxString selectedScanOption = '빠른 스캔'.obs;
+  final RxString selectedScanOption = 'quick_scan'.tr.obs;
   final RxString selectedScanOptionKey = 'quick_scan'.obs;
 
   // Shorebird 업데이트 관련 변수

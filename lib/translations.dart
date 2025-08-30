@@ -200,6 +200,22 @@ class AppTranslations extends Translations {
           'rotate_video_file_size_calculating': 'Calculating size...',
           'rotate_video_play_pause': 'Play/Pause',
           'rotate_video_rotate_angle': '@angle°',
+
+          // Privacy & Email
+          'email_app_open_error':
+              'Cannot open email app. Please contact us directly at @email.',
+          'email_query_subject': 'VideoToWebp Inquiry',
+
+          // FCM Service
+          'fcm_convert_complete_channel': 'Conversion Complete Notification',
+          'fcm_convert_complete_channel_description':
+              'Notification displayed when video conversion is complete',
+
+          // File Select
+          'quick_scan': 'Quick Scan',
+
+          // Convert Complete
+          'image_load_failed': 'Image load failed',
         },
         'ko_KR': {
           // App Basic
@@ -382,6 +398,20 @@ class AppTranslations extends Translations {
           'rotate_video_file_size_calculating': '크기 계산 중...',
           'rotate_video_play_pause': '재생/일시정지',
           'rotate_video_rotate_angle': '@angle°',
+
+          // Privacy & Email
+          'email_app_open_error': '메일 앱을 열 수 없습니다. @email로 직접 문의해주세요.',
+          'email_query_subject': 'VideoToWebp 문의',
+
+          // FCM Service
+          'fcm_convert_complete_channel': '변환 완료 알림',
+          'fcm_convert_complete_channel_description': '비디오 변환이 완료되었을 때 표시되는 알림',
+
+          // File Select
+          'quick_scan': '빠른 스캔',
+
+          // Convert Complete
+          'image_load_failed': 'Image load failed',
         }
       };
 }
