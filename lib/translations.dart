@@ -165,6 +165,41 @@ class AppTranslations extends Translations {
           'scanning_media_files': 'Scanning media files...',
           'media_scan_complete': 'Gallery refresh completed!',
           'media_scan_failed': 'Gallery refresh failed. Please try again.',
+
+          // Video Rotate
+          'video_rotate': 'Video Rotate',
+          'rotate_angle_selection': 'Rotate Angle Selection',
+          'rotate_90_degrees': '90°',
+          'rotate_180_degrees': '180°',
+          'rotate_270_degrees': '270°',
+          'rotate_video': 'Rotate Video',
+          'rotate_video_processing': 'Rotating video...',
+          'rotate_video_complete': 'Video has been rotated @angle°.',
+          'rotate_video_error':
+              'An error occurred while rotating video: @error',
+          'rotate_video_ffmpeg_error': 'FFmpeg execution failed: @error',
+          'rotate_video_file_not_created': 'Rotated file was not created.',
+          'rotate_video_unsupported_angle':
+              'Unsupported rotation angle: @angle',
+          'rotate_video_initializing': 'Initializing...',
+          'rotate_video_preparing_ffmpeg': 'Preparing FFmpeg command...',
+          'rotate_video_processing_ffmpeg': 'Processing video rotation...',
+          'rotate_video_checking_result': 'Checking result...',
+          'rotate_video_complete_status': 'Complete!',
+          'rotate_video_processing_status': 'Processing...',
+          'rotate_video_thumbnail_warning_title':
+              '⚠️ About Video Resolution Distortion on Screen',
+          'rotate_video_thumbnail_warning_line1':
+              '• The resolution distortion you see when rotating video on screen is a UI display issue',
+          'rotate_video_thumbnail_warning_line2':
+              '• Actually, the original video resolution and quality are maintained',
+          'rotate_video_thumbnail_warning_line3':
+              '• The final file processed by FFmpeg is rotated with the same quality as the original',
+          'rotate_video_audio_preserved':
+              'Rotate video by the selected angle. Original audio is preserved.',
+          'rotate_video_file_size_calculating': 'Calculating size...',
+          'rotate_video_play_pause': 'Play/Pause',
+          'rotate_video_rotate_angle': '@angle°',
         },
         'ko_KR': {
           // App Basic
@@ -315,6 +350,38 @@ class AppTranslations extends Translations {
           'scanning_media_files': '미디어 파일 스캔 중...',
           'media_scan_complete': '갤러리 새로고침이 완료되었습니다!',
           'media_scan_failed': '갤러리 새로고침에 실패했습니다. 다시 시도해주세요.',
+
+          // Video Rotate
+          'video_rotate': '비디오 회전',
+          'rotate_angle_selection': '회전 각도 선택',
+          'rotate_90_degrees': '90°',
+          'rotate_180_degrees': '180°',
+          'rotate_270_degrees': '270°',
+          'rotate_video': '비디오 회전하기',
+          'rotate_video_processing': '비디오 회전 중...',
+          'rotate_video_complete': '비디오가 @angle° 회전되었습니다.',
+          'rotate_video_error': '비디오 회전 중 오류가 발생했습니다: @error',
+          'rotate_video_ffmpeg_error': 'FFmpeg 실행에 실패했습니다: @error',
+          'rotate_video_file_not_created': '회전된 파일이 생성되지 않았습니다.',
+          'rotate_video_unsupported_angle': '지원하지 않는 회전 각도입니다: @angle',
+          'rotate_video_initializing': '초기화 중...',
+          'rotate_video_preparing_ffmpeg': 'FFmpeg 명령어 준비 중...',
+          'rotate_video_processing_ffmpeg': '비디오 회전 처리 중...',
+          'rotate_video_checking_result': '결과 확인 중...',
+          'rotate_video_complete_status': '완료!',
+          'rotate_video_processing_status': '처리 중...',
+          'rotate_video_thumbnail_warning_title':
+              '⚠️ 화면에서 보이는 비디오 해상도 깨짐 현상에 대해',
+          'rotate_video_thumbnail_warning_line1':
+              '• 화면에서 비디오가 회전할 때 해상도가 깨져 보이는 것은 UI 표시상의 문제입니다',
+          'rotate_video_thumbnail_warning_line2':
+              '• 실제로는 원본 비디오의 해상도와 품질이 그대로 유지됩니다',
+          'rotate_video_thumbnail_warning_line3':
+              '• FFmpeg로 처리된 최종 파일은 원본과 동일한 품질로 회전됩니다',
+          'rotate_video_audio_preserved': '선택한 각도로 비디오를 회전합니다. 원본 오디오는 유지됩니다.',
+          'rotate_video_file_size_calculating': '크기 계산 중...',
+          'rotate_video_play_pause': '재생/일시정지',
+          'rotate_video_rotate_angle': '@angle°',
         }
       };
 }

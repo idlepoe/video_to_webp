@@ -5,6 +5,7 @@ class BottomNavigationWidget extends StatelessWidget {
   final VoidCallback onPickOtherVideo;
   final VoidCallback onConvert;
   final VoidCallback? onTrim;
+  final VoidCallback? onRotate;
   final VoidCallback? onRestoreOriginal;
   final bool showRestoreButton;
 
@@ -13,6 +14,7 @@ class BottomNavigationWidget extends StatelessWidget {
     required this.onPickOtherVideo,
     required this.onConvert,
     this.onTrim,
+    this.onRotate,
     this.onRestoreOriginal,
     this.showRestoreButton = false,
   }) : super(key: key);
@@ -45,6 +47,32 @@ class BottomNavigationWidget extends StatelessWidget {
             ),
           ),
           SizedBox(height: 12),
+          // 비디오 회전 버튼
+          if (onRotate != null) ...[
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton.icon(
+                onPressed: onRotate,
+                style: ElevatedButton.styleFrom(
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  backgroundColor: const Color(0xFF9C27B0),
+                  foregroundColor: Colors.white,
+                  elevation: 0,
+                ),
+                icon: const Icon(Icons.rotate_right, size: 20),
+                label: Text(
+                  '비디오 회전하기',
+                  style: const TextStyle(
+                      fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
+            ),
+            const SizedBox(height: 12),
+          ],
+          
           // Trim 버튼과 원본 되돌리기 버튼
           if (onTrim != null) ...[
             Row(

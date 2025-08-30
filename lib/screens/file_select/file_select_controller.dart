@@ -19,6 +19,7 @@ import '../../models/convert_request.dart';
 import '../../routes/app_routes.dart';
 import '../loading/loading_controller.dart';
 import '../video_trim/video_trim_screen.dart';
+import '../video_rotate/video_rotate_screen.dart';
 import '../../widgets/common_snackbar.dart';
 import '../../services/fcm_service.dart';
 
@@ -707,6 +708,35 @@ class FileSelectController extends GetxController {
 
       // CommonSnackBar.success('success'.tr, 'trim_applied_message'.tr);
     }
+  }
+
+  // 비디오 회전 화면으로 이동
+  void openRotateScreen() async {
+    if (videoFile.value == null) {
+      // CommonSnackBar.error('error'.tr, 'select_file_error'.tr);
+      return;
+    }
+
+    // 비디오 회전 화면으로 네비게이션
+    final result = await Get.to(
+      () => VideoRotateScreen(
+        filePath: videoFile.value!.path,
+        fileName: videoFile.value!.name,
+        onRotateComplete: (String rotatedFilePath) {
+          // 회전된 파일로 교체
+          final rotatedFile = XFile(rotatedFilePath);
+          videoFile.value = rotatedFile;
+          isTrimmed.value = false; // 회전 후에는 trim 상태 초기화
+          _initVideoPlayer(rotatedFile);
+
+          // 성공 메시지
+          Get.back(); // 회전 화면 닫기
+        },
+        onCancel: () {
+          Get.back(); // 회전 화면 닫기
+        },
+      ),
+    );
   }
 
   // 원본으로 되돌리기

@@ -98,6 +98,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
         return BottomNavigationWidget(
           onPickOtherVideo: controller.pickVideo,
           onConvert: () => _showConvertDialog(context),
+          onRotate: controller.openRotateScreen,
           onTrim: controller.openTrimScreen,
           onRestoreOriginal: controller.restoreOriginal,
           showRestoreButton: controller.isTrimmed.value,
