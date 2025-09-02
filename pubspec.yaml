@@ -1,7 +1,7 @@
 name: video_to_webp
 description: "This project is a Flutter-based mobile app that converts video files to WebP animations."
 publish_to: 'none' # Remove this line if you wish to publish to pub.dev
-version: 1.0.13+14
+version: 1.0.14+15
 environment:
   sdk: '>=3.2.3 <4.0.0'
 dependencies:
