@@ -276,7 +276,7 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
             borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
           ),
           padding: EdgeInsets.fromLTRB(
-              24, 24, 24, 24 + MediaQuery.of(context).viewInsets.bottom),
+              20, 16, 20, 16 + MediaQuery.of(context).viewInsets.bottom),
           child: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
@@ -286,7 +286,7 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                   child: Container(
                     width: 40,
                     height: 4,
-                    margin: EdgeInsets.only(bottom: 24),
+                    margin: EdgeInsets.only(bottom: 16),
                     decoration: BoxDecoration(
                       color: Colors.grey[300],
                       borderRadius: BorderRadius.circular(2),
@@ -300,7 +300,7 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
 
                 // 파일 크기 제한 오류 표시
                 if (_fileSizeError != null) ...[
-                  SizedBox(height: 16),
+                  SizedBox(height: 12),
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(16),
@@ -330,16 +330,16 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                   ),
                 ],
 
-                SizedBox(height: 24),
+                SizedBox(height: 16),
                 Text(
                   'resolution'.tr,
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: 8),
                 Column(
                   children: List.generate(resolutions.length, (i) {
                     return Padding(
-                      padding: const EdgeInsets.only(bottom: 8.0),
+                      padding: const EdgeInsets.only(bottom: 6.0),
                       child: GestureDetector(
                         onTap: widget.isUploading
                             ? null
@@ -350,7 +350,7 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                                 }),
                         child: Container(
                           padding: EdgeInsets.symmetric(
-                              vertical: 14, horizontal: 16),
+                              vertical: 12, horizontal: 14),
                           decoration: BoxDecoration(
                             color: selectedResolution == i
                                 ? Colors.blue[50]
@@ -377,134 +377,126 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                     );
                   }),
                 ),
-                SizedBox(height: 12),
-                Text(
-                  'fps'.tr,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            activeTrackColor: Color(0xFF3182F6),
-                            inactiveTrackColor: Color(0xFFE5E8EB),
-                            thumbColor: Color(0xFF3182F6),
-                          ),
-                          child: Slider(
-                            min: 1,
-                            max: 60,
-                            divisions: 59,
-                            value: fps,
-                            label: fps.round().toString(),
-                            onChanged: widget.isUploading
-                                ? null
-                                : (v) => setState(() {
-                                      fps = v;
-                                      _predictedSize = null;
-                                      _predictionError = null;
-                                    }),
-                          ),
+                SizedBox(height: 8),
+                Row(
+                  children: [
+                    Text(
+                      'fps'.tr,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          activeTrackColor: Color(0xFF3182F6),
+                          inactiveTrackColor: Color(0xFFE5E8EB),
+                          thumbColor: Color(0xFF3182F6),
+                        ),
+                        child: Slider(
+                          min: 1,
+                          max: 60,
+                          divisions: 59,
+                          value: fps,
+                          label: fps.round().toString(),
+                          onChanged: widget.isUploading
+                              ? null
+                              : (v) => setState(() {
+                                    fps = v;
+                                    _predictedSize = null;
+                                    _predictionError = null;
+                                  }),
                         ),
                       ),
-                      SizedBox(width: 12),
-                      Container(
-                        width: 48,
-                        alignment: Alignment.centerRight,
-                        child: Text('${fps.round()}',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(width: 8),
+                    Container(
+                      width: 48,
+                      alignment: Alignment.centerRight,
+                      child: Text('${fps.round()}',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 12),
-                Text(
-                  'quality'.tr,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            activeTrackColor: Color(0xFF3182F6),
-                            inactiveTrackColor: Color(0xFFE5E8EB),
-                            thumbColor: Color(0xFF3182F6),
-                          ),
-                          child: Slider(
-                            min: 1,
-                            max: 100,
-                            divisions: 99,
-                            value: quality,
-                            label: quality.round().toString(),
-                            onChanged: widget.isUploading
-                                ? null
-                                : (v) => setState(() {
-                                      quality = v;
-                                      _predictedSize = null;
-                                      _predictionError = null;
-                                    }),
-                          ),
+                Row(
+                  children: [
+                    Text(
+                      'quality'.tr,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          activeTrackColor: Color(0xFF3182F6),
+                          inactiveTrackColor: Color(0xFFE5E8EB),
+                          thumbColor: Color(0xFF3182F6),
+                        ),
+                        child: Slider(
+                          min: 1,
+                          max: 100,
+                          divisions: 99,
+                          value: quality,
+                          label: quality.round().toString(),
+                          onChanged: widget.isUploading
+                              ? null
+                              : (v) => setState(() {
+                                    quality = v;
+                                    _predictedSize = null;
+                                    _predictionError = null;
+                                  }),
                         ),
                       ),
-                      SizedBox(width: 12),
-                      Container(
-                        width: 48,
-                        alignment: Alignment.centerRight,
-                        child: Text('${quality.round()}',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(width: 8),
+                    Container(
+                      width: 48,
+                      alignment: Alignment.centerRight,
+                      child: Text('${quality.round()}',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
                 ),
-                SizedBox(height: 12),
-                Text(
-                  'playback_speed'.tr,
-                  style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                ),
-                Padding(
-                  padding: EdgeInsets.symmetric(horizontal: 4),
-                  child: Row(
-                    children: [
-                      Expanded(
-                        child: SliderTheme(
-                          data: SliderTheme.of(context).copyWith(
-                            activeTrackColor: Color(0xFF3182F6),
-                            inactiveTrackColor: Color(0xFFE5E8EB),
-                            thumbColor: Color(0xFF3182F6),
-                          ),
-                          child: Slider(
-                            min: 0.5,
-                            max: 2.0,
-                            divisions: 15,
-                            value: speed,
-                            label: '${speed.toStringAsFixed(2)}x',
-                            onChanged: widget.isUploading
-                                ? null
-                                : (v) => setState(() {
-                                      speed = v;
-                                      _predictedSize = null;
-                                      _predictionError = null;
-                                    }),
-                          ),
+                Row(
+                  children: [
+                    Text(
+                      'playback_speed'.tr,
+                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
+                    ),
+                    SizedBox(width: 12),
+                    Expanded(
+                      child: SliderTheme(
+                        data: SliderTheme.of(context).copyWith(
+                          activeTrackColor: Color(0xFF3182F6),
+                          inactiveTrackColor: Color(0xFFE5E8EB),
+                          thumbColor: Color(0xFF3182F6),
+                        ),
+                        child: Slider(
+                          min: 0.5,
+                          max: 2.0,
+                          divisions: 15,
+                          value: speed,
+                          label: '${speed.toStringAsFixed(2)}x',
+                          onChanged: widget.isUploading
+                              ? null
+                              : (v) => setState(() {
+                                    speed = v;
+                                    _predictedSize = null;
+                                    _predictionError = null;
+                                  }),
                         ),
                       ),
-                      SizedBox(width: 12),
-                      Container(
-                        width: 48,
-                        alignment: Alignment.centerRight,
-                        child: Text('${speed.toStringAsFixed(2)}x',
-                            style: TextStyle(
-                                fontSize: 16, fontWeight: FontWeight.bold)),
-                      ),
-                    ],
-                  ),
+                    ),
+                    SizedBox(width: 8),
+                    Container(
+                      width: 48,
+                      alignment: Alignment.centerRight,
+                      child: Text('${speed.toStringAsFixed(2)}x',
+                          style: TextStyle(
+                              fontSize: 16, fontWeight: FontWeight.bold)),
+                    ),
+                  ],
                 ),
                 // SizedBox(height: 24),
                 // Text(
@@ -515,7 +507,7 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                 //       fontWeight: FontWeight.w600,
                 //       color: Colors.grey[700]),
                 // ),
-                SizedBox(height: 8),
+                SizedBox(height: 6),
                 Text(
                   'original_file_size'.trParams({
                     'size':
@@ -523,7 +515,7 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                   }),
                   style: TextStyle(fontSize: 14, color: Colors.grey[600]),
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 12),
 
                 // 용량 예측 버튼
                 SizedBox(
@@ -563,7 +555,7 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
 
                 // 예측 결과 표시
                 if (_predictedSize != null) ...[
-                  SizedBox(height: 12),
+                  SizedBox(height: 8),
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(16),
@@ -594,7 +586,7 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
 
                 // 예측 오류 표시
                 if (_predictionError != null) ...[
-                  SizedBox(height: 12),
+                  SizedBox(height: 8),
                   Container(
                     width: double.infinity,
                     padding: EdgeInsets.all(16),
@@ -623,7 +615,7 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
                   ),
                 ],
 
-                SizedBox(height: 32),
+                SizedBox(height: 20),
                 Row(
                   children: [
                     Expanded(

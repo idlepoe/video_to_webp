@@ -11,6 +11,9 @@
         android:label="WebP Me!"
         android:name="${applicationName}"
         android:icon="@mipmap/launcher_icon">
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-4105607341592624~5168929833"/>
         <activity
             android:name=".MainActivity"
             android:exported="true"
