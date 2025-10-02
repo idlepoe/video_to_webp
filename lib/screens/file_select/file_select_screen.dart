@@ -105,15 +105,33 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
           showRestoreButton: controller.isTrimmed.value,
         );
       }),
-      floatingActionButton: kDebugMode
-          ? FloatingActionButton(
-              onPressed: () {
-                Get.offAllNamed(AppRoutes.complete);
-              },
-              backgroundColor: Colors.red,
-              child: Icon(Icons.bug_report, color: Colors.white),
-            )
-          : null,
+      // floatingActionButton: kDebugMode
+      //     ? Row(
+      //         mainAxisAlignment: MainAxisAlignment.end,
+      //         children: [
+      //           FloatingActionButton(
+      //             onPressed: () {
+      //               Get.toNamed(AppRoutes.loading, arguments: {
+      //                 'requestId': 'dummy_request_id',
+      //                 'fileName': 'dummy_video.mp4',
+      //                 'fileSize': 1024000,
+      //                 'isDebug': true,
+      //               });
+      //             },
+      //             backgroundColor: Colors.orange,
+      //             child: Icon(Icons.hourglass_empty, color: Colors.white),
+      //           ),
+      //           SizedBox(width: 16),
+      //           FloatingActionButton(
+      //             onPressed: () {
+      //               Get.offAllNamed(AppRoutes.complete);
+      //             },
+      //             backgroundColor: Colors.red,
+      //             child: Icon(Icons.bug_report, color: Colors.white),
+      //           ),
+      //         ],
+      //       )
+      //     : null,
     );
   }
 
