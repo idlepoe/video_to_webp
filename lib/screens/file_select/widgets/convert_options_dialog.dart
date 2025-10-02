@@ -268,481 +268,487 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
-      children: [
-        Container(
-          decoration: BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-          ),
-          padding: EdgeInsets.fromLTRB(
-              20, 16, 20, 16 + MediaQuery.of(context).viewInsets.bottom),
-          child: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Center(
-                  child: Container(
-                    width: 40,
-                    height: 4,
-                    margin: EdgeInsets.only(bottom: 16),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[300],
-                      borderRadius: BorderRadius.circular(2),
-                    ),
-                  ),
-                ),
-                Text(
-                  'convert_options'.tr,
-                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-                ),
-
-                // 파일 크기 제한 오류 표시
-                if (_fileSizeError != null) ...[
-                  SizedBox(height: 12),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.red[300]!, width: 1),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.error, color: Colors.red[700], size: 20),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            _fileSizeError!,
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.red[700],
-                              fontWeight: FontWeight.w600,
-                              height: 1.4,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                SizedBox(height: 16),
-                Text(
-                  'resolution'.tr,
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                ),
-                SizedBox(height: 8),
-                Column(
-                  children: List.generate(resolutions.length, (i) {
-                    return Padding(
-                      padding: const EdgeInsets.only(bottom: 6.0),
-                      child: GestureDetector(
-                        onTap: widget.isUploading
-                            ? null
-                            : () => setState(() {
-                                  selectedResolution = i;
-                                  _predictedSize = null;
-                                  _predictionError = null;
-                                }),
-                        child: Container(
-                          padding: EdgeInsets.symmetric(
-                              vertical: 12, horizontal: 14),
-                          decoration: BoxDecoration(
-                            color: selectedResolution == i
-                                ? Colors.blue[50]
-                                : Colors.grey[100],
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: selectedResolution == i
-                                  ? Colors.blue
-                                  : Colors.transparent,
-                              width: 2,
-                            ),
-                          ),
-                          child: Row(
-                            children: [
-                              Expanded(
-                                  child: Text(resolutions[i]['label'],
-                                      style: TextStyle(fontSize: 16))),
-                              if (selectedResolution == i)
-                                Icon(Icons.check_circle, color: Colors.blue),
-                            ],
-                          ),
-                        ),
-                      ),
-                    );
-                  }),
-                ),
-                SizedBox(height: 8),
-                Row(
-                  children: [
-                    Text(
-                      'fps'.tr,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: Color(0xFF3182F6),
-                          inactiveTrackColor: Color(0xFFE5E8EB),
-                          thumbColor: Color(0xFF3182F6),
-                        ),
-                        child: Slider(
-                          min: 1,
-                          max: 60,
-                          divisions: 59,
-                          value: fps,
-                          label: fps.round().toString(),
-                          onChanged: widget.isUploading
-                              ? null
-                              : (v) => setState(() {
-                                    fps = v;
-                                    _predictedSize = null;
-                                    _predictionError = null;
-                                  }),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Container(
-                      width: 48,
-                      alignment: Alignment.centerRight,
-                      child: Text('${fps.round()}',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text(
-                      'quality'.tr,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: Color(0xFF3182F6),
-                          inactiveTrackColor: Color(0xFFE5E8EB),
-                          thumbColor: Color(0xFF3182F6),
-                        ),
-                        child: Slider(
-                          min: 1,
-                          max: 100,
-                          divisions: 99,
-                          value: quality,
-                          label: quality.round().toString(),
-                          onChanged: widget.isUploading
-                              ? null
-                              : (v) => setState(() {
-                                    quality = v;
-                                    _predictedSize = null;
-                                    _predictionError = null;
-                                  }),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Container(
-                      width: 48,
-                      alignment: Alignment.centerRight,
-                      child: Text('${quality.round()}',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-                Row(
-                  children: [
-                    Text(
-                      'playback_speed'.tr,
-                      style: TextStyle(fontSize: 14, fontWeight: FontWeight.w600),
-                    ),
-                    SizedBox(width: 12),
-                    Expanded(
-                      child: SliderTheme(
-                        data: SliderTheme.of(context).copyWith(
-                          activeTrackColor: Color(0xFF3182F6),
-                          inactiveTrackColor: Color(0xFFE5E8EB),
-                          thumbColor: Color(0xFF3182F6),
-                        ),
-                        child: Slider(
-                          min: 0.5,
-                          max: 2.0,
-                          divisions: 15,
-                          value: speed,
-                          label: '${speed.toStringAsFixed(2)}x',
-                          onChanged: widget.isUploading
-                              ? null
-                              : (v) => setState(() {
-                                    speed = v;
-                                    _predictedSize = null;
-                                    _predictionError = null;
-                                  }),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 8),
-                    Container(
-                      width: 48,
-                      alignment: Alignment.centerRight,
-                      child: Text('${speed.toStringAsFixed(2)}x',
-                          style: TextStyle(
-                              fontSize: 16, fontWeight: FontWeight.bold)),
-                    ),
-                  ],
-                ),
-                // SizedBox(height: 24),
-                // Text(
-                //   'estimated_file_size'
-                //       .trParams({'size': _calculateEstimatedSize()}),
-                //   style: TextStyle(
-                //       fontSize: 16,
-                //       fontWeight: FontWeight.w600,
-                //       color: Colors.grey[700]),
-                // ),
-                SizedBox(height: 6),
-                Text(
-                  'original_file_size'.trParams({
-                    'size':
-                        _formatFileSize(File(widget.videoFilePath).lengthSync())
-                  }),
-                  style: TextStyle(fontSize: 14, color: Colors.grey[600]),
-                ),
-                SizedBox(height: 12),
-
-                // 용량 예측 버튼
-                SizedBox(
-                  width: double.infinity,
-                  height: 48,
-                  child: OutlinedButton.icon(
-                    onPressed: widget.isUploading || _isPredicting
-                        ? null
-                        : _predictFileSize,
-                    icon: _isPredicting
-                        ? SizedBox(
-                            width: 16,
-                            height: 16,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.blue),
-                            ),
-                          )
-                        : Icon(Icons.analytics_outlined),
-                    label: Text(
-                      _isPredicting
-                          ? 'predicting'.tr
-                          : 'predict_converted_size'.tr,
-                      style:
-                          TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
-                    ),
-                    style: OutlinedButton.styleFrom(
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
-                      ),
-                      side: BorderSide(color: Colors.blue, width: 1.5),
-                      foregroundColor: Colors.blue,
-                    ),
-                  ),
-                ),
-
-                // 예측 결과 표시
-                if (_predictedSize != null) ...[
-                  SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.green[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.green[200]!),
-                    ),
-                    child: Row(
-                      children: [
-                        Icon(Icons.check_circle, color: Colors.green, size: 20),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'predicted_size_result'
-                                .trParams({'size': _predictedSize!}),
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: Colors.green[700],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                // 예측 오류 표시
-                if (_predictionError != null) ...[
-                  SizedBox(height: 8),
-                  Container(
-                    width: double.infinity,
-                    padding: EdgeInsets.all(16),
-                    decoration: BoxDecoration(
-                      color: Colors.red[50],
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: Colors.red[200]!),
-                    ),
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Icon(Icons.error, color: Colors.red, size: 20),
-                        SizedBox(width: 8),
-                        Expanded(
-                          child: Text(
-                            'prediction_failed'
-                                .trParams({'error': _predictionError!}),
-                            style: TextStyle(
-                              fontSize: 14,
-                              color: Colors.red[700],
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-
-                SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: SizedBox(
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: widget.isUploading
-                              ? null
-                              : () => Navigator.of(context).pop(),
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                            backgroundColor: Colors.grey[100],
-                            foregroundColor: Colors.black,
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            'cancel'.tr,
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                    ),
-                    SizedBox(width: 16),
-                    Expanded(
-                      child: SizedBox(
-                        height: 56,
-                        child: ElevatedButton(
-                          onPressed: widget.isUploading ||
-                                  _fileSizeError != null
-                              ? null
-                              : () async {
-                                  // FileSelectController에서 trim 설정 가져오기
-                                  final controller =
-                                      Get.find<FileSelectController>();
-
-                                  final options = ConvertOptions(
-                                    format: selectedFormat,
-                                    quality: quality.round(),
-                                    fps: fps.round(),
-                                    resolution:
-                                        '${resolutions[selectedResolution]['width']}x${resolutions[selectedResolution]['height']}',
-                                    startTime: controller.trimStartTime.value,
-                                    endTime: controller.trimEndTime.value,
-                                    speed: speed,
-                                  );
-
-                                  // 설정 저장
-                                  await controller.saveConvertSettings(
-                                    selectedResolution: selectedResolution,
-                                    fps: fps,
-                                    quality: quality,
-                                    format: selectedFormat,
-                                    speed: speed,
-                                  );
-
-                                  widget.onConvert(options);
-                                },
-                          style: ElevatedButton.styleFrom(
-                            shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(16)),
-                            backgroundColor: Colors.blue,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                          ),
-                          child: Text(
-                            'convert'.tr,
-                            style: TextStyle(
-                                fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ],
+    return SafeArea(
+      child: Stack(
+        children: [
+          Container(
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
-          ),
-        ),
-        // 업로드 중일 때 로딩 오버레이
-        if (widget.isUploading)
-          Positioned.fill(
-            child: Container(
-              color: Colors.white.withOpacity(0.85),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        Container(
-                          width: 64,
-                          height: 64,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
+            padding: EdgeInsets.fromLTRB(
+                20, 16, 20, 16 + MediaQuery.of(context).viewInsets.bottom),
+            child: SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Center(
+                    child: Container(
+                      width: 40,
+                      height: 4,
+                      margin: EdgeInsets.only(bottom: 16),
+                      decoration: BoxDecoration(
+                        color: Colors.grey[300],
+                        borderRadius: BorderRadius.circular(2),
+                      ),
+                    ),
+                  ),
+                  Text(
+                    'convert_options'.tr,
+                    style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                  ),
+
+                  // 파일 크기 제한 오류 표시
+                  if (_fileSizeError != null) ...[
+                    SizedBox(height: 12),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.red[300]!, width: 1),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.error, color: Colors.red[700], size: 20),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              _fileSizeError!,
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.red[700],
+                                fontWeight: FontWeight.w600,
+                                height: 1.4,
+                              ),
+                            ),
                           ),
-                          child: ClipOval(
-                            child: CircularProgressIndicator(
-                              value: widget.uploadPercent,
-                              strokeWidth: 6,
-                              backgroundColor: Colors.grey[200],
-                              valueColor:
-                                  AlwaysStoppedAnimation<Color>(Colors.blue),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  SizedBox(height: 16),
+                  Text(
+                    'resolution'.tr,
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.w600),
+                  ),
+                  SizedBox(height: 8),
+                  Column(
+                    children: List.generate(resolutions.length, (i) {
+                      return Padding(
+                        padding: const EdgeInsets.only(bottom: 6.0),
+                        child: GestureDetector(
+                          onTap: widget.isUploading
+                              ? null
+                              : () => setState(() {
+                                    selectedResolution = i;
+                                    _predictedSize = null;
+                                    _predictionError = null;
+                                  }),
+                          child: Container(
+                            padding: EdgeInsets.symmetric(
+                                vertical: 12, horizontal: 14),
+                            decoration: BoxDecoration(
+                              color: selectedResolution == i
+                                  ? Colors.blue[50]
+                                  : Colors.grey[100],
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(
+                                color: selectedResolution == i
+                                    ? Colors.blue
+                                    : Colors.transparent,
+                                width: 2,
+                              ),
+                            ),
+                            child: Row(
+                              children: [
+                                Expanded(
+                                    child: Text(resolutions[i]['label'],
+                                        style: TextStyle(fontSize: 16))),
+                                if (selectedResolution == i)
+                                  Icon(Icons.check_circle, color: Colors.blue),
+                              ],
                             ),
                           ),
                         ),
-                        Text(
-                          '${(widget.uploadPercent * 100).toStringAsFixed(0)}%',
-                          style: TextStyle(
-                              fontSize: 20, fontWeight: FontWeight.bold),
+                      );
+                    }),
+                  ),
+                  SizedBox(height: 8),
+                  Row(
+                    children: [
+                      Text(
+                        'fps'.tr,
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: Color(0xFF3182F6),
+                            inactiveTrackColor: Color(0xFFE5E8EB),
+                            thumbColor: Color(0xFF3182F6),
+                          ),
+                          child: Slider(
+                            min: 1,
+                            max: 60,
+                            divisions: 59,
+                            value: fps,
+                            label: fps.round().toString(),
+                            onChanged: widget.isUploading
+                                ? null
+                                : (v) => setState(() {
+                                      fps = v;
+                                      _predictedSize = null;
+                                      _predictionError = null;
+                                    }),
+                          ),
                         ),
-                      ],
+                      ),
+                      SizedBox(width: 8),
+                      Container(
+                        width: 48,
+                        alignment: Alignment.centerRight,
+                        child: Text('${fps.round()}',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'quality'.tr,
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: Color(0xFF3182F6),
+                            inactiveTrackColor: Color(0xFFE5E8EB),
+                            thumbColor: Color(0xFF3182F6),
+                          ),
+                          child: Slider(
+                            min: 1,
+                            max: 100,
+                            divisions: 99,
+                            value: quality,
+                            label: quality.round().toString(),
+                            onChanged: widget.isUploading
+                                ? null
+                                : (v) => setState(() {
+                                      quality = v;
+                                      _predictedSize = null;
+                                      _predictionError = null;
+                                    }),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Container(
+                        width: 48,
+                        alignment: Alignment.centerRight,
+                        child: Text('${quality.round()}',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                  Row(
+                    children: [
+                      Text(
+                        'playback_speed'.tr,
+                        style: TextStyle(
+                            fontSize: 14, fontWeight: FontWeight.w600),
+                      ),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: SliderTheme(
+                          data: SliderTheme.of(context).copyWith(
+                            activeTrackColor: Color(0xFF3182F6),
+                            inactiveTrackColor: Color(0xFFE5E8EB),
+                            thumbColor: Color(0xFF3182F6),
+                          ),
+                          child: Slider(
+                            min: 0.5,
+                            max: 2.0,
+                            divisions: 15,
+                            value: speed,
+                            label: '${speed.toStringAsFixed(2)}x',
+                            onChanged: widget.isUploading
+                                ? null
+                                : (v) => setState(() {
+                                      speed = v;
+                                      _predictedSize = null;
+                                      _predictionError = null;
+                                    }),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 8),
+                      Container(
+                        width: 48,
+                        alignment: Alignment.centerRight,
+                        child: Text('${speed.toStringAsFixed(2)}x',
+                            style: TextStyle(
+                                fontSize: 16, fontWeight: FontWeight.bold)),
+                      ),
+                    ],
+                  ),
+                  // SizedBox(height: 24),
+                  // Text(
+                  //   'estimated_file_size'
+                  //       .trParams({'size': _calculateEstimatedSize()}),
+                  //   style: TextStyle(
+                  //       fontSize: 16,
+                  //       fontWeight: FontWeight.w600,
+                  //       color: Colors.grey[700]),
+                  // ),
+                  SizedBox(height: 6),
+                  Text(
+                    'original_file_size'.trParams({
+                      'size': _formatFileSize(
+                          File(widget.videoFilePath).lengthSync())
+                    }),
+                    style: TextStyle(fontSize: 14, color: Colors.grey[600]),
+                  ),
+                  SizedBox(height: 12),
+
+                  // 용량 예측 버튼
+                  SizedBox(
+                    width: double.infinity,
+                    height: 48,
+                    child: OutlinedButton.icon(
+                      onPressed: widget.isUploading || _isPredicting
+                          ? null
+                          : _predictFileSize,
+                      icon: _isPredicting
+                          ? SizedBox(
+                              width: 16,
+                              height: 16,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.blue),
+                              ),
+                            )
+                          : Icon(Icons.analytics_outlined),
+                      label: Text(
+                        _isPredicting
+                            ? 'predicting'.tr
+                            : 'predict_converted_size'.tr,
+                        style: TextStyle(
+                            fontSize: 16, fontWeight: FontWeight.w600),
+                      ),
+                      style: OutlinedButton.styleFrom(
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        side: BorderSide(color: Colors.blue, width: 1.5),
+                        foregroundColor: Colors.blue,
+                      ),
                     ),
-                    SizedBox(height: 16),
-                    Text(
-                      'uploading'.tr,
-                      style:
-                          TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  ),
+
+                  // 예측 결과 표시
+                  if (_predictedSize != null) ...[
+                    SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.green[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.green[200]!),
+                      ),
+                      child: Row(
+                        children: [
+                          Icon(Icons.check_circle,
+                              color: Colors.green, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'predicted_size_result'
+                                  .trParams({'size': _predictedSize!}),
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: FontWeight.w600,
+                                color: Colors.green[700],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
                     ),
                   ],
-                ),
+
+                  // 예측 오류 표시
+                  if (_predictionError != null) ...[
+                    SizedBox(height: 8),
+                    Container(
+                      width: double.infinity,
+                      padding: EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.red[50],
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(color: Colors.red[200]!),
+                      ),
+                      child: Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Icon(Icons.error, color: Colors.red, size: 20),
+                          SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              'prediction_failed'
+                                  .trParams({'error': _predictionError!}),
+                              style: TextStyle(
+                                fontSize: 14,
+                                color: Colors.red[700],
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+
+                  SizedBox(height: 20),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: SizedBox(
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: widget.isUploading
+                                ? null
+                                : () => Navigator.of(context).pop(),
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                              backgroundColor: Colors.grey[100],
+                              foregroundColor: Colors.black,
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'cancel'.tr,
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ),
+                      SizedBox(width: 16),
+                      Expanded(
+                        child: SizedBox(
+                          height: 56,
+                          child: ElevatedButton(
+                            onPressed: widget.isUploading ||
+                                    _fileSizeError != null
+                                ? null
+                                : () async {
+                                    // FileSelectController에서 trim 설정 가져오기
+                                    final controller =
+                                        Get.find<FileSelectController>();
+
+                                    final options = ConvertOptions(
+                                      format: selectedFormat,
+                                      quality: quality.round(),
+                                      fps: fps.round(),
+                                      resolution:
+                                          '${resolutions[selectedResolution]['width']}x${resolutions[selectedResolution]['height']}',
+                                      startTime: controller.trimStartTime.value,
+                                      endTime: controller.trimEndTime.value,
+                                      speed: speed,
+                                    );
+
+                                    // 설정 저장
+                                    await controller.saveConvertSettings(
+                                      selectedResolution: selectedResolution,
+                                      fps: fps,
+                                      quality: quality,
+                                      format: selectedFormat,
+                                      speed: speed,
+                                    );
+
+                                    widget.onConvert(options);
+                                  },
+                            style: ElevatedButton.styleFrom(
+                              shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16)),
+                              backgroundColor: Colors.blue,
+                              foregroundColor: Colors.white,
+                              elevation: 0,
+                            ),
+                            child: Text(
+                              'convert'.tr,
+                              style: TextStyle(
+                                  fontSize: 18, fontWeight: FontWeight.bold),
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
               ),
             ),
           ),
-      ],
+          // 업로드 중일 때 로딩 오버레이
+          if (widget.isUploading)
+            Positioned.fill(
+              child: Container(
+                color: Colors.white.withOpacity(0.85),
+                child: Center(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Container(
+                            width: 64,
+                            height: 64,
+                            decoration: BoxDecoration(
+                              shape: BoxShape.circle,
+                            ),
+                            child: ClipOval(
+                              child: CircularProgressIndicator(
+                                value: widget.uploadPercent,
+                                strokeWidth: 6,
+                                backgroundColor: Colors.grey[200],
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(Colors.blue),
+                              ),
+                            ),
+                          ),
+                          Text(
+                            '${(widget.uploadPercent * 100).toStringAsFixed(0)}%',
+                            style: TextStyle(
+                                fontSize: 20, fontWeight: FontWeight.bold),
+                          ),
+                        ],
+                      ),
+                      SizedBox(height: 16),
+                      Text(
+                        'uploading'.tr,
+                        style: TextStyle(
+                            fontSize: 18, fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
     );
   }
 }

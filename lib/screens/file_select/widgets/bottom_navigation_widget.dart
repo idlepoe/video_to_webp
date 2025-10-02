@@ -72,7 +72,7 @@ class BottomNavigationWidget extends StatelessWidget {
             ),
             const SizedBox(height: 12),
           ],
-          
+
           // Trim 버튼과 원본 되돌리기 버튼
           if (onTrim != null) ...[
             Row(
