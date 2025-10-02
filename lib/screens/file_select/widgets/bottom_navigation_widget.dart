@@ -64,7 +64,7 @@ class BottomNavigationWidget extends StatelessWidget {
                 ),
                 icon: const Icon(Icons.rotate_right, size: 20),
                 label: Text(
-                  '비디오 회전하기',
+                  'video_rotate'.tr,
                   style: const TextStyle(
                       fontSize: 16, fontWeight: FontWeight.bold),
                 ),

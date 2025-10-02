@@ -145,7 +145,7 @@ class FileSelectController extends GetxController {
     final scanOptionKey =
         prefs.getString('selected_scan_option') ?? 'quick_scan';
     final scanOptionName =
-        prefs.getString('selected_scan_option_name') ?? '빠른 스캔';
+        prefs.getString('selected_scan_option_name') ?? 'quick_scan_default_value'.tr;
     selectedScanOptionKey.value = scanOptionKey;
     selectedScanOption.value = scanOptionName;
   }
@@ -291,7 +291,7 @@ class FileSelectController extends GetxController {
       int totalPaths = scanPaths.length;
 
       // 스캔 시작
-      _updateMediaScanProgress(0, totalPaths, '고정 경로 스캔 시작...');
+      _updateMediaScanProgress(0, totalPaths, 'fixed_path_scan_start_progress'.tr);
 
       for (int i = 0; i < scanPaths.length; i++) {
         String path = scanPaths[i];
@@ -300,7 +300,7 @@ class FileSelectController extends GetxController {
           if (await directory.exists()) {
             // 진행 상황 업데이트
             _updateMediaScanProgress(
-                i + 1, totalPaths, '고정 경로 스캔 중: ${path.split('/').last}');
+                i + 1, totalPaths, 'fixed_path_scanning_progress'.tr.replaceAll('@folder', path.split('/').last));
 
             print('디렉토리 스캔 중: $path');
 
@@ -314,12 +314,12 @@ class FileSelectController extends GetxController {
           } else {
             print('디렉토리가 존재하지 않음: $path');
             _updateMediaScanProgress(
-                i + 1, totalPaths, '건너뜀: ${path.split('/').last}');
+                i + 1, totalPaths, 'skip_folder_progress'.tr.replaceAll('@folder', path.split('/').last));
           }
         } catch (e) {
           print('디렉토리 스캔 실패: $path - $e');
           _updateMediaScanProgress(
-              i + 1, totalPaths, '오류: ${path.split('/').last}');
+              i + 1, totalPaths, 'error_folder_progress'.tr.replaceAll('@folder', path.split('/').last));
         }
       }
 
@@ -328,7 +328,7 @@ class FileSelectController extends GetxController {
       // 성공한 스캔이 있으면 사용자에게 알림
       if (successCount > 0) {
         _updateMediaScanProgress(
-            totalPaths, totalPaths, '고정 경로 스캔 완료! $successCount개 폴더 성공');
+            totalPaths, totalPaths, 'fixed_path_scan_complete_progress'.tr.replaceAll('@count', successCount.toString()));
       }
     } catch (e) {
       print('고정 경로 스캔 오류: $e');
@@ -919,7 +919,7 @@ class FileSelectController extends GetxController {
             savedPath = outputPath;
             completer.complete(outputPath);
           } else {
-            completer.completeError('샘플 파일 저장 실패');
+            completer.completeError('sample_file_save_failed_error'.tr);
           }
         },
       );
@@ -987,7 +987,7 @@ class FileSelectController extends GetxController {
     try {
       final user = FirebaseAuth.instance.currentUser;
       if (user == null) {
-        throw Exception('로그인이 필요합니다.');
+        throw Exception('login_required_error'.tr);
       }
 
       // 1초 샘플 생성을 위해 trim 기능 사용
@@ -1127,19 +1127,19 @@ class FileSelectController extends GetxController {
           }
         } else if (status == 'failed') {
           if (!completer.isCompleted) {
-            completer.completeError(data?['error'] ?? '샘플 변환에 실패했습니다.');
+            completer.completeError(data?['error'] ?? 'sample_conversion_failed_error'.tr);
           }
         }
       }, onError: (e) {
         if (!completer.isCompleted) {
-          completer.completeError('샘플 변환 모니터링 중 오류: ${e.toString()}');
+          completer.completeError('sample_conversion_monitoring_error'.tr.replaceAll('@error', e.toString()));
         }
       });
 
       // 타임아웃 설정 (30초)
       Timer(Duration(seconds: 30), () {
         if (!completer.isCompleted) {
-          completer.completeError('샘플 변환 시간이 초과되었습니다.');
+          completer.completeError('sample_conversion_timeout_error'.tr);
         }
       });
 
@@ -1151,7 +1151,7 @@ class FileSelectController extends GetxController {
 
       return result;
     } catch (e) {
-      throw Exception('샘플 변환 중 오류가 발생했습니다: ${e.toString()}');
+      throw Exception('sample_conversion_error'.tr.replaceAll('@error', e.toString()));
     } finally {
       // 임시 샘플 파일 정리
       if (sampleFilePath != null) {
@@ -1174,27 +1174,27 @@ class FileSelectController extends GetxController {
     mediaScanProgress.value = 0.0;
     mediaScanCurrent.value = 0;
     mediaScanTotal.value = 0;
-    mediaScanStatus.value = '미디어 스캔 준비 중...';
+    mediaScanStatus.value = 'media_scan_preparing'.tr;
   }
 
   // 미디어 스캔 완료
   void _completeMediaScan() {
     isMediaScanning.value = false;
     mediaScanProgress.value = 1.0;
-    mediaScanStatus.value = '미디어 스캔 완료!';
+    mediaScanStatus.value = 'media_scan_complete_status'.tr;
   }
 
   // 미디어 스캔 오류
   void _errorMediaScan(String error) {
     isMediaScanning.value = false;
-    mediaScanStatus.value = '스캔 오류: $error';
+    mediaScanStatus.value = 'media_scan_error_status'.tr.replaceAll('@error', error);
   }
 
   // 동적 디렉토리 탐색을 통한 미디어 스캔 (고급 기능)
   Future<void> _scanDynamicDirectories() async {
     try {
       print('동적 디렉토리 탐색 시작...');
-      _updateMediaScanProgress(0, 0, '동적 디렉토리 탐색 시작...');
+      _updateMediaScanProgress(0, 0, 'dynamic_directory_exploration_start_progress'.tr);
 
       // 탐색할 루트 디렉토리들
       final List<String> rootDirectories = [
@@ -1211,7 +1211,7 @@ class FileSelectController extends GetxController {
           final directory = Directory(rootDir);
           if (await directory.exists()) {
             _updateMediaScanProgress(
-                0, 0, '동적 탐색 중: ${rootDir.split('/').last}');
+                0, 0, 'dynamic_exploration_progress'.tr.replaceAll('@dir', rootDir.split('/').last));
             print('루트 디렉토리 탐색 중: $rootDir');
             final scanResult =
                 await _scanDirectoryRecursively(directory, maxDepth: 3);
@@ -1223,11 +1223,11 @@ class FileSelectController extends GetxController {
         }
       }
 
-      _updateMediaScanProgress(0, 0, '동적 탐색 완료! $totalFound개 비디오 폴더 발견');
+      _updateMediaScanProgress(0, 0, 'dynamic_exploration_complete_progress'.tr.replaceAll('@found', totalFound.toString()));
       print('동적 디렉토리 탐색 완료: $totalScanned개 폴더 스캔, $totalFound개 비디오 폴더 발견');
     } catch (e) {
       print('동적 디렉토리 탐색 오류: $e');
-      _updateMediaScanProgress(0, 0, '동적 탐색 오류: $e');
+      _updateMediaScanProgress(0, 0, 'dynamic_exploration_error_progress'.tr.replaceAll('@error', e.toString()));
     }
   }
 
@@ -1452,34 +1452,34 @@ class FileSelectController extends GetxController {
   void showScanOptionsDialog() {
     Get.dialog(
       AlertDialog(
-        title: Text('스캔 방식 선택'),
+        title: Text('scan_method_selection'.tr),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
             ListTile(
               leading: Icon(Icons.flash_on, color: Colors.blue),
-              title: Text('빠른 스캔'),
-              subtitle: Text('주요 폴더만 빠르게 스캔'),
+              title: Text('quick_scan_option'.tr),
+              subtitle: Text('quick_scan_subtitle'.tr),
               onTap: () async {
-                await setScanOption('quick_scan', '빠른 스캔');
+                await setScanOption('quick_scan', 'quick_scan_option'.tr);
                 Get.back();
               },
             ),
             ListTile(
               leading: Icon(Icons.balance, color: Colors.orange),
-              title: Text('하이브리드 스캔'),
-              subtitle: Text('고정 경로 + 동적 탐색 (권장)'),
+              title: Text('hybrid_scan_option'.tr),
+              subtitle: Text('hybrid_scan_subtitle'.tr),
               onTap: () async {
-                await setScanOption('hybrid_scan', '하이브리드 스캔');
+                await setScanOption('hybrid_scan', 'hybrid_scan_option'.tr);
                 Get.back();
               },
             ),
             ListTile(
               leading: Icon(Icons.explore, color: Colors.green),
-              title: Text('전체 스캔'),
-              subtitle: Text('모든 가능한 경로를 완전히 스캔'),
+              title: Text('full_scan_option'.tr),
+              subtitle: Text('full_scan_subtitle'.tr),
               onTap: () async {
-                await setScanOption('full_scan', '전체 스캔');
+                await setScanOption('full_scan', 'full_scan_option'.tr);
                 Get.back();
               },
             ),
@@ -1488,7 +1488,7 @@ class FileSelectController extends GetxController {
         actions: [
           TextButton(
             onPressed: () => Get.back(),
-            child: Text('취소'),
+            child: Text('cancel_button'.tr),
           ),
         ],
       ),

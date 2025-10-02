@@ -159,7 +159,7 @@ class EmptyVideoWidget extends StatelessWidget {
                               style: TextStyle(
                                 fontSize: 11,
                                 color: controller.mediaScanStatus.value
-                                        .contains('완료')
+                                        .contains('complete'.tr)
                                     ? Colors.green[700]
                                     : Colors.red[700],
                                 fontWeight: FontWeight.w500,
@@ -199,7 +199,7 @@ class EmptyVideoWidget extends StatelessWidget {
                               ),
                               icon: Icon(Icons.tune, size: 20),
                               label: Text(
-                                '스캔 옵션',
+                                'scan_options'.tr,
                                 style: TextStyle(
                                   fontSize: 14,
                                   fontWeight: FontWeight.w600,
@@ -245,7 +245,7 @@ class EmptyVideoWidget extends StatelessWidget {
                                   : Icon(Icons.refresh, size: 20),
                               label: Text(
                                 controller.isMediaScanning.value
-                                    ? '스캔 중...'
+                                    ? 'scanning_in_progress'.tr
                                     : controller.selectedScanOption.value,
                                 style: TextStyle(
                                   fontSize: 14,

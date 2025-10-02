@@ -53,6 +53,7 @@ class MyApp extends StatelessWidget {
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
       ),
+      debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.splash,
       getPages: [
         GetPage(name: AppRoutes.splash, page: () => SplashScreen()),

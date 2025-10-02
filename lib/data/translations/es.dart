@@ -152,7 +152,7 @@ const Map<String, String> esTranslations = {
   'convert_complete_message':
       '¡Tu video ha sido convertido exitosamente a WebP!',
   'notification_subscribe':
-      'Recibir notificación cuando la conversión esté completa',
+      'Recibir notificación de conversión',
   'notification_subscribe_message':
       '¡Siéntete libre de salir! Te notificaremos cuando la conversión esté lista!',
 
@@ -213,6 +213,35 @@ const Map<String, String> esTranslations = {
 
   // File Select
   'quick_scan': 'Escaneo Rápido',
+  'scan_method_selection': 'Selección de Método de Escaneo',
+  'quick_scan_option': 'Escaneo Rápido',
+  'quick_scan_subtitle': 'Escanear solo carpetas principales rápidamente',
+  'hybrid_scan_option': 'Escaneo Híbrido',
+  'hybrid_scan_subtitle': 'Rutas fijas + Exploración dinámica (Recomendado)',
+  'full_scan_option': 'Escaneo Completo',
+  'full_scan_subtitle': 'Escanear completamente todas las rutas posibles',
+  'cancel_button': 'Cancelar',
+  'scan_options': 'Opciones de Escaneo',
+  'scanning_in_progress': 'Escaneando...',
+  'quick_scan_default_value': 'Escaneo Rápido',
+  'fixed_path_scan_start_progress': 'Iniciando escaneo de rutas fijas...',
+  'fixed_path_scanning_progress': 'Escaneando rutas fijas: @folder',
+  'skip_folder_progress': 'Omitir: @folder',
+  'error_folder_progress': 'Error: @folder',
+  'fixed_path_scan_complete_progress': '¡Escaneo de rutas fijas completo! @count carpetas exitosas',
+  'media_scan_preparing': 'Preparando escaneo de medios...',
+  'media_scan_complete_status': '¡Escaneo de medios completo!',
+  'media_scan_error_status': 'Error de escaneo: @error',
+  'dynamic_directory_exploration_start_progress': 'Iniciando exploración dinámica de directorios...',
+  'dynamic_exploration_progress': 'Exploración dinámica: @dir',
+  'dynamic_exploration_complete_progress': '¡Exploración dinámica completa! @found carpetas de video encontradas',
+  'dynamic_exploration_error_progress': 'Error de exploración dinámica: @error',
+  'sample_file_save_failed_error': 'Error al guardar archivo de muestra',
+  'login_required_error': 'Se requiere inicio de sesión.',
+  'sample_conversion_failed_error': 'La conversión de muestra falló.',
+  'sample_conversion_monitoring_error': 'Error de monitoreo de conversión de muestra: @error',
+  'sample_conversion_timeout_error': 'Tiempo de espera de conversión de muestra agotado.',
+  'sample_conversion_error': 'Ocurrió un error en la conversión de muestra: @error',
 
   // Convert Complete
   'image_load_failed': 'Error al cargar imagen',

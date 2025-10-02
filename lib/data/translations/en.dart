@@ -148,7 +148,7 @@ const Map<String, String> enTranslations = {
   'convert_complete_message':
       'Your video has been successfully converted to WebP!',
   'notification_subscribe':
-      'Get notification when conversion is complete',
+      'Get conversion notification',
   'notification_subscribe_message':
       'Feel free to step out! We\'ll notify you when the conversion is done!',
 
@@ -208,6 +208,35 @@ const Map<String, String> enTranslations = {
 
   // File Select
   'quick_scan': 'Quick Scan',
+  'scan_method_selection': 'Scan Method Selection',
+  'quick_scan_option': 'Quick Scan',
+  'quick_scan_subtitle': 'Quickly scan main folders only',
+  'hybrid_scan_option': 'Hybrid Scan',
+  'hybrid_scan_subtitle': 'Fixed paths + Dynamic exploration (Recommended)',
+  'full_scan_option': 'Full Scan',
+  'full_scan_subtitle': 'Completely scan all possible paths',
+  'cancel_button': 'Cancel',
+  'scan_options': 'Scan Options',
+  'scanning_in_progress': 'Scanning...',
+  'quick_scan_default_value': 'Quick Scan',
+  'fixed_path_scan_start_progress': 'Fixed path scan starting...',
+  'fixed_path_scanning_progress': 'Fixed path scanning: @folder',
+  'skip_folder_progress': 'Skip: @folder',
+  'error_folder_progress': 'Error: @folder',
+  'fixed_path_scan_complete_progress': 'Fixed path scan complete! @count folders successful',
+  'media_scan_preparing': 'Preparing media scan...',
+  'media_scan_complete_status': 'Media scan complete!',
+  'media_scan_error_status': 'Scan error: @error',
+  'dynamic_directory_exploration_start_progress': 'Dynamic directory exploration starting...',
+  'dynamic_exploration_progress': 'Dynamic exploration: @dir',
+  'dynamic_exploration_complete_progress': 'Dynamic exploration complete! @found video folders found',
+  'dynamic_exploration_error_progress': 'Dynamic exploration error: @error',
+  'sample_file_save_failed_error': 'Sample file save failed',
+  'login_required_error': 'Login is required.',
+  'sample_conversion_failed_error': 'Sample conversion failed.',
+  'sample_conversion_monitoring_error': 'Sample conversion monitoring error: @error',
+  'sample_conversion_timeout_error': 'Sample conversion timeout.',
+  'sample_conversion_error': 'Sample conversion error occurred: @error',
 
   // Convert Complete
   'image_load_failed': 'Image load failed',
