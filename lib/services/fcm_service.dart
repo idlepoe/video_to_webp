@@ -3,7 +3,6 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../routes/app_routes.dart';
-import '../translations.dart';
 import 'package:flutter/material.dart';
 
 class FCMService extends GetxService {

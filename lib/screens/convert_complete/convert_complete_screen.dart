@@ -1,20 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'convert_complete_controller.dart';
+import '../../routes/app_routes.dart';
 
 class ConvertCompleteScreen extends StatelessWidget {
   final controller = Get.put(ConvertCompleteController());
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
+    return WillPopScope(
+      onWillPop: () async {
+        Get.offAllNamed(AppRoutes.splash);
+        return false;
+      },
+      child: Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
           icon: Icon(Icons.close, color: Colors.black),
-          onPressed: () => Get.offAllNamed('/'),
+          onPressed: () => Get.offAllNamed(AppRoutes.splash),
         ),
         title: Text(
           'conversion_complete'.tr,
@@ -347,7 +353,7 @@ class ConvertCompleteScreen extends StatelessWidget {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: () => Get.offAllNamed('/'),
+                  onPressed: () => Get.offAllNamed(AppRoutes.splash),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Color(0xFF3182F6),
                     elevation: 0,
@@ -369,6 +375,7 @@ class ConvertCompleteScreen extends StatelessWidget {
           ],
         );
       }),
+    ),
     );
   }
 }

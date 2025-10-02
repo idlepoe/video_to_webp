@@ -10,7 +10,7 @@ import 'screens/file_select/file_select_screen.dart';
 import 'screens/loading/loading_screen.dart';
 import 'screens/loading/loading_controller.dart';
 import 'services/fcm_service.dart';
-import 'translations.dart';
+import 'data/translations/app_translations.dart';
 
 Future<void> main() async {
   try {
@@ -48,7 +48,7 @@ class MyApp extends StatelessWidget {
       title: 'WebP Me!',
       translations: AppTranslations(),
       locale: Get.deviceLocale,
-      fallbackLocale: Locale('ko', 'KR'),
+      fallbackLocale: Locale('ko'),
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,

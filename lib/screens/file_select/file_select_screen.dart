@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'file_select_controller.dart';
 import 'package:video_player/video_player.dart';
@@ -104,6 +105,15 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
           showRestoreButton: controller.isTrimmed.value,
         );
       }),
+      floatingActionButton: kDebugMode
+          ? FloatingActionButton(
+              onPressed: () {
+                Get.offAllNamed(AppRoutes.complete);
+              },
+              backgroundColor: Colors.red,
+              child: Icon(Icons.bug_report, color: Colors.white),
+            )
+          : null,
     );
   }
 

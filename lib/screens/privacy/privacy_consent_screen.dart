@@ -3,7 +3,6 @@ import 'package:get/get.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../routes/app_routes.dart';
-import '../../translations.dart';
 
 class PrivacyConsentScreen extends StatefulWidget {
   @override
