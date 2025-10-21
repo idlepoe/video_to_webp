@@ -8,19 +8,16 @@ import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_storage/firebase_storage.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:flutter/material.dart';
 import 'package:video_trimmer/video_trimmer.dart';
-import 'package:path_provider/path_provider.dart';
 import 'package:dio/dio.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:media_scanner/media_scanner.dart';
-import 'package:shorebird_code_push/shorebird_code_push.dart';
+import 'package:in_app_update/in_app_update.dart';
 import '../../models/convert_request.dart';
 import '../../routes/app_routes.dart';
 import '../loading/loading_controller.dart';
 import '../video_trim/video_trim_screen.dart';
 import '../video_rotate/video_rotate_screen.dart';
-import '../../widgets/common_snackbar.dart';
 import '../../services/fcm_service.dart';
 
 class FileSelectController extends GetxController {
@@ -54,16 +51,12 @@ class FileSelectController extends GetxController {
   final RxString selectedScanOption = 'quick_scan'.tr.obs;
   final RxString selectedScanOptionKey = 'quick_scan'.obs;
 
-  // Shorebird 업데이트 관련 변수
-  final _updater = ShorebirdUpdater();
 
   @override
   void onInit() {
     super.onInit();
-
-    // Shorebird 업데이트 초기화
-    _initializeShorebird();
-
+    _checkForUpdate();
+    
     // FCM 서비스에 현재 화면 알림 (안전하게 처리)
     try {
       if (Get.isRegistered<FCMService>()) {
@@ -84,17 +77,21 @@ class FileSelectController extends GetxController {
     _initializeFirebase();
     _loadNotificationPreference();
     _requestPermissions();
-
-    // Shorebird 업데이트 자동 확인 (5초 후)
-    Timer(Duration(seconds: 5), () {
-      checkForShorebirdUpdate();
-    });
   }
 
-  // Shorebird 업데이트 초기화
-  void _initializeShorebird() {
-    // Shorebird 초기화 완료
-    print('Shorebird 초기화 완료');
+  Future<void> _checkForUpdate() async {
+    try {
+      // 업데이트 확인
+      final updateInfo = await InAppUpdate.checkForUpdate();
+
+      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
+        // 즉시 업데이트 수행
+        await InAppUpdate.performImmediateUpdate();
+      }
+    } catch (e) {
+      // 업데이트 실패 시 로그만 출력 (사용자에게는 알리지 않음)
+      print('In-app update failed: $e');
+    }
   }
 
   // 권한 요청
@@ -123,7 +120,7 @@ class FileSelectController extends GetxController {
       final auth = FirebaseAuth.instance;
 
       if (auth.currentUser == null) {
-        final userCredential = await auth.signInAnonymously();
+        await auth.signInAnonymously();
       }
 
       // FCM 토픽 업데이트
@@ -718,7 +715,7 @@ class FileSelectController extends GetxController {
     }
 
     // 비디오 회전 화면으로 네비게이션
-    final result = await Get.to(
+    await Get.to(
       () => VideoRotateScreen(
         filePath: videoFile.value!.path,
         fileName: videoFile.value!.name,
@@ -841,7 +838,7 @@ class FileSelectController extends GetxController {
         // CommonSnackBar.error('error'.tr, 'upload_error'.tr,
         //     duration: Duration(seconds: 5));
       });
-    } catch (e, stack) {
+    } catch (e) {
       isUploading.value = false;
       uploadPercent.value = 0.0;
       // CommonSnackBar.error('error'.tr, 'upload_error'.tr,
@@ -896,16 +893,10 @@ class FileSelectController extends GetxController {
   // 1초 샘플 생성 함수 (trim 기능 활용)
   Future<String> _createOnSecondSample(String originalFilePath) async {
     final trimmer = Trimmer();
-    String? savedPath;
 
     try {
       // 비디오 로드
       await trimmer.loadVideo(videoFile: File(originalFilePath));
-
-      // 임시 디렉토리에 샘플 파일 생성
-      final directory = await getTemporaryDirectory();
-      final timestamp = DateTime.now().millisecondsSinceEpoch;
-      final samplePath = '${directory.path}/sample_${timestamp}.mp4';
 
       // Completer를 사용하여 비동기 콜백 처리
       final completer = Completer<String>();
@@ -916,7 +907,6 @@ class FileSelectController extends GetxController {
         endValue: 1000.0, // 1초 = 1000ms
         onSave: (String? outputPath) {
           if (outputPath != null) {
-            savedPath = outputPath;
             completer.complete(outputPath);
           } else {
             completer.completeError('sample_file_save_failed_error'.tr);
@@ -1043,11 +1033,11 @@ class FileSelectController extends GetxController {
           print('샘플 변환 데이터: $data');
 
           // Firestore 데이터에서 직접 size 확인
-          if (data?['size'] != null && data!['size'] > 0) {
-            print('샘플 변환 Firestore에서 직접 size: ${data!['size']}');
+          if (data?['size'] != null && data?['size'] > 0) {
+            print('샘플 변환 Firestore에서 직접 size: ${data?['size']}');
             if (!completer.isCompleted) {
               completer.complete({
-                'size': data!['size'],
+                'size': data?['size'],
                 'downloadUrl': data?['downloadUrl'] ?? '',
                 'status': 'completed',
               });
@@ -1057,14 +1047,14 @@ class FileSelectController extends GetxController {
 
           // Firestore에 downloadUrl이 있고 size가 0이거나 없는 경우 URL로부터 직접 확인
           if (data?['downloadUrl'] != null) {
-            print('Firestore downloadUrl로부터 크기 확인: ${data!['downloadUrl']}');
-            _getFileSizeFromUrl(data!['downloadUrl']).then((urlSize) {
+            print('Firestore downloadUrl로부터 크기 확인: ${data?['downloadUrl']}');
+            _getFileSizeFromUrl(data?['downloadUrl']).then((urlSize) {
               if (urlSize != null && urlSize > 0) {
                 print('Firestore downloadUrl로부터 확인한 크기: $urlSize bytes');
                 if (!completer.isCompleted) {
                   completer.complete({
                     'size': urlSize,
-                    'downloadUrl': data['downloadUrl'],
+                    'downloadUrl': data?['downloadUrl'],
                     'status': 'completed',
                   });
                 }
@@ -1077,8 +1067,8 @@ class FileSelectController extends GetxController {
 
           // 변환된 파일의 메타데이터에서 크기 정보 가져오기
           if (data?['resultFile'] != null) {
-            print('샘플 변환 resultFile: ${data!['resultFile']}');
-            final resultRef = FirebaseStorage.instance.ref(data!['resultFile']);
+            print('샘플 변환 resultFile: ${data?['resultFile']}');
+            final resultRef = FirebaseStorage.instance.ref(data?['resultFile']);
 
             resultRef.getMetadata().then((metadata) {
               print(
@@ -1147,7 +1137,7 @@ class FileSelectController extends GetxController {
       final result = await completer.future;
 
       // 리스너 정리
-      listener?.cancel();
+      listener.cancel();
 
       return result;
     } catch (e) {
@@ -1346,47 +1336,6 @@ class FileSelectController extends GetxController {
     _scannedDirectories.clear();
   }
 
-  // Shorebird 업데이트 확인
-  Future<void> checkForShorebirdUpdate() async {
-    try {
-      // 업데이트 확인
-      final status = await _updater.checkForUpdate();
-
-      switch (status) {
-        case UpdateStatus.outdated:
-          // 업데이트가 있으면 자동으로 다운로드
-          await _downloadShorebirdUpdate();
-          break;
-        case UpdateStatus.upToDate:
-          print('Shorebird: 최신 버전입니다.');
-          break;
-        case UpdateStatus.restartRequired:
-          print('Shorebird: 재시작이 필요합니다.');
-          break;
-        case UpdateStatus.unavailable:
-          print('Shorebird: 업데이트를 사용할 수 없습니다.');
-          break;
-      }
-    } catch (error) {
-      print('Shorebird 업데이트 확인 오류: $error');
-    }
-  }
-
-  // Shorebird 업데이트 다운로드
-  Future<void> _downloadShorebirdUpdate() async {
-    try {
-      print('Shorebird 업데이트 다운로드 시작...');
-
-      // 업데이트 다운로드 및 설치
-      await _updater.update();
-
-      print('Shorebird 업데이트 다운로드 완료. 재시작이 필요합니다.');
-    } on UpdateException catch (error) {
-      print('Shorebird 업데이트 다운로드 오류: ${error.message}');
-    } catch (e) {
-      print('Shorebird 업데이트 중 예상치 못한 오류: $e');
-    }
-  }
 
   // 하이브리드 미디어 스캔 (기본 + 동적 탐색)
   Future<void> hybridMediaScan() async {
@@ -1498,10 +1447,6 @@ class FileSelectController extends GetxController {
   @override
   void onClose() {
     videoPlayerController.value?.dispose();
-
-    // Shorebird 관련 리소스 정리
-    print('Shorebird 리소스 정리 완료');
-
     super.onClose();
   }
 }

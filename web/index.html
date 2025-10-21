@@ -1,38 +1,278 @@
 <!DOCTYPE html>
-<html>
+<html lang="ko">
 <head>
-  <!--
-    If you are serving your web app in a path other than the root, change the
-    href value below to reflect the base path you are serving from.
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Webp Me! - Video Convert Webp</title>
+    <meta name="description" content="동영상을 애니메이션 WebP 이미지로 쉽게 변환하세요. 20MB 이하 동영상, 트리밍, 속도 조절, 회전 기능을 지원합니다.">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
 
-    The path provided below has to start and end with a slash "/" in order for
-    it to work correctly.
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.6;
+            color: #333;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+        }
 
-    For more details:
-    * https://developer.mozilla.org/en-US/docs/Web/HTML/Element/base
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
 
-    This is a placeholder for base href that will be replaced by the value of
-    the `--base-href` argument provided to `flutter build`.
-  -->
-  <base href="$FLUTTER_BASE_HREF">
+        header {
+            text-align: center;
+            padding: 60px 0 40px;
+            color: white;
+        }
 
-  <meta charset="UTF-8">
-  <meta content="IE=Edge" http-equiv="X-UA-Compatible">
-  <meta name="description" content="A new Flutter project.">
+        .logo {
+            font-size: 3.5rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
 
-  <!-- iOS meta tags & icons -->
-  <meta name="mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="black">
-  <meta name="apple-mobile-web-app-title" content="video_to_webp">
-  <link rel="apple-touch-icon" href="icons/Icon-192.png">
+        .subtitle {
+            font-size: 1.3rem;
+            margin-bottom: 30px;
+            opacity: 0.9;
+        }
 
-  <!-- Favicon -->
-  <link rel="icon" type="image/png" href="favicon.png"/>
+        .cta-button {
+            display: inline-block;
+            background: #ff6b6b;
+            color: white;
+            padding: 15px 40px;
+            text-decoration: none;
+            border-radius: 50px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+        }
 
-  <title>video_to_webp</title>
-  <link rel="manifest" href="manifest.json">
+        .cta-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        .features {
+            background: white;
+            padding: 80px 0;
+        }
+
+        .features h2 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 60px;
+            color: #333;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 40px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: #f8f9fa;
+            padding: 40px 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: transform 0.3s ease;
+            border: 1px solid #e9ecef;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            display: block;
+        }
+
+        .feature-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 15px;
+            color: #333;
+        }
+
+        .feature-description {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        .highlight-section {
+            background: linear-gradient(135deg, #ff9a9e 0%, #fecfef 100%);
+            padding: 80px 0;
+            text-align: center;
+            color: white;
+        }
+
+        .highlight-section h2 {
+            font-size: 2.5rem;
+            margin-bottom: 30px;
+        }
+
+        .highlight-section p {
+            font-size: 1.2rem;
+            margin-bottom: 40px;
+            opacity: 0.9;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            margin-top: 60px;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-number {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 10px;
+        }
+
+        .stat-label {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        footer {
+            background: #333;
+            color: white;
+            text-align: center;
+            padding: 40px 0;
+        }
+
+        .footer-content {
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .footer-content h3 {
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+        }
+
+        .footer-content p {
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 768px) {
+            .logo {
+                font-size: 2.5rem;
+            }
+            
+            .features-grid {
+                grid-template-columns: 1fr;
+                gap: 30px;
+            }
+            
+            .feature-card {
+                padding: 30px 20px;
+            }
+        }
+    </style>
 </head>
 <body>
-  <script src="flutter_bootstrap.js" async></script>
+    <header>
+        <div class="container">
+            <h1 class="logo">Webp Me!</h1>
+            <p class="subtitle">동영상을 애니메이션 WebP 이미지로 쉽게 변환하세요</p>
+            <a href="#" class="cta-button">지금 시작하기</a>
+        </div>
+    </header>
+
+    <section class="features">
+        <div class="container">
+            <h2>주요 기능</h2>
+            <div class="features-grid">
+                <div class="feature-card">
+                    <span class="feature-icon">📦</span>
+                    <h3 class="feature-title">파일 크기 제한</h3>
+                    <p class="feature-description">20MB 이하의 동영상 파일만 변환 가능합니다.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">✂️</span>
+                    <h3 class="feature-title">동영상 트리밍</h3>
+                    <p class="feature-description">원하는 구간만 선택하여 트리밍할 수 있습니다.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">⏩</span>
+                    <h3 class="feature-title">재생 속도 조절</h3>
+                    <p class="feature-description">변환 시 0.5x부터 2.0x까지 재생 속도를 조절할 수 있습니다.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🔄</span>
+                    <h3 class="feature-title">동영상 회전</h3>
+                    <p class="feature-description">90°, 180°, 270° 회전이 가능하며 원본 오디오가 보존됩니다.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🎚️</span>
+                    <h3 class="feature-title">품질 및 해상도 설정</h3>
+                    <p class="feature-description">품질, 프레임 레이트(FPS), 해상도를 자유롭게 선택할 수 있습니다.</p>
+                </div>
+                
+                <div class="feature-card">
+                    <span class="feature-icon">🔔</span>
+                    <h3 class="feature-title">푸시 알림</h3>
+                    <p class="feature-description">변환이 완료되면 푸시 알림을 받을 수 있습니다.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <section class="highlight-section">
+        <div class="container">
+            <h2>왜 Webp Me!를 선택해야 할까요?</h2>
+            <p>간편하고 빠른 동영상 변환, 개인정보 보호, 그리고 완벽한 사용자 경험을 제공합니다.</p>
+            
+            <div class="stats">
+                <div class="stat-item">
+                    <div class="stat-number">20MB</div>
+                    <div class="stat-label">최대 파일 크기</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">24시간</div>
+                    <div class="stat-label">자동 파일 삭제</div>
+                </div>
+                <div class="stat-item">
+                    <div class="stat-number">100%</div>
+                    <div class="stat-label">오디오 보존</div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <footer>
+        <div class="container">
+            <div class="footer-content">
+                <h3>개인정보 보호</h3>
+                <p>업로드된 파일은 개인정보 보호를 위해 24시간 내에 자동으로 삭제됩니다. 변환된 WebP 파일은 다운로드 링크를 통해 제공됩니다.</p>
+            </div>
+        </div>
+    </footer>
 </body>
 </html>
