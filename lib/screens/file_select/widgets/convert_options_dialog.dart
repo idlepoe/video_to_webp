@@ -272,9 +272,9 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
       child: Stack(
         children: [
           Container(
-            decoration: BoxDecoration(
-              color: Colors.white,
-              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            decoration: BoxDecoration(  
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
             ),
             padding: EdgeInsets.fromLTRB(
                 20, 16, 20, 16 + MediaQuery.of(context).viewInsets.bottom),

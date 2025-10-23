@@ -15,7 +15,6 @@ import 'package:media_scanner/media_scanner.dart';
 import 'package:in_app_update/in_app_update.dart';
 import '../../models/convert_request.dart';
 import '../../routes/app_routes.dart';
-import '../loading/loading_controller.dart';
 import '../video_trim/video_trim_screen.dart';
 import '../video_rotate/video_rotate_screen.dart';
 import '../../services/fcm_service.dart';
@@ -798,9 +797,7 @@ class FileSelectController extends GetxController {
         'originalFile': originalFilePath,
       });
 
-      // LoadingController를 find로 가져와 구독 시작
-      final loadingController = Get.find<LoadingController>();
-      loadingController.listenToConvertRequest(requestId);
+      // LoadingController는 Get.toNamed()로 이동할 때 arguments로 requestId를 전달하여 처리
 
       final storageRef = FirebaseStorage.instance
           .ref()
@@ -829,7 +826,7 @@ class FileSelectController extends GetxController {
           uploadPercent.value = 0.0;
           // 다이얼로그 닫고 로딩 화면 이동
           if (Get.isDialogOpen ?? false) Get.back();
-          await Get.toNamed(AppRoutes.loading,
+          await Get.offAllNamed(AppRoutes.loading,
               arguments: {'requestId': requestId});
         }
       }, onError: (uploadError) {

@@ -4,7 +4,6 @@ import '../screens/file_select/file_select_screen.dart';
 import '../screens/video_trim/video_trim_screen.dart';
 import '../screens/loading/loading_screen.dart';
 import '../screens/convert_complete/convert_complete_screen.dart';
-import '../screens/loading/loading_binding.dart';
 import 'app_routes.dart';
 
 class AppPages {
@@ -24,7 +23,6 @@ class AppPages {
     GetPage(
       name: AppRoutes.loading,
       page: () => LoadingScreen(),
-      binding: LoadingBinding(),
     ),
     GetPage(
       name: AppRoutes.complete,

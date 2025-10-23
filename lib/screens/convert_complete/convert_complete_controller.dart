@@ -3,7 +3,7 @@ import 'package:gallery_saver_plus/gallery_saver.dart';
 import 'package:get/get.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import '../../widgets/common_snackbar.dart';
+import 'package:fluttertoast/fluttertoast.dart';
 import '../../services/fcm_service.dart';
 
 class ConvertCompleteController extends GetxController {
@@ -95,7 +95,13 @@ class ConvertCompleteController extends GetxController {
   void _startAutoDownload() {
     // 다운로드 URL이 있고, 아직 다운로드되지 않은 경우에만 자동 다운로드 시작
     if (downloadUrl.value.isNotEmpty && !isAlreadyDownloaded.value) {
-      // CommonSnackBar.info('auto_download'.tr, 'starting_download'.tr);
+      Fluttertoast.showToast(
+        msg: 'starting_download'.tr,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.blue,
+        textColor: Colors.white,
+      );
       downloadFile(isAutoDownload: true);
     }
   }
@@ -103,7 +109,13 @@ class ConvertCompleteController extends GetxController {
   Future<void> downloadFile({bool isAutoDownload = false}) async {
     final url = downloadUrl.value;
     if (url == null || url.isEmpty) {
-      // CommonSnackBar.warn('warning'.tr, 'no_download_link'.tr);
+      Fluttertoast.showToast(
+        msg: 'no_download_link'.tr,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+      );
       return;
     }
 
@@ -124,12 +136,30 @@ class ConvertCompleteController extends GetxController {
         // 다운로드 기록에 URL 추가
         await _addToDownloadHistory(url);
 
-        // CommonSnackBar.success('success'.tr, 'saved_to_gallery'.tr);
+        Fluttertoast.showToast(
+          msg: 'saved_to_gallery'.tr,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.green,
+          textColor: Colors.white,
+        );
       } else {
-        // CommonSnackBar.error('failure'.tr, 'failed_to_save'.tr);
+        Fluttertoast.showToast(
+          msg: 'failed_to_save'.tr,
+          toastLength: Toast.LENGTH_SHORT,
+          gravity: ToastGravity.BOTTOM,
+          backgroundColor: Colors.red,
+          textColor: Colors.white,
+        );
       }
     } catch (e) {
-      // CommonSnackBar.error('error'.tr, '${'download_error'.tr}${e.toString()}');
+      Fluttertoast.showToast(
+        msg: '${'download_error'.tr}${e.toString()}',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
     } finally {
       isDownloading.value = false;
     }
@@ -143,7 +173,13 @@ class ConvertCompleteController extends GetxController {
   Future<void> openInBrowser() async {
     final url = downloadUrl.value;
     if (url.isEmpty) {
-      // CommonSnackBar.warn('warning'.tr, 'no_download_link'.tr);
+      Fluttertoast.showToast(
+        msg: 'no_download_link'.tr,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.orange,
+        textColor: Colors.white,
+      );
       return;
     }
 
@@ -153,10 +189,21 @@ class ConvertCompleteController extends GetxController {
         uri,
         mode: LaunchMode.externalApplication,
       );
-      // CommonSnackBar.info('browser'.tr, 'opening_browser'.tr);
+      Fluttertoast.showToast(
+        msg: 'opening_browser'.tr,
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.blue,
+        textColor: Colors.white,
+      );
     } catch (e) {
-      // CommonSnackBar.error(
-      //     'error'.tr, '${'browser_open_error'.tr}${e.toString()}');
+      Fluttertoast.showToast(
+        msg: '${'browser_open_error'.tr}${e.toString()}',
+        toastLength: Toast.LENGTH_SHORT,
+        gravity: ToastGravity.BOTTOM,
+        backgroundColor: Colors.red,
+        textColor: Colors.white,
+      );
     }
   }
 

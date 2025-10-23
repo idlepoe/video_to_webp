@@ -20,8 +20,8 @@ Future<void> main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
 
-    // LoadingController를 앱 시작 시 put
-    Get.put(LoadingController(), permanent: true);
+    // LoadingController를 앱 시작 시 등록 (permanent: false로 설정)
+    Get.lazyPut(() => LoadingController(), fenix: true);
 
     // FCM 서비스 초기화 (안전하게 처리)
     try {
@@ -55,6 +55,14 @@ class MyApp extends StatelessWidget {
       ),
       debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.splash,
+      builder: (context, child) {
+        return Container(
+          color: Colors.white,
+          child: SafeArea(
+            child: child ?? SizedBox.shrink(),
+          ),
+        );
+      },
       getPages: [
         GetPage(name: AppRoutes.splash, page: () => SplashScreen()),
         GetPage(name: AppRoutes.privacy, page: () => PrivacyConsentScreen()),
