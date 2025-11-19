@@ -55,6 +55,8 @@ const Map<String, String> koTranslations = {
   'privacy_file_limits': '개인정보 보호 및 파일 제한',
   'file_limit_info':
       '• 최대 파일 크기: 20MB (처리 비용으로 인한 제한)\n• 선택하신 비디오는 안전하게 처리되며 변환 후 자동으로 삭제됩니다\n• 개인정보는 수집하지 않습니다',
+  'file_limit_info_premium':
+      '• 최대 파일 크기: 50MB (프리미엄 회원)\n• 선택하신 비디오는 안전하게 처리되며 변환 후 자동으로 삭제됩니다\n• 개인정보는 수집하지 않습니다',
   'file_size_error':
       '처리 비용으로 인해 20MB보다 큰 비디오는 처리할 수 없습니다. 더 작은 비디오를 선택해주세요.',
   'secure_processing_info': '선택하신 비디오는 안전하게 처리되며 변환 후 자동으로 삭제됩니다.',

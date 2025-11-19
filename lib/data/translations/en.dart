@@ -55,6 +55,8 @@ const Map<String, String> enTranslations = {
   'privacy_file_limits': 'Privacy & File Limits',
   'file_limit_info':
       '• Maximum file size: 20MB (due to processing costs)\n• Your video will be securely processed and automatically deleted after conversion\n• No personal information is collected',
+  'file_limit_info_premium':
+      '• Maximum file size: 50MB (Premium Member)\n• Your video will be securely processed and automatically deleted after conversion\n• No personal information is collected',
   'file_size_error':
       'Videos larger than 20MB cannot be processed due to processing costs. Please select a smaller video.',
   'secure_processing_info':

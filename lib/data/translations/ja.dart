@@ -55,6 +55,8 @@ const Map<String, String> jaTranslations = {
   'privacy_file_limits': 'プライバシーとファイル制限',
   'file_limit_info':
       '• 最大ファイルサイズ: 20MB（処理コストによる制限）\n• 選択された動画は安全に処理され、変換後に自動削除されます\n• 個人情報は収集しません',
+  'file_limit_info_premium':
+      '• 最大ファイルサイズ: 50MB（プレミアム会員）\n• 選択された動画は安全に処理され、変換後に自動削除されます\n• 個人情報は収集しません',
   'file_size_error':
       '処理コストにより、20MBより大きい動画は処理できません。より小さな動画を選択してください。',
   'secure_processing_info':

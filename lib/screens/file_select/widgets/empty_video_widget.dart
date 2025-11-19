@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import '../file_select_controller.dart';
+import '../../../services/in_app_purchase_service.dart';
 
 class EmptyVideoWidget extends StatelessWidget {
   final VoidCallback onPickVideo;
@@ -215,7 +216,8 @@ class EmptyVideoWidget extends StatelessWidget {
                         child: Obx(() => OutlinedButton.icon(
                               onPressed: controller.isMediaScanning.value
                                   ? null
-                                  : () => controller.executeSelectedScanOption(),
+                                  : () =>
+                                      controller.executeSelectedScanOption(),
                               style: OutlinedButton.styleFrom(
                                 shape: RoundedRectangleBorder(
                                   borderRadius: BorderRadius.circular(12),
@@ -260,41 +262,90 @@ class EmptyVideoWidget extends StatelessWidget {
                 SizedBox(height: 16),
               ],
               // 개인정보 보호 안내
-              Container(
-                padding: EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.blue.withOpacity(0.05),
-                  borderRadius: BorderRadius.circular(8),
-                  border: Border.all(color: Colors.blue.withOpacity(0.2)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
+              FutureBuilder<bool>(
+                future: InAppPurchaseService().isPremiumUser(),
+                builder: (context, snapshot) {
+                  final isPremium = snapshot.data ?? false;
+
+                  // 프리미엄 색상 (골드/앰버)
+                  final premiumColor = Colors.amber;
+                  final normalColor = Colors.blue;
+
+                  return Container(
+                    padding: EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: isPremium
+                          ? premiumColor.withOpacity(0.1)
+                          : normalColor.withOpacity(0.05),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(
+                        color: isPremium
+                            ? premiumColor.withOpacity(0.3)
+                            : normalColor.withOpacity(0.2),
+                        width: isPremium ? 1.5 : 1,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Icon(Icons.security, color: Colors.blue, size: 16),
-                        SizedBox(width: 8),
+                        Row(
+                          children: [
+                            Icon(
+                              isPremium ? Icons.star : Icons.security,
+                              color: isPremium ? premiumColor : normalColor,
+                              size: 16,
+                            ),
+                            SizedBox(width: 8),
+                            Expanded(
+                              child: Text(
+                                'privacy_file_limits'.tr,
+                                style: TextStyle(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: isPremium
+                                      ? premiumColor[700]
+                                      : normalColor[700],
+                                ),
+                              ),
+                            ),
+                            if (isPremium)
+                              Container(
+                                padding: EdgeInsets.symmetric(
+                                  horizontal: 6,
+                                  vertical: 2,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: premiumColor,
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: Text(
+                                  'PREMIUM',
+                                  style: TextStyle(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        SizedBox(height: 8),
                         Text(
-                          'privacy_file_limits'.tr,
+                          isPremium
+                              ? 'file_limit_info_premium'.tr
+                              : 'file_limit_info'.tr,
                           style: TextStyle(
-                            fontSize: 14,
-                            fontWeight: FontWeight.bold,
-                            color: Colors.blue[700],
+                            fontSize: 12,
+                            color: isPremium
+                                ? premiumColor[700]
+                                : normalColor[700],
+                            height: 1.3,
                           ),
                         ),
                       ],
                     ),
-                    SizedBox(height: 8),
-                    Text(
-                      'file_limit_info'.tr,
-                      style: TextStyle(
-                        fontSize: 12,
-                        color: Colors.blue[700],
-                        height: 1.3,
-                      ),
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
               SizedBox(height: 16),
               SizedBox(

@@ -55,6 +55,8 @@ const Map<String, String> idTranslations = {
   'privacy_file_limits': 'Privasi & Batas File',
   'file_limit_info':
       '• Ukuran file maksimal: 20MB (karena batasan biaya pemrosesan)\n• Video Anda akan diproses dengan aman dan dihapus otomatis setelah konversi\n• Tidak ada informasi pribadi yang dikumpulkan',
+  'file_limit_info_premium':
+      '• Ukuran file maksimal: 50MB (Anggota Premium)\n• Video Anda akan diproses dengan aman dan dihapus otomatis setelah konversi\n• Tidak ada informasi pribadi yang dikumpulkan',
   'file_size_error':
       'Video yang lebih besar dari 20MB tidak dapat diproses karena biaya pemrosesan. Silakan pilih video yang lebih kecil.',
   'secure_processing_info':

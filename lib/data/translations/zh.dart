@@ -55,6 +55,8 @@ const Map<String, String> zhTranslations = {
   'privacy_file_limits': '隐私和文件限制',
   'file_limit_info':
       '• 最大文件大小: 20MB (由于处理成本限制)\n• 您的视频将安全处理，转换后自动删除\n• 不收集个人信息',
+  'file_limit_info_premium':
+      '• 最大文件大小: 50MB (高级会员)\n• 您的视频将安全处理，转换后自动删除\n• 不收集个人信息',
   'file_size_error':
       '由于处理成本，无法处理超过20MB的视频。请选择较小的视频。',
   'secure_processing_info':

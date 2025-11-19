@@ -56,6 +56,8 @@ const Map<String, String> esTranslations = {
   'privacy_file_limits': 'Privacidad y Límites de Archivos',
   'file_limit_info':
       '• Tamaño máximo de archivo: 20MB (debido a costos de procesamiento)\n• Tu video será procesado de forma segura y eliminado automáticamente después de la conversión\n• No se recopila información personal',
+  'file_limit_info_premium':
+      '• Tamaño máximo de archivo: 50MB (Miembro Premium)\n• Tu video será procesado de forma segura y eliminado automáticamente después de la conversión\n• No se recopila información personal',
   'file_size_error':
       'Los videos más grandes que 20MB no pueden ser procesados debido a los costos de procesamiento. Por favor selecciona un video más pequeño.',
   'secure_processing_info':

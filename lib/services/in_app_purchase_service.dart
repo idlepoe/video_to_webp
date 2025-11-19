@@ -4,7 +4,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class InAppPurchaseService {
-  static const String premiumProductId = 'premium-monthly';
+  static const String premiumProductId = 'premium_remove_ads';
   static const String _isPremiumUserKey = 'is_premium_user';
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
@@ -118,10 +118,14 @@ class InAppPurchaseService {
   /// 상품 정보 가져오기
   ProductDetails? getProductDetails() {
     if (_products.isEmpty) return null;
-    return _products.firstWhere(
-      (product) => product.id == premiumProductId,
-      orElse: () => _products.first,
-    );
+    try {
+      return _products.firstWhere(
+        (product) => product.id == premiumProductId,
+      );
+    } catch (e) {
+      // 상품을 찾을 수 없는 경우 첫 번째 상품 반환
+      return _products.isNotEmpty ? _products.first : null;
+    }
   }
 
   /// 구매 처리 (구독 상품)
