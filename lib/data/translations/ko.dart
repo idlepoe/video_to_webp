@@ -222,6 +222,34 @@ const Map<String, String> koTranslations = {
 
   // Convert Complete
   'image_load_failed': 'Image load failed',
+
+  // Premium Subscription
+  'premium_upgrade_title': '프리미엄으로 업그레이드',
+  'premium_benefit_remove_ads_title': '모든 광고 제거',
+  'premium_benefit_remove_ads_desc': '전면 광고와 배너 광고가 모두 제거됩니다',
+  'premium_benefit_upload_capacity_title': '업로드 용량 확대',
+  'premium_benefit_upload_capacity_desc': '20MB에서 50MB로 업로드 용량이 증가합니다',
+  'premium_benefit_server_title': '고성능 서버 사용',
+  'premium_benefit_server_desc': '512MiB 서버에서 4096MiB 고성능 서버로 업그레이드',
+  'premium_benefit_priority_title': '빠른 변환 처리',
+  'premium_benefit_priority_desc': '변환 요청이 우선적으로 처리됩니다',
+  'premium_subscribe_button': '구독하기',
+  'premium_subscribe_button_with_price': '@price에 구독하기',
+  'premium_product_loading': '상품 정보 로딩 중...',
+  'premium_subscribe_success': '구독 완료',
+  'premium_subscribe_success_message': '프리미엄 기능이 활성화되었습니다.',
+  'premium_subscribe_failed': '구독 실패',
+  'premium_subscribe_failed_message': '구독을 완료할 수 없습니다. 다시 시도해주세요.',
+  'premium_subscribe_error': '오류',
+  'premium_subscribe_error_message': '구독 처리 중 오류가 발생했습니다.',
+  'premium_restore_button': '구독 복원',
+  'premium_restore_success': '복원 완료',
+  'premium_restore_success_message': '프리미엄 기능이 복원되었습니다.',
+  'premium_restore_failed': '복원 실패',
+  'premium_restore_failed_message': '복원할 구독 내역이 없습니다.',
+  'premium_restore_error_message': '구독 복원 중 오류가 발생했습니다.',
+  'premium_user_tooltip': '프리미엄 사용자',
+  'premium_subscribe_tooltip': '프리미엄 구독',
 };
 
 

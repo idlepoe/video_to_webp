@@ -245,6 +245,34 @@ const Map<String, String> esTranslations = {
 
   // Convert Complete
   'image_load_failed': 'Error al cargar imagen',
+
+  // Premium Subscription
+  'premium_upgrade_title': 'Actualizar a Premium',
+  'premium_benefit_remove_ads_title': 'Eliminar Todos los Anuncios',
+  'premium_benefit_remove_ads_desc': 'Se eliminarán todos los anuncios intersticiales y de banner',
+  'premium_benefit_upload_capacity_title': 'Capacidad de Carga Aumentada',
+  'premium_benefit_upload_capacity_desc': 'La capacidad de carga aumenta de 20MB a 50MB',
+  'premium_benefit_server_title': 'Servidor de Alto Rendimiento',
+  'premium_benefit_server_desc': 'Actualización de servidor de 512MiB a 4096MiB de alto rendimiento',
+  'premium_benefit_priority_title': 'Procesamiento Prioritario',
+  'premium_benefit_priority_desc': 'Las solicitudes de conversión se procesan con prioridad',
+  'premium_subscribe_button': 'Suscribirse',
+  'premium_subscribe_button_with_price': 'Suscribirse por @price',
+  'premium_product_loading': 'Cargando información del producto...',
+  'premium_subscribe_success': 'Suscripción Completada',
+  'premium_subscribe_success_message': 'Las funciones premium han sido activadas.',
+  'premium_subscribe_failed': 'Suscripción Fallida',
+  'premium_subscribe_failed_message': 'No se pudo completar la suscripción. Por favor, inténtelo de nuevo.',
+  'premium_subscribe_error': 'Error',
+  'premium_subscribe_error_message': 'Ocurrió un error al procesar la suscripción.',
+  'premium_restore_button': 'Restaurar Suscripción',
+  'premium_restore_success': 'Restauración Completada',
+  'premium_restore_success_message': 'Las funciones premium han sido restauradas.',
+  'premium_restore_failed': 'Restauración Fallida',
+  'premium_restore_failed_message': 'No hay historial de suscripción para restaurar.',
+  'premium_restore_error_message': 'Ocurrió un error al restaurar la suscripción.',
+  'premium_user_tooltip': 'Usuario Premium',
+  'premium_subscribe_tooltip': 'Suscripción Premium',
 };
 
 

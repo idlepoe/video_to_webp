@@ -222,4 +222,32 @@ const Map<String, String> jaTranslations = {
 
   // Convert Complete
   'image_load_failed': '画像読み込み失敗',
+
+  // Premium Subscription
+  'premium_upgrade_title': 'プレミアムにアップグレード',
+  'premium_benefit_remove_ads_title': 'すべての広告を削除',
+  'premium_benefit_remove_ads_desc': 'インタースティシャル広告とバナー広告がすべて削除されます',
+  'premium_benefit_upload_capacity_title': 'アップロード容量の増加',
+  'premium_benefit_upload_capacity_desc': 'アップロード容量が20MBから50MBに増加します',
+  'premium_benefit_server_title': '高性能サーバー',
+  'premium_benefit_server_desc': '512MiBから4096MiBの高性能サーバーにアップグレード',
+  'premium_benefit_priority_title': '優先処理',
+  'premium_benefit_priority_desc': '変換リクエストが優先的に処理されます',
+  'premium_subscribe_button': '購読',
+  'premium_subscribe_button_with_price': '@priceで購読',
+  'premium_product_loading': '商品情報を読み込み中...',
+  'premium_subscribe_success': '購読完了',
+  'premium_subscribe_success_message': 'プレミアム機能が有効になりました。',
+  'premium_subscribe_failed': '購読失敗',
+  'premium_subscribe_failed_message': '購読を完了できませんでした。もう一度お試しください。',
+  'premium_subscribe_error': 'エラー',
+  'premium_subscribe_error_message': '購読処理中にエラーが発生しました。',
+  'premium_restore_button': '購読を復元',
+  'premium_restore_success': '復元完了',
+  'premium_restore_success_message': 'プレミアム機能が復元されました。',
+  'premium_restore_failed': '復元失敗',
+  'premium_restore_failed_message': '復元する購読履歴がありません。',
+  'premium_restore_error_message': '購読の復元中にエラーが発生しました。',
+  'premium_user_tooltip': 'プレミアムユーザー',
+  'premium_subscribe_tooltip': 'プレミアム購読',
 };

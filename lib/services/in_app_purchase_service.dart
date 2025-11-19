@@ -4,7 +4,7 @@ import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class InAppPurchaseService {
-  static const String premiumProductId = 'premium_remove_ads';
+  static const String premiumProductId = 'premium-monthly';
   static const String _isPremiumUserKey = 'is_premium_user';
 
   final InAppPurchase _inAppPurchase = InAppPurchase.instance;
@@ -20,19 +20,29 @@ class InAppPurchaseService {
   InAppPurchaseService._internal();
 
   /// 초기화 및 구매 업데이트 리스너 설정
+  /// 공식 문서: https://pub.dev/packages/in_app_purchase
+  /// 구매 업데이트는 가능한 한 빨리 리스닝을 시작해야 합니다.
   Future<void> initialize() async {
     _isAvailable = await _inAppPurchase.isAvailable();
 
     if (!_isAvailable) {
-      debugPrint('In-App Purchase is not available');
+      debugPrint('⚠️ In-App Purchase is not available');
+      debugPrint('Google Play Services가 설치되어 있는지 확인하세요.');
       return;
     }
 
-    // 구매 업데이트 리스너
+    debugPrint('✅ In-App Purchase is available');
+
+    // 구매 업데이트 리스너 (공식 문서 권장: 가능한 한 빨리 리스닝 시작)
     _subscription = _inAppPurchase.purchaseStream.listen(
       _onPurchaseUpdate,
-      onDone: () => _subscription.cancel(),
-      onError: (error) => debugPrint('Purchase stream error: $error'),
+      onDone: () {
+        debugPrint('Purchase stream done');
+        _subscription.cancel();
+      },
+      onError: (error) {
+        debugPrint('⚠️ Purchase stream error: $error');
+      },
     );
 
     // 기존 구매 복원 확인
@@ -48,23 +58,59 @@ class InAppPurchaseService {
 
     try {
       final Set<String> productIds = {premiumProductId};
+
+      // 타임아웃 추가 (10초)
       final ProductDetailsResponse response =
-          await _inAppPurchase.queryProductDetails(productIds);
+          await _inAppPurchase.queryProductDetails(productIds).timeout(
+        const Duration(seconds: 10),
+        onTimeout: () {
+          debugPrint('Product query timeout');
+          return ProductDetailsResponse(
+            productDetails: [],
+            error: null,
+            notFoundIDs: productIds.toList(),
+          );
+        },
+      );
 
       if (response.error != null) {
-        debugPrint('Error loading products: ${response.error}');
+        debugPrint('❌ Error loading products: ${response.error}');
+        debugPrint('Error code: ${response.error?.code}');
+        debugPrint('Error message: ${response.error?.message}');
+        debugPrint('Error details: ${response.error?.details}');
         return false;
       }
 
+      // 공식 문서: response.notFoundIDs를 확인하여 찾지 못한 상품 확인
+      if (response.notFoundIDs.isNotEmpty) {
+        debugPrint('⚠️ 상품을 찾을 수 없습니다.');
+        debugPrint('Not found IDs: ${response.notFoundIDs}');
+        debugPrint('Requested IDs: $productIds');
+        debugPrint('');
+        debugPrint('다음을 확인하세요:');
+        debugPrint('1. Google Play Console → 수익 창출 → 구독에서 상품이 생성되었는지 확인');
+        debugPrint('2. 상품 ID가 정확한지 확인: $premiumProductId');
+        debugPrint('3. 상품이 "활성" 상태인지 확인 (초안 상태가 아님)');
+        debugPrint('4. 앱의 패키지명이 올바른지 확인: com.jylee.video_to_webp');
+        debugPrint('5. Google Play Console → 설정 → 라이선스 테스트에서 테스트 계정 추가');
+        debugPrint('6. 테스트 기기에서 테스트 계정으로 로그인했는지 확인');
+        debugPrint('7. 앱이 올바른 서명 키로 서명되었는지 확인');
+        debugPrint('');
+      }
+
       if (response.productDetails.isEmpty) {
-        debugPrint('No products found');
         return false;
       }
 
       _products = response.productDetails;
+      debugPrint('Products loaded successfully: ${_products.length}');
+      for (var product in _products) {
+        debugPrint('Product ID: ${product.id}, Price: ${product.price}');
+      }
       return true;
-    } catch (e) {
+    } catch (e, stackTrace) {
       debugPrint('Error loading products: $e');
+      debugPrint('Stack trace: $stackTrace');
       return false;
     }
   }
@@ -85,10 +131,26 @@ class InAppPurchaseService {
       return false;
     }
 
-    final productDetails = getProductDetails();
+    // 상품 정보가 없으면 다시 로드 시도
+    ProductDetails? productDetails = getProductDetails();
     if (productDetails == null) {
-      debugPrint('Product not found');
-      return false;
+      debugPrint('Product details not found, attempting to reload...');
+      final loadSuccess = await loadProducts();
+      if (loadSuccess) {
+        productDetails = getProductDetails();
+      }
+
+      if (productDetails == null) {
+        debugPrint(
+            'Product not found after reload. Product ID: $premiumProductId');
+        debugPrint('Please check:');
+        debugPrint(
+            '1. Google Play Console / App Store Connect에서 상품이 활성화되어 있는지 확인');
+        debugPrint('2. 상품 ID가 정확한지 확인: $premiumProductId');
+        debugPrint('3. 앱의 패키지명/번들 ID가 올바른지 확인');
+        debugPrint('4. 테스트 계정이 올바르게 설정되었는지 확인');
+        return false;
+      }
     }
 
     try {
@@ -99,7 +161,8 @@ class InAppPurchaseService {
       // 새로운 Completer 생성
       _purchaseUpdateCompleter = Completer<bool>();
 
-      // 구독 상품은 buyNonConsumable로 처리 (Android에서는 구독도 이 메서드 사용)
+      // 구독 상품은 buyNonConsumable 사용 (Android에서는 구독도 이 메서드 사용)
+      // iOS에서는 자동으로 구독으로 인식됨
       final bool success = await _inAppPurchase.buyNonConsumable(
         purchaseParam: purchaseParam,
       );
@@ -126,6 +189,8 @@ class InAppPurchaseService {
   }
 
   /// 구매 업데이트 처리
+  /// 공식 문서 권장: 구매 검증 후 completePurchase 호출
+  /// Warning: 3일 이내에 completePurchase를 호출하지 않으면 환불됩니다.
   void _onPurchaseUpdate(List<PurchaseDetails> purchaseDetailsList) async {
     for (final purchaseDetails in purchaseDetailsList) {
       if (purchaseDetails.productID != premiumProductId) {
@@ -133,16 +198,15 @@ class InAppPurchaseService {
       }
 
       if (purchaseDetails.status == PurchaseStatus.pending) {
-        debugPrint('Purchase pending: ${purchaseDetails.productID}');
+        debugPrint('⏳ Purchase pending: ${purchaseDetails.productID}');
         continue;
       }
 
       if (purchaseDetails.status == PurchaseStatus.error) {
-        debugPrint('Purchase error: ${purchaseDetails.error}');
+        debugPrint('❌ Purchase error: ${purchaseDetails.productID}');
+        debugPrint('Error: ${purchaseDetails.error}');
 
         // 구독 취소나 만료의 경우 프리미엄 상태를 false로 설정
-        // (실제로는 구독 취소 시에도 purchased 상태가 올 수 있으므로
-        //  구독 만료는 별도로 확인해야 하지만, 여기서는 에러 시 비활성화)
         await _savePremiumStatus(false);
 
         if (_purchaseUpdateCompleter != null &&
@@ -156,7 +220,11 @@ class InAppPurchaseService {
       if (purchaseDetails.status == PurchaseStatus.purchased ||
           purchaseDetails.status == PurchaseStatus.restored) {
         // 구매 완료 또는 복원
-        // 정기 결제의 경우, 구독이 활성화되어 있으면 purchased 상태가 됩니다
+        // 공식 문서: 구매를 검증한 후 completePurchase 호출
+        debugPrint('✅ Purchase successful: ${purchaseDetails.productID}');
+        debugPrint('Status: ${purchaseDetails.status}');
+
+        // 구독이 활성화되어 있으면 purchased 상태가 됩니다
         await _savePremiumStatus(true);
         debugPrint('Premium subscription active: ${purchaseDetails.productID}');
 
@@ -167,9 +235,11 @@ class InAppPurchaseService {
           _purchaseUpdateCompleter = null;
         }
 
-        // 구매 완료 확인
+        // 공식 문서: 구매 검증 후 completePurchase 호출 (3일 이내 필수)
         if (purchaseDetails.pendingCompletePurchase) {
+          debugPrint('Completing purchase...');
           await _inAppPurchase.completePurchase(purchaseDetails);
+          debugPrint('Purchase completed');
         }
       }
     }

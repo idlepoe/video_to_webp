@@ -222,4 +222,32 @@ const Map<String, String> idTranslations = {
 
   // Convert Complete
   'image_load_failed': 'Gagal memuat gambar',
+
+  // Premium Subscription
+  'premium_upgrade_title': 'Tingkatkan ke Premium',
+  'premium_benefit_remove_ads_title': 'Hapus Semua Iklan',
+  'premium_benefit_remove_ads_desc': 'Semua iklan interstisial dan banner akan dihapus',
+  'premium_benefit_upload_capacity_title': 'Kapasitas Upload Meningkat',
+  'premium_benefit_upload_capacity_desc': 'Kapasitas upload meningkat dari 20MB menjadi 50MB',
+  'premium_benefit_server_title': 'Server Berkinerja Tinggi',
+  'premium_benefit_server_desc': 'Upgrade dari server 512MiB ke 4096MiB berkinerja tinggi',
+  'premium_benefit_priority_title': 'Pemrosesan Prioritas',
+  'premium_benefit_priority_desc': 'Permintaan konversi diproses dengan prioritas',
+  'premium_subscribe_button': 'Berlangganan',
+  'premium_subscribe_button_with_price': 'Berlangganan seharga @price',
+  'premium_product_loading': 'Memuat informasi produk...',
+  'premium_subscribe_success': 'Langganan Selesai',
+  'premium_subscribe_success_message': 'Fitur premium telah diaktifkan.',
+  'premium_subscribe_failed': 'Langganan Gagal',
+  'premium_subscribe_failed_message': 'Tidak dapat menyelesaikan langganan. Silakan coba lagi.',
+  'premium_subscribe_error': 'Error',
+  'premium_subscribe_error_message': 'Terjadi kesalahan saat memproses langganan.',
+  'premium_restore_button': 'Pulihkan Langganan',
+  'premium_restore_success': 'Pemulihan Selesai',
+  'premium_restore_success_message': 'Fitur premium telah dipulihkan.',
+  'premium_restore_failed': 'Pemulihan Gagal',
+  'premium_restore_failed_message': 'Tidak ada riwayat langganan untuk dipulihkan.',
+  'premium_restore_error_message': 'Terjadi kesalahan saat memulihkan langganan.',
+  'premium_user_tooltip': 'Pengguna Premium',
+  'premium_subscribe_tooltip': 'Langganan Premium',
 };

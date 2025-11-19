@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import '../../../services/in_app_purchase_service.dart';
 
@@ -22,11 +23,70 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
   }
 
   Future<void> _loadProductInfo() async {
+    if (!mounted) return;
+
     setState(() {
       _isProductLoading = true;
     });
 
+    try {
+      final success = await _purchaseService.loadProducts();
+
+      if (!mounted) return;
+
+      if (success) {
+        final product = _purchaseService.getProductDetails();
+        if (product != null) {
+          setState(() {
+            _productPrice = product.price;
+            _isProductLoading = false;
+          });
+        } else {
+          // 상품 정보를 찾을 수 없는 경우
+          if (mounted) {
+            setState(() {
+              _isProductLoading = false;
+            });
+            debugPrint('Product details not found after successful load');
+          }
+        }
+      } else {
+        // 로드 실패 시 재시도 (최대 2번)
+        await _retryLoadProductInfo();
+      }
+    } catch (e) {
+      debugPrint('Error in _loadProductInfo: $e');
+      if (mounted) {
+        setState(() {
+          _isProductLoading = false;
+        });
+      }
+    }
+  }
+
+  Future<void> _retryLoadProductInfo({int retryCount = 0}) async {
+    if (retryCount >= 2) {
+      // 재시도 실패 시 로딩 상태 해제하고 사용자에게 알림
+      if (mounted) {
+        setState(() {
+          _isProductLoading = false;
+        });
+        // 상품 정보를 찾을 수 없는 경우에도 구독 시도 가능하도록 함
+        debugPrint(
+            'Failed to load product info after retries. User can still try to subscribe.');
+      }
+      return;
+    }
+
+    // 2초 대기 후 재시도
+    await Future.delayed(const Duration(seconds: 2));
+
+    if (!mounted) return;
+
     final success = await _purchaseService.loadProducts();
+
+    if (!mounted) return;
+
     if (success) {
       final product = _purchaseService.getProductDetails();
       if (product != null) {
@@ -35,14 +95,12 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
           _isProductLoading = false;
         });
       } else {
-        setState(() {
-          _isProductLoading = false;
-        });
+        // 재시도
+        await _retryLoadProductInfo(retryCount: retryCount + 1);
       }
     } else {
-      setState(() {
-        _isProductLoading = false;
-      });
+      // 재시도
+      await _retryLoadProductInfo(retryCount: retryCount + 1);
     }
   }
 
@@ -55,12 +113,12 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
       final success = await _purchaseService.buyProduct();
 
       if (success) {
-        // 구매 성공
+        // 구독 성공
         if (mounted) {
           Navigator.of(context).pop();
           Get.snackbar(
-            '구매 완료',
-            '프리미엄 기능이 활성화되었습니다.',
+            'premium_subscribe_success'.tr,
+            'premium_subscribe_success_message'.tr,
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.green,
             colorText: Colors.white,
@@ -68,11 +126,11 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
           );
         }
       } else {
-        // 구매 실패
+        // 구독 실패
         if (mounted) {
           Get.snackbar(
-            '구매 실패',
-            '구매를 완료할 수 없습니다. 다시 시도해주세요.',
+            'premium_subscribe_failed'.tr,
+            'premium_subscribe_failed_message'.tr,
             snackPosition: SnackPosition.BOTTOM,
             backgroundColor: Colors.red,
             colorText: Colors.white,
@@ -83,8 +141,8 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
     } catch (e) {
       if (mounted) {
         Get.snackbar(
-          '오류',
-          '구매 처리 중 오류가 발생했습니다.',
+          'premium_subscribe_error'.tr,
+          'premium_subscribe_error_message'.tr,
           snackPosition: SnackPosition.BOTTOM,
           backgroundColor: Colors.red,
           colorText: Colors.white,
@@ -129,10 +187,10 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
                 children: [
                   Icon(Icons.star, color: Colors.amber, size: 28),
                   const SizedBox(width: 12),
-                  const Expanded(
+                  Expanded(
                     child: Text(
-                      '프리미엄으로 업그레이드',
-                      style: TextStyle(
+                      'premium_upgrade_title'.tr,
+                      style: const TextStyle(
                         fontSize: 22,
                         fontWeight: FontWeight.bold,
                         color: Color(0xFF333333),
@@ -155,26 +213,26 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
                 children: [
                   _buildBenefitItem(
                     Icons.block,
-                    '모든 광고 제거',
-                    '전면 광고와 배너 광고가 모두 제거됩니다',
+                    'premium_benefit_remove_ads_title'.tr,
+                    'premium_benefit_remove_ads_desc'.tr,
                   ),
                   const SizedBox(height: 16),
                   _buildBenefitItem(
                     Icons.file_upload,
-                    '업로드 용량 확대',
-                    '20MB에서 50MB로 업로드 용량이 증가합니다',
+                    'premium_benefit_upload_capacity_title'.tr,
+                    'premium_benefit_upload_capacity_desc'.tr,
                   ),
                   const SizedBox(height: 16),
                   _buildBenefitItem(
                     Icons.dns,
-                    '고성능 서버 사용',
-                    '512MiB 서버에서 4096MiB 고성능 서버로 업그레이드',
+                    'premium_benefit_server_title'.tr,
+                    'premium_benefit_server_desc'.tr,
                   ),
                   const SizedBox(height: 16),
                   _buildBenefitItem(
                     Icons.speed,
-                    '빠른 변환 처리',
-                    '변환 요청이 우선적으로 처리됩니다',
+                    'premium_benefit_priority_title'.tr,
+                    'premium_benefit_priority_desc'.tr,
                   ),
                 ],
               ),
@@ -189,9 +247,10 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
                 width: double.infinity,
                 height: 56,
                 child: ElevatedButton(
-                  onPressed: (_isLoading || _isProductLoading)
-                      ? null
-                      : _handlePurchase,
+                  onPressed:
+                      (_isLoading || _isProductLoading || _productPrice == null)
+                          ? null
+                          : _handlePurchase,
                   style: ElevatedButton.styleFrom(
                     backgroundColor: const Color(0xFF4CAF50),
                     shape: RoundedRectangleBorder(
@@ -210,24 +269,33 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
                           ),
                         )
                       : _isProductLoading
-                          ? const Text(
-                              '상품 정보 로딩 중...',
-                              style: TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            )
-                          : Text(
-                              _productPrice != null
-                                  ? '$_productPrice에 구매하기'
-                                  : '구매하기',
+                          ? Text(
+                              'premium_product_loading'.tr,
                               style: const TextStyle(
                                 fontSize: 16,
                                 fontWeight: FontWeight.bold,
                                 color: Colors.white,
                               ),
-                            ),
+                            )
+                          : _productPrice == null
+                              ? Text(
+                                  'premium_subscribe_button'.tr,
+                                  style: TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white.withOpacity(0.6),
+                                  ),
+                                )
+                              : Text(
+                                  'premium_subscribe_button_with_price'
+                                      .tr
+                                      .replaceAll('@price', _productPrice!),
+                                  style: const TextStyle(
+                                    fontSize: 16,
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
                 ),
               ),
             ),
@@ -253,8 +321,8 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
                             if (isPremium) {
                               Navigator.of(context).pop();
                               Get.snackbar(
-                                '복원 완료',
-                                '프리미엄 기능이 복원되었습니다.',
+                                'premium_restore_success'.tr,
+                                'premium_restore_success_message'.tr,
                                 snackPosition: SnackPosition.BOTTOM,
                                 backgroundColor: Colors.green,
                                 colorText: Colors.white,
@@ -262,8 +330,8 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
                               );
                             } else {
                               Get.snackbar(
-                                '복원 실패',
-                                '복원할 구매 내역이 없습니다.',
+                                'premium_restore_failed'.tr,
+                                'premium_restore_failed_message'.tr,
                                 snackPosition: SnackPosition.BOTTOM,
                                 backgroundColor: Colors.orange,
                                 colorText: Colors.white,
@@ -272,8 +340,8 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
                             }
                           } else {
                             Get.snackbar(
-                              '오류',
-                              '구매 복원 중 오류가 발생했습니다.',
+                              'premium_subscribe_error'.tr,
+                              'premium_restore_error_message'.tr,
                               snackPosition: SnackPosition.BOTTOM,
                               backgroundColor: Colors.red,
                               colorText: Colors.white,
@@ -286,9 +354,9 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
                           });
                         }
                       },
-                child: const Text(
-                  '구매 복원',
-                  style: TextStyle(
+                child: Text(
+                  'premium_restore_button'.tr,
+                  style: const TextStyle(
                     fontSize: 14,
                     color: Colors.grey,
                   ),

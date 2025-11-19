@@ -222,4 +222,32 @@ const Map<String, String> ruTranslations = {
 
   // Convert Complete
   'image_load_failed': 'Не удалось загрузить изображение',
+
+  // Premium Subscription
+  'premium_upgrade_title': 'Обновить до Premium',
+  'premium_benefit_remove_ads_title': 'Удалить все рекламы',
+  'premium_benefit_remove_ads_desc': 'Все межстраничные и баннерные рекламы будут удалены',
+  'premium_benefit_upload_capacity_title': 'Увеличенная емкость загрузки',
+  'premium_benefit_upload_capacity_desc': 'Емкость загрузки увеличивается с 20MB до 50MB',
+  'premium_benefit_server_title': 'Высокопроизводительный сервер',
+  'premium_benefit_server_desc': 'Обновление с сервера 512MiB до высокопроизводительного сервера 4096MiB',
+  'premium_benefit_priority_title': 'Приоритетная обработка',
+  'premium_benefit_priority_desc': 'Запросы на конвертацию обрабатываются с приоритетом',
+  'premium_subscribe_button': 'Подписаться',
+  'premium_subscribe_button_with_price': 'Подписаться за @price',
+  'premium_product_loading': 'Загрузка информации о продукте...',
+  'premium_subscribe_success': 'Подписка завершена',
+  'premium_subscribe_success_message': 'Премиум функции были активированы.',
+  'premium_subscribe_failed': 'Подписка не удалась',
+  'premium_subscribe_failed_message': 'Не удалось завершить подписку. Пожалуйста, попробуйте снова.',
+  'premium_subscribe_error': 'Ошибка',
+  'premium_subscribe_error_message': 'Произошла ошибка при обработке подписки.',
+  'premium_restore_button': 'Восстановить подписку',
+  'premium_restore_success': 'Восстановление завершено',
+  'premium_restore_success_message': 'Премиум функции были восстановлены.',
+  'premium_restore_failed': 'Восстановление не удалось',
+  'premium_restore_failed_message': 'Нет истории подписки для восстановления.',
+  'premium_restore_error_message': 'Произошла ошибка при восстановлении подписки.',
+  'premium_user_tooltip': 'Премиум пользователь',
+  'premium_subscribe_tooltip': 'Премиум подписка',
 };

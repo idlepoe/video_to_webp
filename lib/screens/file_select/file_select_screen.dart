@@ -63,13 +63,13 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
               if (isPremium) {
                 return IconButton(
                   icon: Icon(Icons.star, color: Colors.amber),
-                  tooltip: '프리미엄 사용자',
+                  tooltip: 'premium_user_tooltip'.tr,
                   onPressed: null,
                 );
               }
               return IconButton(
                 icon: Icon(Icons.star_border, color: Colors.grey[700]),
-                tooltip: '프리미엄 구매',
+                tooltip: 'premium_subscribe_tooltip'.tr,
                 onPressed: () {
                   showModalBottomSheet(
                     context: context,

@@ -240,6 +240,34 @@ const Map<String, String> enTranslations = {
 
   // Convert Complete
   'image_load_failed': 'Image load failed',
+
+  // Premium Subscription
+  'premium_upgrade_title': 'Upgrade to Premium',
+  'premium_benefit_remove_ads_title': 'Remove All Ads',
+  'premium_benefit_remove_ads_desc': 'All interstitial and banner ads will be removed',
+  'premium_benefit_upload_capacity_title': 'Increased Upload Capacity',
+  'premium_benefit_upload_capacity_desc': 'Upload capacity increases from 20MB to 50MB',
+  'premium_benefit_server_title': 'High-Performance Server',
+  'premium_benefit_server_desc': 'Upgrade from 512MiB to 4096MiB high-performance server',
+  'premium_benefit_priority_title': 'Priority Processing',
+  'premium_benefit_priority_desc': 'Conversion requests are processed with priority',
+  'premium_subscribe_button': 'Subscribe',
+  'premium_subscribe_button_with_price': 'Subscribe for @price',
+  'premium_product_loading': 'Loading product information...',
+  'premium_subscribe_success': 'Subscription Complete',
+  'premium_subscribe_success_message': 'Premium features have been activated.',
+  'premium_subscribe_failed': 'Subscription Failed',
+  'premium_subscribe_failed_message': 'Unable to complete subscription. Please try again.',
+  'premium_subscribe_error': 'Error',
+  'premium_subscribe_error_message': 'An error occurred while processing subscription.',
+  'premium_restore_button': 'Restore Subscription',
+  'premium_restore_success': 'Restore Complete',
+  'premium_restore_success_message': 'Premium features have been restored.',
+  'premium_restore_failed': 'Restore Failed',
+  'premium_restore_failed_message': 'No subscription history to restore.',
+  'premium_restore_error_message': 'An error occurred while restoring subscription.',
+  'premium_user_tooltip': 'Premium User',
+  'premium_subscribe_tooltip': 'Premium Subscription',
 };
 
 

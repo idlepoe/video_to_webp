@@ -222,4 +222,32 @@ const Map<String, String> zhTranslations = {
 
   // Convert Complete
   'image_load_failed': '图片加载失败',
+
+  // Premium Subscription
+  'premium_upgrade_title': '升级到高级版',
+  'premium_benefit_remove_ads_title': '移除所有广告',
+  'premium_benefit_remove_ads_desc': '所有插屏广告和横幅广告将被移除',
+  'premium_benefit_upload_capacity_title': '增加上传容量',
+  'premium_benefit_upload_capacity_desc': '上传容量从20MB增加到50MB',
+  'premium_benefit_server_title': '高性能服务器',
+  'premium_benefit_server_desc': '从512MiB升级到4096MiB高性能服务器',
+  'premium_benefit_priority_title': '优先处理',
+  'premium_benefit_priority_desc': '转换请求将优先处理',
+  'premium_subscribe_button': '订阅',
+  'premium_subscribe_button_with_price': '以@price订阅',
+  'premium_product_loading': '正在加载产品信息...',
+  'premium_subscribe_success': '订阅完成',
+  'premium_subscribe_success_message': '高级功能已激活。',
+  'premium_subscribe_failed': '订阅失败',
+  'premium_subscribe_failed_message': '无法完成订阅。请重试。',
+  'premium_subscribe_error': '错误',
+  'premium_subscribe_error_message': '处理订阅时发生错误。',
+  'premium_restore_button': '恢复订阅',
+  'premium_restore_success': '恢复完成',
+  'premium_restore_success_message': '高级功能已恢复。',
+  'premium_restore_failed': '恢复失败',
+  'premium_restore_failed_message': '没有可恢复的订阅历史记录。',
+  'premium_restore_error_message': '恢复订阅时发生错误。',
+  'premium_user_tooltip': '高级用户',
+  'premium_subscribe_tooltip': '高级订阅',
 };

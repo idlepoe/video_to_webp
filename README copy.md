@@ -1,303 +1,336 @@
-import 'dart:io';
-import 'package:flutter/material.dart';
-import 'package:get/get.dart';
-import 'package:video_converter/app/routes/app_pages.dart';
-import 'package:video_player/video_player.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:shared_preferences/shared_preferences.dart';
-import 'package:in_app_update/in_app_update.dart';
-import '../widgets/video_rotate_screen.dart';
-import '../widgets/video_trim_screen.dart';
-import '../dialogs/convert_options_dialog.dart';
+This site uses cookies from Google to deliver and enhance the quality of its services and to analyze traffic.
+Learn more
+OK, got it
 
-class SelectVideoController extends GetxController {
-  final _picker = ImagePicker();
-  final videoFile = Rxn<XFile>();
-  final originalVideoFile = Rxn<XFile>();
-  final videoPlayerController = Rxn<VideoPlayerController>();
-  final isVideoSelected = false.obs;
-  final videoInfo = Rxn<Map<String, dynamic>>();
-  final isTrimmed = false.obs;
-  final videoWidth = Rxn<int>();
-  final videoHeight = Rxn<int>();
-  final videoDuration = Rxn<Duration>();
+Sign in
+Help
+
+in_app_purchase 3.2.3 copy "in_app_purchase: ^3.2.3" to clipboard
+Published 6 months ago • verified publisherflutter.dev
+SDKFlutterPlatformAndroidiOSmacOS
+2.4k
+Readme
+Changelog
+Example
+Installing
+Versions
+Scores
+A storefront-independent API for purchases in Flutter apps.
+
+This plugin supports in-app purchases (IAP) through an underlying store, which can be the App Store (on iOS and macOS) or Google Play (on Android).
+
+Android	iOS	macOS
+Support	SDK 21+	12.0+	10.15+
+An animated image of the iOS in-app purchase UI      An animated image of the Android in-app purchase UI
+
+Features 
+Use this plugin in your Flutter app to:
+
+Show in-app products that are available for sale from the underlying store. Products can include consumables, permanent upgrades, and subscriptions.
+Load in-app products that the user owns.
+Send the user to the underlying store to purchase products.
+Present a UI for redeeming subscription offer codes. (iOS 14 only)
+Getting started 
+This plugin relies on the App Store and Google Play for making in-app purchases. It exposes a unified surface, but you still need to understand and configure your app with each store. Both stores have extensive guides:
+
+App Store documentation
+Google Play documentation
+NOTE: Further in this document the App Store and Google Play will be referred to as "the store" or "the underlying store", except when a feature is specific to a particular store.
+
+For a list of steps for configuring in-app purchases in both stores, see the example app README.
+
+Once you've configured your in-app purchases in their respective stores, you can start using the plugin. Two basic options are available:
+
+A generic, idiomatic Flutter API: in_app_purchase. This API supports most use cases for loading and making purchases.
+
+Platform-specific Dart APIs: store_kit_wrappers and billing_client_wrappers. These APIs expose platform-specific behavior and allow for more fine-tuned control when needed. However, if you use one of these APIs, your purchase-handling logic is significantly different for the different storefronts.
+
+See also the codelab for in-app purchases in Flutter for a detailed guide on adding in-app purchase support to a Flutter App.
+
+Usage 
+This section has examples of code for the following tasks:
+
+Listening to purchase updates
+Connecting to the underlying store
+Loading products for sale
+Restoring previous purchases
+Making a purchase
+Completing a purchase
+Upgrading or downgrading an existing in-app subscription
+Accessing platform specific product or purchase properties
+Presenting a code redemption sheet (iOS 14)
+Note: It is not necessary to depend on com.android.billingclient:billing in your own app's android/app/build.gradle file. If you choose to do so know that conflicts might occur.
+
+Listening to purchase updates 
+In your app's initState method, subscribe to any incoming purchases. These can propagate from either underlying store. You should always start listening to purchase update as early as possible to be able to catch all purchase updates, including the ones from the previous app session. To listen to the update:
+
+class _MyAppState extends State<MyApp> {
+  StreamSubscription<List<PurchaseDetails>> _subscription;
 
   @override
-  void onInit() {
-    super.onInit();
-    _checkForUpdate();
-  }
-
-  Future<void> _checkForUpdate() async {
-    try {
-      // 업데이트 확인
-      final updateInfo = await InAppUpdate.checkForUpdate();
-
-      if (updateInfo.updateAvailability == UpdateAvailability.updateAvailable) {
-        // 즉시 업데이트 수행
-        await InAppUpdate.performImmediateUpdate();
-      }
-    } catch (e) {
-      // 업데이트 실패 시 로그만 출력 (사용자에게는 알리지 않음)
-      print('In-app update failed: $e');
-    }
+  void initState() {
+    final Stream purchaseUpdated =
+        InAppPurchase.instance.purchaseStream;
+    _subscription = purchaseUpdated.listen((purchaseDetailsList) {
+      _listenToPurchaseUpdated(purchaseDetailsList);
+    }, onDone: () {
+      _subscription.cancel();
+    }, onError: (error) {
+      // handle error here.
+    });
+    super.initState();
   }
 
   @override
-  void onReady() {
-    super.onReady();
+  void dispose() {
+    _subscription.cancel();
+    super.dispose();
   }
+Here is an example of how to handle purchase updates:
 
-  @override
-  void onClose() {
-    // 비디오 플레이어 컨트롤러 안전하게 dispose
-    if (videoPlayerController.value != null) {
-      videoPlayerController.value!.dispose();
-      videoPlayerController.value = null;
-    }
-    super.onClose();
-  }
-
-  Future<void> _initVideoPlayer(XFile file) async {
-    try {
-      // 기존 컨트롤러가 있다면 안전하게 dispose
-      if (videoPlayerController.value != null) {
-        await videoPlayerController.value!.dispose();
-        videoPlayerController.value = null;
+void _listenToPurchaseUpdated(List<PurchaseDetails> purchaseDetailsList) {
+  purchaseDetailsList.forEach((PurchaseDetails purchaseDetails) async {
+    if (purchaseDetails.status == PurchaseStatus.pending) {
+      _showPendingUI();
+    } else {
+      if (purchaseDetails.status == PurchaseStatus.error) {
+        _handleError(purchaseDetails.error!);
+      } else if (purchaseDetails.status == PurchaseStatus.purchased ||
+                 purchaseDetails.status == PurchaseStatus.restored) {
+        bool valid = await _verifyPurchase(purchaseDetails);
+        if (valid) {
+          _deliverProduct(purchaseDetails);
+        } else {
+          _handleInvalidPurchase(purchaseDetails);
+        }
       }
-
-      final controller = VideoPlayerController.file(File(file.path));
-      await controller.initialize();
-
-      // 컨트롤러가 여전히 유효한지 확인
-      if (controller.value.isInitialized) {
-        videoPlayerController.value = controller;
-        videoDuration.value = controller.value.duration;
-        videoWidth.value = controller.value.size.width.toInt();
-        videoHeight.value = controller.value.size.height.toInt();
-        isVideoSelected.value = true;
-      } else {
-        await controller.dispose();
+      if (purchaseDetails.pendingCompletePurchase) {
+        await InAppPurchase.instance
+            .completePurchase(purchaseDetails);
       }
-    } catch (e) {
-      // 비디오 플레이어 초기화 오류 처리
-      print('Video player initialization error: $e');
-      videoPlayerController.value = null;
-      isVideoSelected.value = false;
     }
-  }
+  });
+}
+Connecting to the underlying store 
+final bool available = await InAppPurchase.instance.isAvailable();
+if (!available) {
+  // The store cannot be reached or accessed. Update the UI accordingly.
+}
+Loading products for sale 
+// Set literals require Dart 2.2. Alternatively, use
+// `Set<String> _kIds = <String>['product1', 'product2'].toSet()`.
+const Set<String> _kIds = <String>{'product1', 'product2'};
+final ProductDetailsResponse response =
+    await InAppPurchase.instance.queryProductDetails(_kIds);
+if (response.notFoundIDs.isNotEmpty) {
+  // Handle the error.
+}
+List<ProductDetails> products = response.productDetails;
+Restoring previous purchases 
+Restored purchases will be emitted on the InAppPurchase.purchaseStream, make sure to validate restored purchases following the best practices for each underlying store:
 
-  Future<void> selectOtherVideo() async {
-    isVideoSelected.value = false;
-    videoFile.value = null;
-    originalVideoFile.value = null;
+Verifying App Store purchases
+Verifying Google Play purchases
+await InAppPurchase.instance.restorePurchases();
+Note that the App Store does not have any APIs for querying consumable products, and Google Play considers consumable products to no longer be owned once they're marked as consumed and fails to return them here. For restoring these across devices you'll need to persist them on your own server and query that as well.
 
-    // 비디오 플레이어 컨트롤러 안전하게 dispose
-    if (videoPlayerController.value != null) {
-      await videoPlayerController.value!.dispose();
-      videoPlayerController.value = null;
-    }
+Making a purchase 
+Both underlying stores handle consumable and non-consumable products differently. If you're using InAppPurchase, you need to make a distinction here and call the right purchase method for each type.
 
-    videoInfo.value = null;
-    isTrimmed.value = false;
-    videoWidth.value = null;
-    videoHeight.value = null;
-    videoDuration.value = null;
-  }
+final ProductDetails productDetails = ... // Saved earlier from queryProductDetails().
+final PurchaseParam purchaseParam = PurchaseParam(productDetails: productDetails);
+if (_isConsumable(productDetails)) {
+  InAppPurchase.instance.buyConsumable(purchaseParam: purchaseParam);
+} else {
+  InAppPurchase.instance.buyNonConsumable(purchaseParam: purchaseParam);
+}
+// From here the purchase flow will be handled by the underlying store.
+// Updates will be delivered to the `InAppPurchase.instance.purchaseStream`.
+Completing a purchase 
+The InAppPurchase.purchaseStream will send purchase updates after initiating the purchase flow using InAppPurchase.buyConsumable or InAppPurchase.buyNonConsumable. After verifying the purchase receipt and the delivering the content to the user it is important to call InAppPurchase.completePurchase to tell the underlying store that the purchase has been completed. Calling InAppPurchase.completePurchase will inform the underlying store that the app verified and processed the purchase and the store can proceed to finalize the transaction and bill the end user's payment account.
 
-  void openRotateScreen() async {
-    if (videoFile.value == null) {
-      Get.snackbar('Error', 'Please select a video file first');
-      return;
-    }
+Warning: Failure to call InAppPurchase.completePurchase and get a successful response within 3 days of the purchase will result a refund.
 
-    // 비디오 회전 화면으로 네비게이션
-    await Get.to(
-      () => VideoRotateScreen(
-        filePath: videoFile.value!.path,
-        fileName: videoFile.value!.name,
-        onRotateComplete: (String rotatedFilePath) {
-          // 회전된 파일로 교체
-          final rotatedFile = XFile(rotatedFilePath);
-          videoFile.value = rotatedFile;
-          isTrimmed.value = false; // 회전 후에는 trim 상태 초기화
-          _initVideoPlayer(rotatedFile);
+Upgrading or downgrading an existing in-app subscription 
+To upgrade/downgrade an existing in-app subscription in Google Play, you need to provide an instance of ChangeSubscriptionParam with the old PurchaseDetails that the user needs to migrate from, and an optional ReplacementMode with the GooglePlayPurchaseParam object while calling InAppPurchase.buyNonConsumable.
 
-          // 성공 메시지
-          Get.back(); // 회전 화면 닫기
-        },
-        onCancel: () {
-          Get.back(); // 회전 화면 닫기
-        },
-      ),
-    );
-  }
+The App Store does not require this because it provides a subscription grouping mechanism. Each subscription you offer must be assigned to a subscription group. Grouping related subscriptions together can help prevent users from accidentally purchasing multiple subscriptions. Refer to the Creating a Subscription Group section of Apple's subscription guide.
 
-  Future<void> restoreOriginal() async {
-    if (originalVideoFile.value == null) {
-      Get.snackbar('Error', 'No original file available');
-      return;
-    }
+final PurchaseDetails oldPurchaseDetails = ...;
+PurchaseParam purchaseParam = GooglePlayPurchaseParam(
+    productDetails: productDetails,
+    changeSubscriptionParam: ChangeSubscriptionParam(
+        oldPurchaseDetails: oldPurchaseDetails,
+        replacementMode: ReplacementMode.withTimeProration));
+InAppPurchase.instance
+    .buyNonConsumable(purchaseParam: purchaseParam);
+Confirming subscription price changes 
+When the price of a subscription is changed the consumer will need to confirm that price change. If the consumer does not confirm the price change the subscription will not be auto-renewed. By default on both iOS and Android the consumer will automatically get a popup to confirm the price change. Depending on the platform there are different ways to interact with this flow as explained in the following paragraphs.
 
-    try {
-      videoFile.value = originalVideoFile.value;
-      isTrimmed.value = false;
-      await _initVideoPlayer(originalVideoFile.value!);
-      Get.snackbar('Success', 'Original video restored');
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to restore original video');
-    }
-  }
+Google Play Store (Android)
+When changing the price of an existing subscription base plan or offer, existing subscribers are placed in a legacy price cohort. App developers can choose to end a legacy price cohort and move subscribers into the current base plan price. When the new subscription base plan price is lower, Google will notify the consumer via email and notifications. The consumer will start paying the lower price next time they pay for their base plan. When the subscription price is raised, Google will automatically start notifying consumers through email and notifications 7 days after the legacy price cohort was ended. It is highly recommended to give consumers advanced notice of the price change and provide a deep link to the Play Store subscription screen to help them review the price change. The official documentation can be found here.
 
-  Future<void> saveConvertSettings({
-    required int selectedResolution,
-    required double fps,
-    required double quality,
-    required String format,
-    required double speed,
-    required String selectedFormat,
-  }) async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setInt('convert_resolution', selectedResolution);
-      await prefs.setDouble('convert_fps', fps);
-      await prefs.setDouble('convert_quality', quality);
-      await prefs.setString('convert_format', format);
-      await prefs.setDouble('convert_speed', speed);
-      await prefs.setString('convert_selected_format', selectedFormat);
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to save convert settings');
-    }
-  }
+Apple App Store (iOS)
+When the price of a subscription is raised iOS will also show a popup in the app. The StoreKit Payment Queue will notify the app that it wants to show a price change confirmation popup. By default the queue will get the response that it can continue and show the popup. However, it is possible to prevent this popup via the 'InAppPurchaseStoreKitPlatformAddition' and show the popup at a different time, for example after clicking a button.
 
-  // 설정 불러오기
-  Future<Map<String, dynamic>> loadConvertSettings() async {
-    try {
-      final prefs = await SharedPreferences.getInstance();
+To know when the App Store wants to show a popup and prevent this from happening a queue delegate can be registered. The InAppPurchaseStoreKitPlatformAddition contains a setDelegate(SKPaymentQueueDelegateWrapper? delegate) function that can be used to set a delegate or remove one by setting it to null.
 
-      return {
-        'selectedResolution':
-            prefs.getInt('convert_resolution') ?? 0, // 기본값은 원본 해상도
-        'fps': prefs.getDouble('convert_fps') ?? 30.0,
-        'quality': prefs.getDouble('convert_quality') ?? 75.0,
-        'format': prefs.getString('convert_format') ?? 'webp',
-        'speed': prefs.getDouble('convert_speed') ?? 1.0,
-        'selectedFormat': prefs.getString('convert_selected_format') ?? 'WebP',
-      };
-    } catch (e) {
-      return {
-        'selectedResolution': 0, // 기본값은 원본 해상도
-        'fps': 30.0,
-        'quality': 75.0,
-        'format': 'webp',
-        'speed': 1.0,
-        'selectedFormat': 'WebP',
-      };
-    }
-  }
+//import for InAppPurchaseStoreKitPlatformAddition
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
 
-  // Trim 화면으로 이동
-  void openTrimScreen() async {
-    if (videoFile.value == null) {
-      Get.snackbar('Error', 'Please select a video file first');
-      return;
-    }
-
-    // Trim 화면으로 네비게이션 (Get.to 사용하여 기존 컨트롤러 유지)
-    final result = await Get.to(
-      () => VideoTrimScreen(),
-      arguments: {
-        'filePath': videoFile.value!.path,
-        'fileName': videoFile.value!.name,
-      },
-    );
-
-    if (result != null && result is String) {
-      // Trim된 파일로 교체
-      final trimmedFile = XFile(result);
-      videoFile.value = trimmedFile;
-      isTrimmed.value = true; // Trim 상태 업데이트
-      await _initVideoPlayer(trimmedFile);
-
-      Get.snackbar('Success', 'Video trimmed successfully');
-    }
-  }
-
-  Future<void> pickVideo() async {
-    try {
-      final XFile? file = await _picker.pickVideo(source: ImageSource.gallery);
-      if (file != null) {
-        videoFile.value = file;
-        originalVideoFile.value = file; // 원본 파일 저장
-        isTrimmed.value = false; // Trim 상태 초기화
-        await _initVideoPlayer(file);
-      }
-    } catch (e) {
-      // CommonSnackBar.error(
-      //     'error'.tr, 'An error occurred while selecting the video.'.tr);
-      print('Error picking video: $e');
-      isVideoSelected.value = false;
-    }
-  }
-
-  void convertVideo() {
-    if (videoFile.value != null) {
-      // 비디오 변환 로직 구현
-      Get.snackbar('Success', 'Video conversion started!');
-    }
-  }
-
-  void showConvertDialog(BuildContext context) async {
-    final originalWidth = videoWidth.value ?? 0;
-    final originalHeight = videoHeight.value ?? 0;
-    final videoDurationSeconds = videoDuration.value?.inSeconds ?? 0;
-    final videoFilePath = videoFile.value!.path;
-
-    // 저장된 설정 불러오기
-    final savedSettings = await loadConvertSettings();
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      backgroundColor: Colors.transparent,
-      builder: (context) {
-        return ConvertOptionsDialog(
-          originalWidth: originalWidth,
-          originalHeight: originalHeight,
-          videoDurationSeconds: videoDurationSeconds,
-          videoFilePath: videoFilePath,
-          savedSettings: savedSettings,
-          onConvert: (options) async {
-            print('--------------------options: $options');
-            await handleConvert(options);
-          },
-        );
-      },
-    );
-  }
-
-  Future<void> handleConvert(Map<String, dynamic> options) async {
-    try {
-      // 비디오 플레이어가 재생 중이라면 중지
-      if (videoPlayerController.value != null && 
-          videoPlayerController.value!.value.isPlaying) {
-        await videoPlayerController.value!.pause();
-      }
-
-      // 변환 설정 저장
-      await saveConvertSettings(
-        selectedResolution: options['selectedResolution'],
-        fps: options['fps'],
-        quality: options['quality'],
-        format: options['format'],
-        speed: options['speed'],
-        selectedFormat: options['selectedFormat'], // selectedFormat 추가
-      );
-
-      // LoadingView로 이동
-      Get.toNamed(Routes.LOADING);
-    } catch (e) {
-      Get.snackbar('Error', 'Failed to start conversion: $e');
-    }
+Future<void> initStoreInfo() async {
+  if (Platform.isIOS) {
+    var iosPlatformAddition = _inAppPurchase
+            .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+    await iosPlatformAddition.setDelegate(ExamplePaymentQueueDelegate());
   }
 }
+
+@override
+Future<void> disposeStore() {
+  if (Platform.isIOS) {
+    var iosPlatformAddition = _inAppPurchase
+            .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+    await iosPlatformAddition.setDelegate(null);
+  }
+}
+The delegate that is set should implement SKPaymentQueueDelegateWrapper and handle shouldContinueTransaction and shouldShowPriceConsent. When setting shouldShowPriceConsent to false the default popup will not be shown and the app needs to show this later.
+
+// import for SKPaymentQueueDelegateWrapper
+import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
+
+class ExamplePaymentQueueDelegate implements SKPaymentQueueDelegateWrapper {
+  @override
+  bool shouldContinueTransaction(
+      SKPaymentTransactionWrapper transaction, SKStorefrontWrapper storefront) {
+    return true;
+  }
+
+  @override
+  bool shouldShowPriceConsent() {
+    return false;
+  }
+}
+The dialog can be shown by calling showPriceConsentIfNeeded on the InAppPurchaseStoreKitPlatformAddition. This future will complete immediately when the dialog is shown. A confirmed transaction will be delivered on the purchaseStream.
+
+if (Platform.isIOS) {
+  var iapStoreKitPlatformAddition = _inAppPurchase
+      .getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+  await iapStoreKitPlatformAddition.showPriceConsentIfNeeded();
+}
+Accessing platform specific product or purchase properties 
+The function _inAppPurchase.queryProductDetails(productIds); provides a ProductDetailsResponse with a list of purchasable products of type List<ProductDetails>. This ProductDetails class is a platform independent class containing properties only available on all endorsed platforms. However, in some cases it is necessary to access platform specific properties. The ProductDetails instance is of subtype GooglePlayProductDetails when the platform is Android and AppStoreProductDetails on iOS. Accessing the skuDetails (on Android) or the skProduct (on iOS) provides all the information that is available in the original platform objects.
+
+This is an example on how to get the introductoryPricePeriod on Android:
+
+//import for GooglePlayProductDetails
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+//import for SkuDetailsWrapper
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
+
+if (productDetails is GooglePlayProductDetails) {
+  SkuDetailsWrapper skuDetails = (productDetails as GooglePlayProductDetails).skuDetails;
+  print(skuDetails.introductoryPricePeriod);
+}
+And this is the way to get the subscriptionGroupIdentifier of a subscription on iOS:
+
+//import for AppStoreProductDetails
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+//import for SKProductWrapper
+import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
+
+if (productDetails is AppStoreProductDetails) {
+  SKProductWrapper skProduct = (productDetails as AppStoreProductDetails).skProduct;
+  print(skProduct.subscriptionGroupIdentifier);
+}
+
+// With StoreKit 2
+import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
+
+if (productDetails is AppStoreProduct2Details) {
+   SK2Product product = (productDetails as AppStoreProduct2Details).sk2Product;
+   print(product.subscription?.subscriptionGroupID);
+}
+The purchaseStream provides objects of type PurchaseDetails. PurchaseDetails' provides all information that is available on all endorsed platforms, such as purchaseID and transactionDate. In addition, it is possible to access the platform specific properties. The PurchaseDetails object is of subtype GooglePlayPurchaseDetails when the platform is Android and AppStorePurchaseDetails on iOS. Accessing the billingClientPurchase, resp. skPaymentTransaction provides all the information that is available in the original platform objects.
+
+This is an example on how to get the originalJson on Android:
+
+//import for GooglePlayPurchaseDetails
+import 'package:in_app_purchase_android/in_app_purchase_android.dart';
+//import for PurchaseWrapper
+import 'package:in_app_purchase_android/billing_client_wrappers.dart';
+
+if (purchaseDetails is GooglePlayPurchaseDetails) {
+  PurchaseWrapper billingClientPurchase = (purchaseDetails as GooglePlayPurchaseDetails).billingClientPurchase;
+  print(billingClientPurchase.originalJson);
+}
+How to get the transactionState of a purchase in iOS, using the original StoreKit API:
+
+//import for AppStorePurchaseDetails
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+//import for SKProductWrapper
+import 'package:in_app_purchase_storekit/store_kit_wrappers.dart';
+
+if (purchaseDetails is AppStorePurchaseDetails) {
+  SKPaymentTransactionWrapper skProduct = (purchaseDetails as AppStorePurchaseDetails).skPaymentTransaction;
+  print(skProduct.transactionState);
+}
+How to get the jsonRepresentation of a transaction in iOS, using StoreKit 2:
+
+//import for SK2TransactionWrapper
+import 'package:in_app_purchase_storekit/store_kit_2_wrappers.dart';
+
+List<SK2Transaction> transactions = await SK2Transaction.transactions();
+print(transactions[0].jsonRepresentation);
+Please note that it is required to import in_app_purchase_android and/or in_app_purchase_storekit.
+
+Presenting a code redemption sheet (iOS 14) 
+The following code brings up a sheet that enables the user to redeem offer codes that you've set up in App Store Connect. For more information on redeeming offer codes, see Implementing Offer Codes in Your App.
+
+InAppPurchaseStoreKitPlatformAddition iosPlatformAddition =
+  InAppPurchase.getPlatformAddition<InAppPurchaseStoreKitPlatformAddition>();
+iosPlatformAddition.presentCodeRedemptionSheet();
+note: The InAppPurchaseStoreKitPlatformAddition is defined in the in_app_purchase_storekit.dart file so you need to import it into the file you will be using InAppPurchaseStoreKitPlatformAddition:
+
+import 'package:in_app_purchase_storekit/in_app_purchase_storekit.dart';
+Contributing to this plugin 
+If you would like to contribute to the plugin, check out our contribution guide.
+
+2.4k
+likes
+160
+points
+174k
+downloads
+screenshot
+
+Publisher
+verified publisherflutter.dev
+
+Weekly Downloads
+2024.12.23 - 2025.11.17
+Metadata
+A Flutter plugin for in-app purchases. Exposes APIs for making in-app purchases through the App Store and Google Play.
+
+Repository (GitHub)
+View/report issues
+Contributing
+
+Topics
+#in-app-purchase #payment
+
+Documentation
+API reference
+
+License
+BSD-3-Clause (license)
+
+Dependencies
+flutter, in_app_purchase_android, in_app_purchase_platform_interface, in_app_purchase_storekit
+
+More
+Packages that depend on in_app_purchase
+
+Packages that implement in_app_purchase
+
+Dart languageReport packagePolicyTermsAPI TermsSecurityPrivacyHelpRSSbug report

@@ -222,4 +222,32 @@ const Map<String, String> hiTranslations = {
 
   // Convert Complete
   'image_load_failed': 'छवि लोड असफल',
+
+  // Premium Subscription
+  'premium_upgrade_title': 'प्रीमियम में अपग्रेड करें',
+  'premium_benefit_remove_ads_title': 'सभी विज्ञापन हटाएं',
+  'premium_benefit_remove_ads_desc': 'सभी इंटरस्टीशियल और बैनर विज्ञापन हटा दिए जाएंगे',
+  'premium_benefit_upload_capacity_title': 'बढ़ी हुई अपलोड क्षमता',
+  'premium_benefit_upload_capacity_desc': 'अपलोड क्षमता 20MB से 50MB तक बढ़ जाती है',
+  'premium_benefit_server_title': 'उच्च प्रदर्शन सर्वर',
+  'premium_benefit_server_desc': '512MiB से 4096MiB उच्च प्रदर्शन सर्वर में अपग्रेड',
+  'premium_benefit_priority_title': 'प्राथमिकता प्रसंस्करण',
+  'premium_benefit_priority_desc': 'रूपांतरण अनुरोध प्राथमिकता के साथ संसाधित किए जाते हैं',
+  'premium_subscribe_button': 'सदस्यता लें',
+  'premium_subscribe_button_with_price': '@price में सदस्यता लें',
+  'premium_product_loading': 'उत्पाद जानकारी लोड हो रही है...',
+  'premium_subscribe_success': 'सदस्यता पूर्ण',
+  'premium_subscribe_success_message': 'प्रीमियम सुविधाएं सक्रिय कर दी गई हैं।',
+  'premium_subscribe_failed': 'सदस्यता विफल',
+  'premium_subscribe_failed_message': 'सदस्यता पूरी नहीं कर सके। कृपया पुनः प्रयास करें।',
+  'premium_subscribe_error': 'त्रुटि',
+  'premium_subscribe_error_message': 'सदस्यता प्रसंस्करण के दौरान एक त्रुटि हुई।',
+  'premium_restore_button': 'सदस्यता पुनर्स्थापित करें',
+  'premium_restore_success': 'पुनर्स्थापना पूर्ण',
+  'premium_restore_success_message': 'प्रीमियम सुविधाएं पुनर्स्थापित कर दी गई हैं।',
+  'premium_restore_failed': 'पुनर्स्थापना विफल',
+  'premium_restore_failed_message': 'पुनर्स्थापित करने के लिए कोई सदस्यता इतिहास नहीं है।',
+  'premium_restore_error_message': 'सदस्यता पुनर्स्थापित करते समय एक त्रुटि हुई।',
+  'premium_user_tooltip': 'प्रीमियम उपयोगकर्ता',
+  'premium_subscribe_tooltip': 'प्रीमियम सदस्यता',
 };
