@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/foundation.dart';
+import 'package:get/get.dart';
 import 'package:in_app_purchase/in_app_purchase.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -12,6 +13,9 @@ class InAppPurchaseService {
   bool _isAvailable = false;
   List<ProductDetails> _products = [];
   Completer<bool>? _purchaseUpdateCompleter;
+
+  // Reactive 프리미엄 상태 (화면에 즉시 반영)
+  final RxBool isPremium = false.obs;
 
   // 싱글톤 패턴
   static final InAppPurchaseService _instance =
@@ -28,10 +32,15 @@ class InAppPurchaseService {
     if (!_isAvailable) {
       debugPrint('⚠️ In-App Purchase is not available');
       debugPrint('Google Play Services가 설치되어 있는지 확인하세요.');
+      // 인앱 결제를 사용할 수 없어도 SharedPreferences에서 상태 확인
+      await _loadPremiumStatus();
       return;
     }
 
     debugPrint('✅ In-App Purchase is available');
+
+    // 초기 프리미엄 상태 로드
+    await _loadPremiumStatus();
 
     // 구매 업데이트 리스너 (공식 문서 권장: 가능한 한 빨리 리스닝 시작)
     _subscription = _inAppPurchase.purchaseStream.listen(
@@ -47,6 +56,12 @@ class InAppPurchaseService {
 
     // 기존 구매 복원 확인
     await restorePurchases();
+  }
+
+  /// SharedPreferences에서 프리미엄 상태 로드
+  Future<void> _loadPremiumStatus() async {
+    final prefs = await SharedPreferences.getInstance();
+    isPremium.value = prefs.getBool(_isPremiumUserKey) ?? false;
   }
 
   /// 상품 정보 로드
@@ -268,18 +283,23 @@ class InAppPurchaseService {
   }
 
   /// 프리미엄 상태 저장
-  Future<void> _savePremiumStatus(bool isPremium) async {
+  Future<void> _savePremiumStatus(bool premiumStatus) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_isPremiumUserKey, isPremium);
+    await prefs.setBool(_isPremiumUserKey, premiumStatus);
+    // Reactive 상태 즉시 업데이트 (화면에 자동 반영)
+    isPremium.value = premiumStatus;
   }
 
   /// 프리미엄 사용자 여부 확인
   /// 실제 구매 내역을 확인하여 정확한 상태를 반환합니다
+  /// Reactive 상태도 함께 업데이트됩니다
   Future<bool> isPremiumUser() async {
     if (!_isAvailable) {
       // 인앱 결제를 사용할 수 없는 경우 SharedPreferences만 확인
       final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool(_isPremiumUserKey) ?? false;
+      final status = prefs.getBool(_isPremiumUserKey) ?? false;
+      isPremium.value = status;
+      return status;
     }
 
     try {
@@ -292,12 +312,16 @@ class InAppPurchaseService {
 
       // SharedPreferences에서 상태 확인
       final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool(_isPremiumUserKey) ?? false;
+      final status = prefs.getBool(_isPremiumUserKey) ?? false;
+      isPremium.value = status;
+      return status;
     } catch (e) {
       debugPrint('Error checking premium status: $e');
       // 오류 발생 시 SharedPreferences만 확인
       final prefs = await SharedPreferences.getInstance();
-      return prefs.getBool(_isPremiumUserKey) ?? false;
+      final status = prefs.getBool(_isPremiumUserKey) ?? false;
+      isPremium.value = status;
+      return status;
     }
   }
 

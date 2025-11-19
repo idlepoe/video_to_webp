@@ -27,11 +27,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
   Future<void> _checkAndShowPremiumPromo() async {
     final prefs = await SharedPreferences.getInstance();
     final promoShown = prefs.getBool('premium_promo_shown') ?? false;
-    final purchaseService = InAppPurchaseService();
-    final isPremium = await purchaseService.isPremiumUser();
-
-    // 이미 프리미엄 사용자이거나 이미 모달을 보여준 경우 표시하지 않음
-    if (isPremium || promoShown) {
+    
+    // 이미 모달을 보여준 경우에만 표시하지 않음 (프리미엄 회원도 표시)
+    if (promoShown) {
       return;
     }
 
@@ -56,31 +54,27 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
       appBar: AppBar(
         title: Text('app_title'.tr),
         actions: [
-          FutureBuilder<bool>(
-            future: InAppPurchaseService().isPremiumUser(),
-            builder: (context, snapshot) {
-              final isPremium = snapshot.data ?? false;
-              if (isPremium) {
-                return IconButton(
-                  icon: Icon(Icons.star, color: Colors.amber),
-                  tooltip: 'premium_user_tooltip'.tr,
-                  onPressed: null,
+          Obx(() {
+            final purchaseService = InAppPurchaseService();
+            final isPremium = purchaseService.isPremium.value;
+            return IconButton(
+              icon: Icon(
+                isPremium ? Icons.star : Icons.star_border,
+                color: isPremium ? Colors.amber : Colors.grey[700],
+              ),
+              tooltip: isPremium 
+                  ? 'premium_user_tooltip'.tr 
+                  : 'premium_subscribe_tooltip'.tr,
+              onPressed: () {
+                showModalBottomSheet(
+                  context: context,
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (context) => const PremiumPromoModal(),
                 );
-              }
-              return IconButton(
-                icon: Icon(Icons.star_border, color: Colors.grey[700]),
-                tooltip: 'premium_subscribe_tooltip'.tr,
-                onPressed: () {
-                  showModalBottomSheet(
-                    context: context,
-                    isScrollControlled: true,
-                    backgroundColor: Colors.transparent,
-                    builder: (context) => const PremiumPromoModal(),
-                  );
-                },
-              );
-            },
-          ),
+              },
+            );
+          }),
         ],
       ),
       body: Obx(() {

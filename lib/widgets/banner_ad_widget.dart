@@ -24,6 +24,7 @@ class BannerAdWidget extends StatefulWidget {
 class _BannerAdWidgetState extends State<BannerAdWidget> {
   BannerAd? _bannerAd;
   bool _isLoaded = false;
+  bool _isPremium = false;
 
   // 광고 단위 ID (디버그 모드에 따라 분기)
   static String get _adUnitId {
@@ -45,6 +46,12 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   Future<void> _checkPremiumAndLoadAd() async {
     final purchaseService = InAppPurchaseService();
     final isPremium = await purchaseService.isPremiumUser();
+    
+    if (mounted) {
+      setState(() {
+        _isPremium = isPremium;
+      });
+    }
     
     if (!isPremium) {
       _loadBannerAd();
@@ -95,6 +102,11 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // 프리미엄 회원이면 아무것도 표시하지 않음
+    if (_isPremium) {
+      return const SizedBox.shrink();
+    }
+    
     return Container(
       height: widget.height ?? 250,
       margin: widget.margin,

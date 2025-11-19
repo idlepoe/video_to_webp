@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
@@ -15,11 +16,30 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
   bool _isLoading = false;
   bool _isProductLoading = true;
   String? _productPrice;
+  bool _isPremium = false;
+  StreamSubscription<bool>? _premiumSubscription;
 
   @override
   void initState() {
     super.initState();
+    // Reactive 상태로 초기화
+    _isPremium = _purchaseService.isPremium.value;
     _loadProductInfo();
+
+    // Reactive 상태 관찰
+    _premiumSubscription = _purchaseService.isPremium.listen((isPremium) {
+      if (mounted) {
+        setState(() {
+          _isPremium = isPremium;
+        });
+      }
+    });
+  }
+
+  @override
+  void dispose() {
+    _premiumSubscription?.cancel();
+    super.dispose();
   }
 
   Future<void> _loadProductInfo() async {
@@ -188,13 +208,40 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
                   Icon(Icons.star, color: Colors.amber, size: 28),
                   const SizedBox(width: 12),
                   Expanded(
-                    child: Text(
-                      'premium_upgrade_title'.tr,
-                      style: const TextStyle(
-                        fontSize: 22,
-                        fontWeight: FontWeight.bold,
-                        color: Color(0xFF333333),
-                      ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'premium_upgrade_title'.tr,
+                          style: const TextStyle(
+                            fontSize: 22,
+                            fontWeight: FontWeight.bold,
+                            color: Color(0xFF333333),
+                          ),
+                        ),
+                        if (_isPremium)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 4),
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 2,
+                              ),
+                              decoration: BoxDecoration(
+                                color: Colors.amber,
+                                borderRadius: BorderRadius.circular(4),
+                              ),
+                              child: Text(
+                                '이미 프리미엄 회원입니다',
+                                style: const TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                   ),
                   IconButton(
@@ -240,129 +287,133 @@ class _PremiumPromoModalState extends State<PremiumPromoModal> {
 
             const SizedBox(height: 24),
 
-            // 구매 버튼
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-              child: SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed:
-                      (_isLoading || _isProductLoading || _productPrice == null)
-                          ? null
-                          : _handlePurchase,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF4CAF50),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+            // 구매 버튼 (프리미엄 회원이 아닐 때만 표시)
+            if (!_isPremium)
+              Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                child: SizedBox(
+                  width: double.infinity,
+                  height: 56,
+                  child: ElevatedButton(
+                    onPressed: (_isLoading ||
+                            _isProductLoading ||
+                            _productPrice == null)
+                        ? null
+                        : _handlePurchase,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF4CAF50),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      elevation: 2,
                     ),
-                    elevation: 2,
-                  ),
-                  child: _isLoading
-                      ? const SizedBox(
-                          width: 24,
-                          height: 24,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor:
-                                AlwaysStoppedAnimation<Color>(Colors.white),
-                          ),
-                        )
-                      : _isProductLoading
-                          ? Text(
-                              'premium_product_loading'.tr,
-                              style: const TextStyle(
-                                fontSize: 16,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            )
-                          : _productPrice == null
-                              ? Text(
-                                  'premium_subscribe_button'.tr,
-                                  style: TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white.withOpacity(0.6),
-                                  ),
-                                )
-                              : Text(
-                                  'premium_subscribe_button_with_price'
-                                      .tr
-                                      .replaceAll('@price', _productPrice!),
-                                  style: const TextStyle(
-                                    fontSize: 16,
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
+                    child: _isLoading
+                        ? const SizedBox(
+                            width: 24,
+                            height: 24,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              valueColor:
+                                  AlwaysStoppedAnimation<Color>(Colors.white),
+                            ),
+                          )
+                        : _isProductLoading
+                            ? Text(
+                                'premium_product_loading'.tr,
+                                style: const TextStyle(
+                                  fontSize: 16,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
                                 ),
+                              )
+                            : _productPrice == null
+                                ? Text(
+                                    'premium_subscribe_button'.tr,
+                                    style: TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white.withOpacity(0.6),
+                                    ),
+                                  )
+                                : Text(
+                                    'premium_subscribe_button_with_price'
+                                        .tr
+                                        .replaceAll('@price', _productPrice!),
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                  ),
                 ),
               ),
-            ),
 
-            // 복원 버튼
-            Padding(
-              padding: const EdgeInsets.only(bottom: 16),
-              child: TextButton(
-                onPressed: _isLoading
-                    ? null
-                    : () async {
-                        setState(() {
-                          _isLoading = true;
-                        });
+            // 복원 버튼 (프리미엄 회원이 아닐 때만 표시)
+            if (!_isPremium)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 16),
+                child: TextButton(
+                  onPressed: _isLoading
+                      ? null
+                      : () async {
+                          setState(() {
+                            _isLoading = true;
+                          });
 
-                        final success =
-                            await _purchaseService.restorePurchases();
+                          final success =
+                              await _purchaseService.restorePurchases();
 
-                        if (mounted) {
-                          if (success) {
-                            final isPremium =
-                                await _purchaseService.isPremiumUser();
-                            if (isPremium) {
-                              Navigator.of(context).pop();
-                              Get.snackbar(
-                                'premium_restore_success'.tr,
-                                'premium_restore_success_message'.tr,
-                                snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.green,
-                                colorText: Colors.white,
-                                duration: const Duration(seconds: 2),
-                              );
+                          if (mounted) {
+                            if (success) {
+                              final isPremium =
+                                  await _purchaseService.isPremiumUser();
+                              if (isPremium) {
+                                Navigator.of(context).pop();
+                                Get.snackbar(
+                                  'premium_restore_success'.tr,
+                                  'premium_restore_success_message'.tr,
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.green,
+                                  colorText: Colors.white,
+                                  duration: const Duration(seconds: 2),
+                                );
+                              } else {
+                                Get.snackbar(
+                                  'premium_restore_failed'.tr,
+                                  'premium_restore_failed_message'.tr,
+                                  snackPosition: SnackPosition.BOTTOM,
+                                  backgroundColor: Colors.orange,
+                                  colorText: Colors.white,
+                                  duration: const Duration(seconds: 2),
+                                );
+                              }
                             } else {
                               Get.snackbar(
-                                'premium_restore_failed'.tr,
-                                'premium_restore_failed_message'.tr,
+                                'premium_subscribe_error'.tr,
+                                'premium_restore_error_message'.tr,
                                 snackPosition: SnackPosition.BOTTOM,
-                                backgroundColor: Colors.orange,
+                                backgroundColor: Colors.red,
                                 colorText: Colors.white,
                                 duration: const Duration(seconds: 2),
                               );
                             }
-                          } else {
-                            Get.snackbar(
-                              'premium_subscribe_error'.tr,
-                              'premium_restore_error_message'.tr,
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: Colors.red,
-                              colorText: Colors.white,
-                              duration: const Duration(seconds: 2),
-                            );
-                          }
 
-                          setState(() {
-                            _isLoading = false;
-                          });
-                        }
-                      },
-                child: Text(
-                  'premium_restore_button'.tr,
-                  style: const TextStyle(
-                    fontSize: 14,
-                    color: Colors.grey,
+                            setState(() {
+                              _isLoading = false;
+                            });
+                          }
+                        },
+                  child: Text(
+                    'premium_restore_button'.tr,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      color: Colors.grey,
+                    ),
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),
