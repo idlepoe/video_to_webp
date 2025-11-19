@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'dart:io';
 import '../../../models/convert_request.dart';
+import '../../../services/in_app_purchase_service.dart';
 import '../file_select_controller.dart';
 import 'dart:math';
 
@@ -52,15 +53,19 @@ class _ConvertOptionsDialogState extends State<ConvertOptionsDialog> {
     super.initState();
     _initializeResolutions();
     _loadSettings();
-    _checkFileSize();
+    _checkFileSize(); // 비동기 함수이지만 await 없이 호출
   }
 
-  // 파일 크기 확인 함수
-  void _checkFileSize() {
+  // 파일 크기 확인 함수 (프리미엄 사용자는 50MB, 일반 사용자는 20MB)
+  Future<void> _checkFileSize() async {
     final fileSize = File(widget.videoFilePath).lengthSync();
     final fileSizeMB = fileSize / (1024 * 1024);
 
-    if (fileSizeMB > 20) {
+    final purchaseService = InAppPurchaseService();
+    final isPremium = await purchaseService.isPremiumUser();
+    final maxSizeMB = isPremium ? 50.0 : 20.0;
+
+    if (fileSizeMB > maxSizeMB) {
       setState(() {
         _fileSizeError = 'file_size_error'.tr;
       });

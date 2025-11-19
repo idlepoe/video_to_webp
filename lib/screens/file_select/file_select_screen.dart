@@ -2,11 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/foundation.dart';
 import 'package:get/get.dart';
 import 'file_select_controller.dart';
-import 'package:video_player/video_player.dart';
-import 'dart:io';
-import '../../models/convert_request.dart';
-import '../../routes/app_routes.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import '../../services/in_app_purchase_service.dart';
 import 'widgets/widgets.dart';
+import 'widgets/premium_promo_modal.dart';
 
 class FileSelectScreen extends StatefulWidget {
   @override
@@ -17,58 +16,71 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
   final FileSelectController controller = Get.put(FileSelectController());
 
   @override
+  void initState() {
+    super.initState();
+    // 화면이 빌드된 후 모달 표시
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      _checkAndShowPremiumPromo();
+    });
+  }
+
+  Future<void> _checkAndShowPremiumPromo() async {
+    final prefs = await SharedPreferences.getInstance();
+    final promoShown = prefs.getBool('premium_promo_shown') ?? false;
+    final purchaseService = InAppPurchaseService();
+    final isPremium = await purchaseService.isPremiumUser();
+
+    // 이미 프리미엄 사용자이거나 이미 모달을 보여준 경우 표시하지 않음
+    if (isPremium || promoShown) {
+      return;
+    }
+
+    // 모달 표시
+    if (mounted) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (context) => const PremiumPromoModal(),
+      ).then((_) {
+        // 모달이 닫힌 후 표시 여부 저장
+        prefs.setBool('premium_promo_shown', true);
+      });
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final maxVideoHeight = MediaQuery.of(context).size.height * 0.35;
     return Scaffold(
       appBar: AppBar(
         title: Text('app_title'.tr),
         actions: [
-          Obx(() => GestureDetector(
-                onTap: () {
-                  controller.setNotificationSubscribed(
-                      !controller.notificationSubscribed.value);
+          FutureBuilder<bool>(
+            future: InAppPurchaseService().isPremiumUser(),
+            builder: (context, snapshot) {
+              final isPremium = snapshot.data ?? false;
+              if (isPremium) {
+                return IconButton(
+                  icon: Icon(Icons.star, color: Colors.amber),
+                  tooltip: '프리미엄 사용자',
+                  onPressed: null,
+                );
+              }
+              return IconButton(
+                icon: Icon(Icons.star_border, color: Colors.grey[700]),
+                tooltip: '프리미엄 구매',
+                onPressed: () {
+                  showModalBottomSheet(
+                    context: context,
+                    isScrollControlled: true,
+                    backgroundColor: Colors.transparent,
+                    builder: (context) => const PremiumPromoModal(),
+                  );
                 },
-                child: Container(
-                  padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 20,
-                        height: 20,
-                        decoration: BoxDecoration(
-                          color: controller.notificationSubscribed.value
-                              ? Colors.blue
-                              : Colors.transparent,
-                          borderRadius: BorderRadius.circular(4),
-                          border: Border.all(
-                            color: controller.notificationSubscribed.value
-                                ? Colors.blue
-                                : Colors.grey[400]!,
-                            width: 2,
-                          ),
-                        ),
-                        child: controller.notificationSubscribed.value
-                            ? Icon(
-                                Icons.check,
-                                size: 14,
-                                color: Colors.white,
-                              )
-                            : null,
-                      ),
-                      SizedBox(width: 8),
-                      Text(
-                        'notification_subscribe'.tr,
-                        style: TextStyle(
-                          fontSize: 14,
-                          color: Colors.grey[700],
-                          fontWeight: FontWeight.w500,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              )),
+              );
+            },
+          ),
         ],
       ),
       body: Obx(() {
@@ -137,9 +149,9 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
   }
 
   void _showConvertDialog(BuildContext context) async {
-    final originalWidth = controller.videoWidth.value ?? 0;
-    final originalHeight = controller.videoHeight.value ?? 0;
-    final videoDurationSeconds = controller.videoDuration.value?.inSeconds ?? 0;
+    final originalWidth = controller.videoWidth.value;
+    final originalHeight = controller.videoHeight.value;
+    final videoDurationSeconds = controller.videoDuration.value.inSeconds;
     final videoFilePath = controller.videoFile.value!.path;
 
     // 저장된 설정 불러오기

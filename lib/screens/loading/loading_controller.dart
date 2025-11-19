@@ -5,6 +5,7 @@ import 'package:google_mobile_ads/google_mobile_ads.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../routes/app_routes.dart';
 import '../../services/fcm_service.dart';
+import '../../services/in_app_purchase_service.dart';
 
 class LoadingController extends GetxController {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -58,8 +59,20 @@ class LoadingController extends GetxController {
       listenToConvertRequest(requestId);
     }
     
-    // InterstitialAd 생성 (로드 완료 시 자동으로 표시)
-    _createInterstitialAd();
+    // 프리미엄 사용자가 아닌 경우에만 광고 생성
+    _checkPremiumAndCreateAd();
+  }
+
+  Future<void> _checkPremiumAndCreateAd() async {
+    final purchaseService = InAppPurchaseService();
+    final isPremium = await purchaseService.isPremiumUser();
+    
+    if (!isPremium) {
+      // InterstitialAd 생성 (로드 완료 시 자동으로 표시)
+      _createInterstitialAd();
+    } else {
+      print('프리미엄 사용자이므로 광고를 표시하지 않습니다.');
+    }
   }
 
   @override
@@ -193,6 +206,14 @@ class LoadingController extends GetxController {
   // InterstitialAd 표시 메서드 (비동기)
   Future<void> _showInterstitialAd() async {
     print('showInterstitialAd');
+    
+    // 프리미엄 사용자 확인
+    final purchaseService = InAppPurchaseService();
+    final isPremium = await purchaseService.isPremiumUser();
+    if (isPremium) {
+      print('프리미엄 사용자이므로 광고를 표시하지 않습니다.');
+      return;
+    }
     
     // 10분 간격 체크
     final canShow = await _canShowAd();

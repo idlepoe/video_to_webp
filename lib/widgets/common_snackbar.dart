@@ -9,6 +9,7 @@ class CommonSnackBar {
     required String message,
     SnackBarType type = SnackBarType.info,
     Duration duration = const Duration(milliseconds: 500),
+    BuildContext? context,
   }) {
     Color backgroundColor;
     Color textColor = Colors.white;
@@ -33,59 +34,89 @@ class CommonSnackBar {
         break;
     }
 
-    Get.snackbar(
-      title,
-      message,
-      backgroundColor: backgroundColor,
-      colorText: textColor,
-      icon: Icon(icon, color: textColor, size: 28),
-      snackPosition: SnackPosition.TOP,
-      margin: const EdgeInsets.all(16),
-      borderRadius: 12,
-      duration: duration,
-      animationDuration: const Duration(milliseconds: 300),
-      forwardAnimationCurve: Curves.easeOutCubic,
-      reverseAnimationCurve: Curves.easeInCubic,
-      isDismissible: true,
-      dismissDirection: DismissDirection.horizontal,
-      leftBarIndicatorColor: Colors.white.withOpacity(0.3),
-    );
+    final targetContext = context ?? Get.context;
+    if (targetContext != null) {
+      ScaffoldMessenger.of(targetContext).showSnackBar(
+        SnackBar(
+          content: Row(
+            children: [
+              Icon(icon, color: textColor, size: 28),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      title,
+                      style: TextStyle(
+                        color: textColor,
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                    Text(
+                      message,
+                      style: TextStyle(
+                        color: textColor,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+          backgroundColor: backgroundColor,
+          duration: duration,
+          behavior: SnackBarBehavior.floating,
+          margin: const EdgeInsets.all(16),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+        ),
+      );
+    }
   }
 
   // 편의 메서드들
-  static void info(String title, String message, {Duration? duration}) {
+  static void info(String title, String message, {Duration? duration, BuildContext? context}) {
     show(
       title: title,
       message: message,
       type: SnackBarType.info,
       duration: duration ?? const Duration(milliseconds: 500),
+      context: context,
     );
   }
 
-  static void warn(String title, String message, {Duration? duration}) {
+  static void warn(String title, String message, {Duration? duration, BuildContext? context}) {
     show(
       title: title,
       message: message,
       type: SnackBarType.warn,
       duration: duration ?? const Duration(milliseconds: 500),
+      context: context,
     );
   }
 
-  static void success(String title, String message, {Duration? duration}) {
+  static void success(String title, String message, {Duration? duration, BuildContext? context}) {
     show(
       title: title,
       message: message,
       type: SnackBarType.success,
       duration: duration ?? const Duration(milliseconds: 500),
+      context: context,
     );
   }
 
-  static void error(String title, String message, {Duration? duration}) {
+  static void error(String title, String message, {Duration? duration, BuildContext? context}) {
     show(
       title: title,
       message: message,
       type: SnackBarType.error,
       duration: duration ?? const Duration(milliseconds: 500),
+      context: context,
     );
   }
 }

@@ -10,6 +10,7 @@ import 'screens/file_select/file_select_screen.dart';
 import 'screens/loading/loading_screen.dart';
 import 'screens/loading/loading_controller.dart';
 import 'services/fcm_service.dart';
+import 'services/in_app_purchase_service.dart';
 import 'data/translations/app_translations.dart';
 
 Future<void> main() async {
@@ -32,6 +33,15 @@ Future<void> main() async {
       // FCM 서비스 초기화 실패 시에도 앱은 정상 동작
     }
 
+    // 인앱 결제 서비스 초기화
+    try {
+      await InAppPurchaseService().initialize();
+      print('인앱 결제 서비스 초기화 완료');
+    } catch (e) {
+      print('인앱 결제 서비스 초기화 실패: $e');
+      // 인앱 결제 서비스 초기화 실패 시에도 앱은 정상 동작
+    }
+
     runApp(MyApp());
   } catch (e, stackTrace) {
     print('앱 초기화 오류: $e');
@@ -48,7 +58,7 @@ class MyApp extends StatelessWidget {
       title: 'WebP Me!',
       translations: AppTranslations(),
       locale: Get.deviceLocale,
-      fallbackLocale: Locale('ko'),
+      fallbackLocale: const Locale('en'),
       theme: ThemeData(
         primarySwatch: Colors.blue,
         visualDensity: VisualDensity.adaptivePlatformDensity,
@@ -56,10 +66,14 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       initialRoute: AppRoutes.splash,
       builder: (context, child) {
+        final brightness = Theme.of(context).brightness;
+        final invertedColor =
+            brightness != Brightness.dark ? Colors.white : Colors.black;
+
         return Container(
-          color: Colors.white,
+          color: invertedColor,
           child: SafeArea(
-            child: child ?? SizedBox.shrink(),
+            child: child ?? const SizedBox(),
           ),
         );
       },

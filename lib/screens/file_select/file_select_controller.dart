@@ -18,6 +18,7 @@ import '../../routes/app_routes.dart';
 import '../video_trim/video_trim_screen.dart';
 import '../video_rotate/video_rotate_screen.dart';
 import '../../services/fcm_service.dart';
+import '../../services/in_app_purchase_service.dart';
 
 class FileSelectController extends GetxController {
   final ImagePicker _picker = ImagePicker();
@@ -752,11 +753,16 @@ class FileSelectController extends GetxController {
     }
   }
 
-  // 업로드 전 파일 크기 확인 (다이얼로그에서 이미 확인했으므로 단순화)
-  bool validateFileSize(String filePath) {
+  // 업로드 전 파일 크기 확인 (프리미엄 사용자는 50MB, 일반 사용자는 20MB)
+  Future<bool> validateFileSize(String filePath) async {
     final fileSize = File(filePath).lengthSync();
     final fileSizeMB = fileSize / (1024 * 1024);
-    return fileSizeMB <= 20;
+    
+    final purchaseService = InAppPurchaseService();
+    final isPremium = await purchaseService.isPremiumUser();
+    final maxSizeMB = isPremium ? 50.0 : 20.0;
+    
+    return fileSizeMB <= maxSizeMB;
   }
 
   Future<void> uploadAndRequestConvert(ConvertOptions options) async {
@@ -771,7 +777,8 @@ class FileSelectController extends GetxController {
     }
 
     // 업로드 직전 파일 크기 확인
-    if (!validateFileSize(videoFile.value!.path)) {
+    final isValidSize = await validateFileSize(videoFile.value!.path);
+    if (!isValidSize) {
       return;
     }
 
@@ -788,7 +795,13 @@ class FileSelectController extends GetxController {
       final requestRef =
           FirebaseFirestore.instance.collection('convertRequests').doc();
       final requestId = requestRef.id;
-      final originalFilePath = 'original/${user.uid}/$requestId.mp4';
+      
+      // 프리미엄 사용자 여부 확인
+      final purchaseService = InAppPurchaseService();
+      final isPremium = await purchaseService.isPremiumUser();
+      final folderPrefix = isPremium ? 'premium/original' : 'original';
+      final originalFilePath = '$folderPrefix/${user.uid}/$requestId.mp4';
+      
       await requestRef.set({
         'userId': user.uid,
         'status': 'pending',
@@ -801,7 +814,7 @@ class FileSelectController extends GetxController {
 
       final storageRef = FirebaseStorage.instance
           .ref()
-          .child('original')
+          .child(folderPrefix)
           .child(user.uid)
           .child('$requestId.mp4');
 
@@ -984,7 +997,12 @@ class FileSelectController extends GetxController {
       final requestRef =
           FirebaseFirestore.instance.collection('convertRequests').doc();
       final requestId = requestRef.id;
-      final originalFilePath = 'original/${user.uid}/$requestId.mp4';
+      
+      // 프리미엄 사용자 여부 확인
+      final purchaseService = InAppPurchaseService();
+      final isPremium = await purchaseService.isPremiumUser();
+      final folderPrefix = isPremium ? 'premium/original' : 'original';
+      final originalFilePath = '$folderPrefix/${user.uid}/$requestId.mp4';
 
       // 샘플 변환 요청 생성 (기존 변환 API와 동일한 구조)
       await requestRef.set({
@@ -999,7 +1017,7 @@ class FileSelectController extends GetxController {
       // trim된 1초 샘플 파일을 Firebase Storage에 업로드
       final storageRef = FirebaseStorage.instance
           .ref()
-          .child('original')
+          .child(folderPrefix)
           .child(user.uid)
           .child('$requestId.mp4');
 

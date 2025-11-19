@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
+import '../services/in_app_purchase_service.dart';
 
 class BannerAdWidget extends StatefulWidget {
   final double? height;
@@ -38,7 +39,18 @@ class _BannerAdWidgetState extends State<BannerAdWidget> {
   @override
   void initState() {
     super.initState();
-    _loadBannerAd();
+    _checkPremiumAndLoadAd();
+  }
+
+  Future<void> _checkPremiumAndLoadAd() async {
+    final purchaseService = InAppPurchaseService();
+    final isPremium = await purchaseService.isPremiumUser();
+    
+    if (!isPremium) {
+      _loadBannerAd();
+    } else {
+      debugPrint('프리미엄 사용자이므로 배너 광고를 표시하지 않습니다.');
+    }
   }
 
   void _loadBannerAd() {

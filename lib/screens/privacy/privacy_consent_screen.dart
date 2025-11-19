@@ -22,7 +22,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const SizedBox(height: 20),
-      
+
             // 제목
             Text(
               'welcome_title'.tr,
@@ -32,9 +32,9 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                 color: Color(0xFF333333),
               ),
             ),
-      
+
             const SizedBox(height: 16),
-      
+
             // 설명
             Text(
               'service_description'.tr,
@@ -44,9 +44,9 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                 height: 1.5,
               ),
             ),
-      
+
             const SizedBox(height: 32),
-      
+
             // 데이터 처리 안내
             Container(
               padding: const EdgeInsets.all(20),
@@ -94,9 +94,9 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                 ],
               ),
             ),
-      
+
             const SizedBox(height: 32),
-      
+
             // 동의 체크박스들
             Container(
               padding: const EdgeInsets.all(20),
@@ -143,33 +143,40 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                       ],
                     ),
                   ),
-      
+
                   // 개인정보 처리방침 동의
-                  Row(
-                    children: [
-                      Checkbox(
-                        value: _privacyAccepted,
-                        onChanged: (value) {
-                          setState(() {
-                            _privacyAccepted = value ?? false;
-                          });
-                        },
-                        activeColor: const Color(0xFF4CAF50),
-                      ),
-                      Expanded(
-                        child: Text(
-                          'privacy_agreement'.tr,
-                          style: const TextStyle(
-                            fontSize: 14,
-                            color: Color(0xFF333333),
+                  GestureDetector(
+                    onTap: () {
+                      setState(() {
+                        _privacyAccepted = !_privacyAccepted;
+                      });
+                    },
+                    child: Row(
+                      children: [
+                        Checkbox(
+                          value: _privacyAccepted,
+                          onChanged: (value) {
+                            setState(() {
+                              _privacyAccepted = value ?? false;
+                            });
+                          },
+                          activeColor: const Color(0xFF4CAF50),
+                        ),
+                        Expanded(
+                          child: Text(
+                            'privacy_agreement'.tr,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              color: Color(0xFF333333),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
-      
+
                   const SizedBox(height: 16),
-      
+
                   // 개인정보 처리방침 보기 버튼
                   SizedBox(
                     width: double.infinity,
@@ -187,9 +194,9 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                 ],
               ),
             ),
-      
+
             const SizedBox(height: 32),
-      
+
             // 시작하기 버튼
             SizedBox(
               width: double.infinity,
@@ -215,7 +222,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                 ),
               ),
             ),
-      
+
             const SizedBox(height: 20),
           ],
         ),
