@@ -56,6 +56,13 @@ android {
     }
 
     buildTypes {
+        debug {
+            // 디버그 빌드에서도 릴리스 서명 사용 (인앱 구매 테스트용)
+            // Google Play Console의 인앱 구매는 서명된 앱에서만 작동합니다
+            if (keystorePropertiesFile.exists()) {
+                signingConfig = signingConfigs.getByName("release")
+            }
+        }
         release {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
