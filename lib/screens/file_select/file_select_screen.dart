@@ -27,7 +27,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
   Future<void> _checkAndShowPremiumPromo() async {
     final prefs = await SharedPreferences.getInstance();
     final promoShown = prefs.getBool('premium_promo_shown') ?? false;
-    
+
     // 이미 모달을 보여준 경우에만 표시하지 않음 (프리미엄 회원도 표시)
     if (promoShown) {
       return;
@@ -62,16 +62,23 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
                 isPremium ? Icons.star : Icons.star_border,
                 color: isPremium ? Colors.amber : Colors.grey[700],
               ),
-              tooltip: isPremium 
-                  ? 'premium_user_tooltip'.tr 
+              tooltip: isPremium
+                  ? 'premium_user_tooltip'.tr
                   : 'premium_subscribe_tooltip'.tr,
-              onPressed: () {
-                showModalBottomSheet(
+              onPressed: () async {
+                await showModalBottomSheet(
                   context: context,
                   isScrollControlled: true,
                   backgroundColor: Colors.transparent,
                   builder: (context) => const PremiumPromoModal(),
                 );
+
+                // 모달이 닫힌 후 구매 여부 확인 및 상태 업데이트
+                if (mounted) {
+                  final purchaseService = InAppPurchaseService();
+                  await purchaseService.isPremiumUser();
+                  // Reactive 상태(isPremium)가 자동으로 업데이트되어 UI가 갱신됩니다
+                }
               },
             );
           }),
@@ -84,11 +91,10 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
           );
         } else {
           final videoController = controller.videoPlayerController.value;
-          if (videoController == null ||
-              !videoController.value.isInitialized) {
+          if (videoController == null || !videoController.value.isInitialized) {
             return Center(child: CircularProgressIndicator());
           }
-    
+
           return SimpleVideoPlayerWidget(
             key: ValueKey(controller.videoFile.value!.path), // 파일 경로를 키로 사용
             videoController: videoController,
