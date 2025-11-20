@@ -14,6 +14,7 @@ class ConvertCompleteController extends GetxController {
   final RxBool downloadCompleted = false.obs;
   final RxInt fileSize = 0.obs;
   final RxBool isAlreadyDownloaded = false.obs;
+  final RxInt elapsedTime = 0.obs; // 변환에 걸린 시간 (초)
 
   static const String _downloadHistoryKey = 'download_history';
 
@@ -46,6 +47,11 @@ class ConvertCompleteController extends GetxController {
         fileSize.value = args['fileSize'] is int
             ? args['fileSize']
             : int.tryParse(args['fileSize'].toString()) ?? 0;
+      }
+      if (args['elapsedTime'] != null) {
+        elapsedTime.value = args['elapsedTime'] is int
+            ? args['elapsedTime']
+            : int.tryParse(args['elapsedTime'].toString()) ?? 0;
       }
 
       // 푸시 알림으로 전달된 데이터 처리
@@ -108,7 +114,7 @@ class ConvertCompleteController extends GetxController {
 
   Future<void> downloadFile({bool isAutoDownload = false}) async {
     final url = downloadUrl.value;
-    if (url == null || url.isEmpty) {
+    if (url.isEmpty) {
       Fluttertoast.showToast(
         msg: 'no_download_link'.tr,
         toastLength: Toast.LENGTH_SHORT,

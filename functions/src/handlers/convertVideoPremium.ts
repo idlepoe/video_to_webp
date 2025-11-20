@@ -2,11 +2,12 @@ import { onObjectFinalized } from 'firebase-functions/v2/storage';
 import * as admin from 'firebase-admin';
 import { convertVideo as convertVideoUtil } from '../utils/videoConverter';
 
-// 프리미엄 사용자용 Storage 트리거 함수 (4GB 메모리)
+// 프리미엄 사용자용 Storage 트리거 함수 (4GB 메모리, 2 CPU 코어)
 export const convertVideoPremium = onObjectFinalized({
   region: 'us-west1',
   timeoutSeconds: 540,
-  memory: '4GiB' // 4GB
+  memory: '4GiB', // 4GB
+  cpu: 2 // 2 CPU 코어 (프리미엄 사용자는 더 빠른 처리)
 }, async (event) => {
   const fileBucket = event.data.bucket;
   const filePath = event.data.name;

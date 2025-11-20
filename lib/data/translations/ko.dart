@@ -86,6 +86,7 @@ const Map<String, String> koTranslations = {
   'convert_another': '다른 비디오 변환하기',
   'conversion_success': '변환 성공',
   'converted_file_size': '파일 크기',
+  'conversion_time': '변환 시간',
   'opening_browser': '브라우저에서 다운로드 링크를 여는 중...',
 
   // File Size Prediction

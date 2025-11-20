@@ -6,7 +6,8 @@ import { convertVideo as convertVideoUtil } from '../utils/videoConverter';
 export const convertVideo = onObjectFinalized({
   region: 'us-west1',
   timeoutSeconds: 540,
-  memory: '512MiB'
+  memory: '512MiB',
+  cpu: 1 // 1 CPU 코어
 }, async (event) => {
   const fileBucket = event.data.bucket;
   const filePath = event.data.name;

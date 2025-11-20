@@ -30,6 +30,9 @@ export async function convertVideo(
   docRef: FirebaseFirestore.DocumentReference,
   snapshot: FirebaseFirestore.QuerySnapshot
 ): Promise<void> {
+  // 변환 시작 시간 기록
+  const conversionStartTime = Date.now();
+  
   const options = requestData.options;
   const isSample = requestData.isSample || false;
   console.log('변환 옵션:', options);
@@ -219,6 +222,11 @@ export async function convertVideo(
     });
     console.log('Firestore 상태 업데이트 완료');
 
+    // 변환 완료 시간 기록 및 경과 시간 계산
+    const conversionEndTime = Date.now();
+    const elapsedTime = Math.round((conversionEndTime - conversionStartTime) / 1000); // 초 단위
+    console.log(`변환 완료 - 경과 시간: ${elapsedTime}초`);
+
     // FCM 푸시 알림 전송 (샘플 변환이 아닌 경우만)
     if (!isSample) {
       try {
@@ -233,7 +241,7 @@ export async function convertVideo(
           fps: targetFps,
           quality: qualityPercent,
           format: ffmpegFormat,
-        });
+        }, elapsedTime);
         console.log('FCM 푸시 알림 전송 완료');
       } catch (error) {
         console.error('FCM 푸시 알림 전송 실패:', error);

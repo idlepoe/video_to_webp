@@ -89,6 +89,7 @@ const Map<String, String> idTranslations = {
   'convert_another': 'Konversi Video Lain',
   'conversion_success': 'Konversi Berhasil',
   'converted_file_size': 'Ukuran File',
+  'conversion_time': 'Waktu Konversi',
   'opening_browser': 'Membuka tautan unduhan di browser...',
 
   // File Size Prediction

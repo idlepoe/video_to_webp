@@ -89,6 +89,7 @@ const Map<String, String> ruTranslations = {
   'convert_another': 'Конвертировать другое видео',
   'conversion_success': 'Конвертация успешна',
   'converted_file_size': 'Размер файла',
+  'conversion_time': 'Время конвертации',
   'opening_browser': 'Открытие ссылки для скачивания в браузере...',
 
   // File Size Prediction

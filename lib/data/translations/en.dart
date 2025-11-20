@@ -90,6 +90,7 @@ const Map<String, String> enTranslations = {
   'convert_another': 'Convert Another Video',
   'conversion_success': 'Conversion Successful',
   'converted_file_size': 'File Size',
+  'conversion_time': 'Conversion Time',
   'opening_browser': 'Opening download link in browser...',
 
   // File Size Prediction

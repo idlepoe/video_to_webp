@@ -89,6 +89,7 @@ const Map<String, String> hiTranslations = {
   'convert_another': 'अन्य वीडियो कन्वर्ट करें',
   'conversion_success': 'कन्वर्जन सफल',
   'converted_file_size': 'फ़ाइल आकार',
+  'conversion_time': 'कन्वर्जन समय',
   'opening_browser': 'ब्राउज़र में डाउनलोड लिंक खोल रहे हैं...',
 
   // File Size Prediction

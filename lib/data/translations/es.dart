@@ -92,6 +92,7 @@ const Map<String, String> esTranslations = {
   'convert_another': 'Convertir Otro Video',
   'conversion_success': 'Conversión Exitosa',
   'converted_file_size': 'Tamaño del Archivo',
+  'conversion_time': 'Tiempo de Conversión',
   'opening_browser': 'Abriendo enlace de descarga en el navegador...',
 
   // File Size Prediction

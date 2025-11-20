@@ -89,6 +89,7 @@ const Map<String, String> jaTranslations = {
   'convert_another': '他の動画を変換',
   'conversion_success': '変換成功',
   'converted_file_size': 'ファイルサイズ',
+  'conversion_time': '変換時間',
   'opening_browser': 'ブラウザでダウンロードリンクを開いています...',
 
   // File Size Prediction

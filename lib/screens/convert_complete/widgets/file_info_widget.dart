@@ -69,8 +69,54 @@ class FileInfoWidget extends StatelessWidget {
               ),
             ],
           ),
+          if (controller.elapsedTime.value > 0) ...[
+            SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'conversion_time'.tr,
+                  style: TextStyle(
+                    fontSize: 14,
+                    color: Color(0xFF2E7D32),
+                  ),
+                ),
+                Text(
+                  _formatElapsedTime(controller.elapsedTime.value),
+                  style: TextStyle(
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                    color: Color(0xFF1B5E20),
+                  ),
+                ),
+              ],
+            ),
+          ],
         ],
       ),
     );
+  }
+
+  String _formatElapsedTime(int seconds) {
+    if (seconds < 60) {
+      return '${seconds}초';
+    } else if (seconds < 3600) {
+      final minutes = seconds ~/ 60;
+      final remainingSeconds = seconds % 60;
+      if (remainingSeconds == 0) {
+        return '${minutes}분';
+      }
+      return '${minutes}분 ${remainingSeconds}초';
+    } else {
+      final hours = seconds ~/ 3600;
+      final remainingMinutes = (seconds % 3600) ~/ 60;
+      final remainingSeconds = seconds % 60;
+      if (remainingMinutes == 0 && remainingSeconds == 0) {
+        return '${hours}시간';
+      } else if (remainingSeconds == 0) {
+        return '${hours}시간 ${remainingMinutes}분';
+      }
+      return '${hours}시간 ${remainingMinutes}분 ${remainingSeconds}초';
+    }
   }
 }

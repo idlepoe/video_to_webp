@@ -101,6 +101,7 @@ class FCMService extends GetxService {
               'publicUrl': data['publicUrl'] ?? '',
               'downloadUrl': data['downloadUrl'] ?? '',
               'fileSize': int.tryParse(data['fileSize'] ?? '0') ?? 0,
+              'elapsedTime': int.tryParse(data['elapsedTime'] ?? '0') ?? 0,
             };
 
             Get.offAllNamed(AppRoutes.complete, arguments: arguments);
@@ -232,6 +233,9 @@ class FCMService extends GetxService {
       if (message.data.containsKey('downloadUrl')) {
         payload += '&downloadUrl=${message.data['downloadUrl']}';
       }
+      if (message.data.containsKey('elapsedTime')) {
+        payload += '&elapsedTime=${message.data['elapsedTime']}';
+      }
 
       // 로컬 알림 표시
       await _localNotifications.show(
@@ -313,6 +317,7 @@ class FCMService extends GetxService {
             'publicUrl': message.data['publicUrl'] ?? '',
             'downloadUrl': message.data['downloadUrl'] ?? '',
             'fileSize': int.tryParse(message.data['fileSize'] ?? '0') ?? 0,
+            'elapsedTime': int.tryParse(message.data['elapsedTime'] ?? '0') ?? 0,
           };
 
           print('네비게이션 실행 - 화면: $screen, 데이터: $arguments');

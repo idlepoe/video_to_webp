@@ -89,6 +89,7 @@ const Map<String, String> zhTranslations = {
   'convert_another': '转换其他视频',
   'conversion_success': '转换成功',
   'converted_file_size': '文件大小',
+  'conversion_time': '转换时间',
   'opening_browser': '正在浏览器中打开下载链接...',
 
   // File Size Prediction

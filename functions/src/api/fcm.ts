@@ -19,7 +19,8 @@ export interface VideoInfo {
 export async function sendPushNotification(
   userId: string,
   fileData: FileData,
-  videoInfo?: VideoInfo
+  videoInfo?: VideoInfo,
+  elapsedTimeSeconds?: number
 ): Promise<string> {
   try {
     // 비디오 정보를 포함한 메시지 생성
@@ -56,6 +57,8 @@ export async function sendPushNotification(
         fps: videoInfo?.fps?.toString() || '',
         quality: videoInfo?.quality?.toString() || '',
         format: videoInfo?.format || '',
+        // 변환에 걸린 시간 (초 단위)
+        elapsedTime: elapsedTimeSeconds?.toString() || '',
       },
       topic: userId, // 사용자별 토픽으로 전송
     };
