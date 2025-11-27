@@ -19,9 +19,9 @@ class LoadingController extends GetxController {
   static String testAdUnitId = kDebugMode
       ? 'ca-app-pub-3940256099942544/1033173712'
       : 'ca-app-pub-4105607341592624/4163285520';
-  
+
   // 광고 표시 간격 관련 상수
-  static const int _adIntervalMinutes = 10;
+  static const int _adIntervalMinutes = 0;
   static const String _lastAdTimeKey = 'last_interstitial_ad_time';
 
   @override
@@ -41,7 +41,7 @@ class LoadingController extends GetxController {
       print('FCM 서비스 접근 오류: $e');
       // FCM 서비스가 없어도 앱은 정상 동작
     }
-    
+
     // 광고 생성은 onReady()에서만 수행
   }
 
@@ -49,16 +49,16 @@ class LoadingController extends GetxController {
   void onReady() {
     super.onReady();
     print('LoadingController onReady() 호출됨');
-    
+
     final args = Get.arguments as Map<String, dynamic>?;
     final requestId = args?['requestId'] as String?;
-    
+
     if (requestId != null) {
       print('requestId: $requestId');
       // InterstitialAd 표시를 비동기적으로 시작 (다른 작업과 동시 진행)
       listenToConvertRequest(requestId);
     }
-    
+
     // 프리미엄 사용자가 아닌 경우에만 광고 생성
     _checkPremiumAndCreateAd();
   }
@@ -66,7 +66,7 @@ class LoadingController extends GetxController {
   Future<void> _checkPremiumAndCreateAd() async {
     final purchaseService = InAppPurchaseService();
     final isPremium = await purchaseService.isPremiumUser();
-    
+
     if (!isPremium) {
       // InterstitialAd 생성 (로드 완료 시 자동으로 표시)
       _createInterstitialAd();
@@ -96,16 +96,16 @@ class LoadingController extends GetxController {
   Future<bool> _canShowAd() async {
     final prefs = await SharedPreferences.getInstance();
     final lastAdTime = prefs.getInt(_lastAdTimeKey);
-    
+
     if (lastAdTime == null) {
       // 처음 광고를 표시하는 경우
       return true;
     }
-    
+
     final now = DateTime.now().millisecondsSinceEpoch;
     final timeDifference = now - lastAdTime;
     final intervalInMilliseconds = _adIntervalMinutes * 60 * 1000;
-    
+
     return timeDifference >= intervalInMilliseconds;
   }
 
@@ -171,13 +171,13 @@ class LoadingController extends GetxController {
       _interstitialAd!.dispose();
       _interstitialAd = null;
     }
-    
+
     // 이미 로딩 중이면 중복 생성 방지
     if (_numInterstitialLoadAttempts > 0) {
       print('InterstitialAd is already being loaded, skipping...');
       return;
     }
-    
+
     InterstitialAd.load(
       adUnitId: testAdUnitId,
       request: const AdRequest(),
@@ -187,7 +187,7 @@ class LoadingController extends GetxController {
           _interstitialAd = ad;
           _numInterstitialLoadAttempts = 0;
           _interstitialAd!.setImmersiveMode(true);
-          
+
           // 광고가 로드되면 자동으로 표시
           _showInterstitialAd();
         },
@@ -206,7 +206,7 @@ class LoadingController extends GetxController {
   // InterstitialAd 표시 메서드 (비동기)
   Future<void> _showInterstitialAd() async {
     print('showInterstitialAd');
-    
+
     // 프리미엄 사용자 확인
     final purchaseService = InAppPurchaseService();
     final isPremium = await purchaseService.isPremiumUser();
@@ -214,7 +214,7 @@ class LoadingController extends GetxController {
       print('프리미엄 사용자이므로 광고를 표시하지 않습니다.');
       return;
     }
-    
+
     // 10분 간격 체크
     final canShow = await _canShowAd();
     if (!canShow) {
