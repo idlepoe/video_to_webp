@@ -17,39 +17,39 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: SingleChildScrollView(
-        padding: const EdgeInsets.all(24.0),
+        padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
 
             // 제목
             Text(
               'welcome_title'.tr,
               style: const TextStyle(
-                fontSize: 28,
+                fontSize: 22,
                 fontWeight: FontWeight.bold,
                 color: Color(0xFF333333),
               ),
             ),
 
-            const SizedBox(height: 16),
+            const SizedBox(height: 10),
 
             // 설명
             Text(
               'service_description'.tr,
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 13,
                 color: Color(0xFF666666),
                 height: 1.5,
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
 
             // 데이터 처리 안내
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -75,18 +75,18 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                       Text(
                         'data_processing_info'.tr,
                         style: const TextStyle(
-                          fontSize: 18,
+                          fontSize: 15,
                           fontWeight: FontWeight.bold,
                           color: Color(0xFF333333),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
                   Text(
                     'data_processing_details'.tr,
                     style: const TextStyle(
-                      fontSize: 14,
+                      fontSize: 12,
                       color: Color(0xFF666666),
                       height: 1.5,
                     ),
@@ -95,11 +95,11 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
 
             // 동의 체크박스들
             Container(
-              padding: const EdgeInsets.all(20),
+              padding: const EdgeInsets.all(14),
               decoration: BoxDecoration(
                 color: Colors.white,
                 borderRadius: BorderRadius.circular(12),
@@ -135,7 +135,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                           child: Text(
                             'terms_agreement'.tr,
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 12,
                               color: Color(0xFF333333),
                             ),
                           ),
@@ -166,7 +166,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                           child: Text(
                             'privacy_agreement'.tr,
                             style: const TextStyle(
-                              fontSize: 14,
+                              fontSize: 12,
                               color: Color(0xFF333333),
                             ),
                           ),
@@ -175,7 +175,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                     ),
                   ),
 
-                  const SizedBox(height: 16),
+                  const SizedBox(height: 10),
 
                   // 개인정보 처리방침 보기 버튼
                   SizedBox(
@@ -185,7 +185,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                       icon: const Icon(Icons.description_outlined, size: 20),
                       label: Text('view_privacy_policy'.tr),
                       style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: 12),
+                        padding: const EdgeInsets.symmetric(vertical: 8),
                         side: const BorderSide(color: Color(0xFF4CAF50)),
                         foregroundColor: const Color(0xFF4CAF50),
                       ),
@@ -195,7 +195,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
               ),
             ),
 
-            const SizedBox(height: 32),
+            const SizedBox(height: 20),
 
             // 시작하기 버튼
             SizedBox(
@@ -206,7 +206,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                     : null,
                 style: ElevatedButton.styleFrom(
                   backgroundColor: const Color(0xFF4CAF50),
-                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  padding: const EdgeInsets.symmetric(vertical: 12),
                   shape: RoundedRectangleBorder(
                     borderRadius: BorderRadius.circular(12),
                   ),
@@ -215,7 +215,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                 child: Text(
                   'get_started'.tr,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 14,
                     fontWeight: FontWeight.bold,
                     color: Colors.white,
                   ),
@@ -223,7 +223,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
               ),
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
           ],
         ),
       ),
@@ -260,7 +260,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
         style: const TextStyle(
           height: 1.5,
           color: Colors.black,
-          fontSize: 14,
+          fontSize: 12,
         ),
         children: [
           if (parts.isNotEmpty) TextSpan(text: parts[0]),
@@ -273,7 +273,7 @@ class _PrivacyConsentScreenState extends State<PrivacyConsentScreen> {
                   style: const TextStyle(
                     color: Color(0xFF4CAF50),
                     decoration: TextDecoration.underline,
-                    fontSize: 14,
+                    fontSize: 12,
                   ),
                 ),
               ),

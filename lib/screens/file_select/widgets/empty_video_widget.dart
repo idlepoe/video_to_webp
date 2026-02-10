@@ -19,12 +19,12 @@ class EmptyVideoWidget extends StatelessWidget {
       children: [
         Expanded(
           child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 32.0),
+            padding: const EdgeInsets.symmetric(horizontal: 20.0),
             child: Center(
               child: GestureDetector(
                 onTap: onPickVideo,
                 child: Container(
-                  padding: EdgeInsets.all(16),
+                  padding: EdgeInsets.all(12),
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     border: Border.all(
@@ -37,23 +37,23 @@ class EmptyVideoWidget extends StatelessWidget {
                       Icon(
                         Icons.video_library_outlined,
                         color: Colors.blue,
-                        size: 48,
+                        size: 36,
                       ),
-                      SizedBox(height: 16),
+                      SizedBox(height: 10),
                       Text(
                         'file_select_prompt'.tr,
                         textAlign: TextAlign.center,
                         style: TextStyle(
-                          fontSize: 22,
+                          fontSize: 18,
                           fontWeight: FontWeight.bold,
                           color: Colors.blue,
                         ),
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 6),
                       Text(
                         'tap_to_select'.tr,
                         style: TextStyle(
-                          fontSize: 14,
+                          fontSize: 12,
                           color: Colors.blue.withOpacity(0.7),
                         ),
                       ),
@@ -65,13 +65,13 @@ class EmptyVideoWidget extends StatelessWidget {
           ),
         ),
         Padding(
-          padding: const EdgeInsets.fromLTRB(16, 0, 16, 32),
+          padding: const EdgeInsets.fromLTRB(12, 0, 12, 20),
           child: Column(
             children: [
               // Media scan 안내 및 버튼
               ...[
                 Container(
-                  padding: EdgeInsets.all(12),
+                  padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: Colors.orange.withOpacity(0.05),
                     borderRadius: BorderRadius.circular(8),
@@ -82,23 +82,23 @@ class EmptyVideoWidget extends StatelessWidget {
                     children: [
                       Row(
                         children: [
-                          Icon(Icons.refresh, color: Colors.orange, size: 16),
-                          SizedBox(width: 8),
+                          Icon(Icons.refresh, color: Colors.orange, size: 14),
+                          SizedBox(width: 6),
                           Text(
                             'media_scan_title'.tr,
                             style: TextStyle(
-                              fontSize: 14,
+                              fontSize: 12,
                               fontWeight: FontWeight.bold,
                               color: Colors.orange[700],
                             ),
                           ),
                         ],
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 6),
                       Text(
                         'media_scan_info'.tr,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 10,
                           color: Colors.orange[700],
                           height: 1.3,
                         ),
@@ -109,17 +109,17 @@ class EmptyVideoWidget extends StatelessWidget {
                           return Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              SizedBox(height: 12),
+                              SizedBox(height: 8),
                               // 진행 상황 텍스트
                               Text(
                                 controller.mediaScanStatus.value,
                                 style: TextStyle(
-                                  fontSize: 12,
+                                  fontSize: 10,
                                   color: Colors.orange[700],
                                   fontWeight: FontWeight.w500,
                                 ),
                               ),
-                              SizedBox(height: 8),
+                              SizedBox(height: 6),
                               // Progress Bar
                               Container(
                                 height: 6,
@@ -139,12 +139,12 @@ class EmptyVideoWidget extends StatelessWidget {
                                   ),
                                 ),
                               ),
-                              SizedBox(height: 4),
+                              SizedBox(height: 3),
                               // 진행률 텍스트
                               Text(
                                 '${controller.mediaScanCurrent.value}/${controller.mediaScanTotal.value}',
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 9,
                                   color: Colors.orange[600],
                                 ),
                               ),
@@ -154,11 +154,11 @@ class EmptyVideoWidget extends StatelessWidget {
                             .mediaScanStatus.value.isNotEmpty) {
                           // 스캔 완료 또는 오류 상태 표시
                           return Padding(
-                            padding: EdgeInsets.only(top: 8),
+                            padding: EdgeInsets.only(top: 6),
                             child: Text(
                               controller.mediaScanStatus.value,
                               style: TextStyle(
-                                fontSize: 11,
+                                fontSize: 10,
                                 color: controller.mediaScanStatus.value
                                         .contains('complete'.tr)
                                     ? Colors.green[700]
@@ -173,13 +173,13 @@ class EmptyVideoWidget extends StatelessWidget {
                     ],
                   ),
                 ),
-                SizedBox(height: 12),
+                SizedBox(height: 8),
                 // 스캔 옵션 선택 버튼
                 Row(
                   children: [
                     Expanded(
                       child: SizedBox(
-                        height: 48,
+                        height: 40,
                         child: Obx(() => OutlinedButton.icon(
                               onPressed: controller.isMediaScanning.value
                                   ? null
@@ -198,21 +198,21 @@ class EmptyVideoWidget extends StatelessWidget {
                                         ? Colors.orange.withOpacity(0.3)
                                         : Colors.orange,
                               ),
-                              icon: Icon(Icons.tune, size: 20),
+                              icon: Icon(Icons.tune, size: 16),
                               label: Text(
                                 'scan_options'.tr,
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
                             )),
                       ),
                     ),
-                    SizedBox(width: 8),
+                    SizedBox(width: 6),
                     Expanded(
                       child: SizedBox(
-                        height: 48,
+                        height: 40,
                         child: Obx(() => OutlinedButton.icon(
                               onPressed: controller.isMediaScanning.value
                                   ? null
@@ -244,13 +244,13 @@ class EmptyVideoWidget extends StatelessWidget {
                                         ),
                                       ),
                                     )
-                                  : Icon(Icons.refresh, size: 20),
+                                  : Icon(Icons.refresh, size: 16),
                               label: Text(
                                 controller.isMediaScanning.value
                                     ? 'scanning_in_progress'.tr
                                     : controller.selectedScanOption.value,
                                 style: TextStyle(
-                                  fontSize: 14,
+                                  fontSize: 12,
                                   fontWeight: FontWeight.w600,
                                 ),
                               ),
@@ -259,7 +259,7 @@ class EmptyVideoWidget extends StatelessWidget {
                     ),
                   ],
                 ),
-                SizedBox(height: 16),
+                SizedBox(height: 10),
               ],
               // 개인정보 보호 안내
               Obx(() {
@@ -271,7 +271,7 @@ class EmptyVideoWidget extends StatelessWidget {
                 final normalColor = Colors.blue;
 
                 return Container(
-                  padding: EdgeInsets.all(12),
+                  padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: isPremium
                         ? premiumColor.withOpacity(0.1)
@@ -292,14 +292,14 @@ class EmptyVideoWidget extends StatelessWidget {
                           Icon(
                             isPremium ? Icons.star : Icons.security,
                             color: isPremium ? premiumColor : normalColor,
-                            size: 16,
+                            size: 14,
                           ),
-                          SizedBox(width: 8),
+                          SizedBox(width: 6),
                           Expanded(
                             child: Text(
                               'privacy_file_limits'.tr,
                               style: TextStyle(
-                                fontSize: 14,
+                                fontSize: 12,
                                 fontWeight: FontWeight.bold,
                                 color: isPremium
                                     ? premiumColor[700]
@@ -320,7 +320,7 @@ class EmptyVideoWidget extends StatelessWidget {
                               child: Text(
                                 'PREMIUM',
                                 style: TextStyle(
-                                  fontSize: 10,
+                                  fontSize: 9,
                                   fontWeight: FontWeight.bold,
                                   color: Colors.white,
                                 ),
@@ -328,13 +328,13 @@ class EmptyVideoWidget extends StatelessWidget {
                             ),
                         ],
                       ),
-                      SizedBox(height: 8),
+                      SizedBox(height: 6),
                       Text(
                         isPremium
                             ? 'file_limit_info_premium'.tr
                             : 'file_limit_info'.tr,
                         style: TextStyle(
-                          fontSize: 12,
+                          fontSize: 10,
                           color:
                               isPremium ? premiumColor[700] : normalColor[700],
                           height: 1.3,
@@ -344,15 +344,15 @@ class EmptyVideoWidget extends StatelessWidget {
                   ),
                 );
               }),
-              SizedBox(height: 16),
+              SizedBox(height: 10),
               SizedBox(
                 width: double.infinity,
-                height: 56,
+                height: 44,
                 child: ElevatedButton(
                   onPressed: onPickVideo,
                   style: ElevatedButton.styleFrom(
                     shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(12),
                     ),
                     backgroundColor: Colors.blue,
                     foregroundColor: Colors.white,
@@ -360,7 +360,7 @@ class EmptyVideoWidget extends StatelessWidget {
                   ),
                   child: Text(
                     'select_video'.tr,
-                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                    style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),

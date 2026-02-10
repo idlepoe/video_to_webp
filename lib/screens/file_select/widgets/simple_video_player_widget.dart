@@ -183,27 +183,42 @@ class _SimpleVideoPlayerWidgetState extends State<SimpleVideoPlayerWidget> {
 
           // 비디오 정보
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8),
+            padding: const EdgeInsets.symmetric(horizontal: 12.0, vertical: 4),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text('file_name'.trParams({'fileName': widget.fileName})),
-                Text('video_resolution'.trParams({
-                  'width': widget.videoWidth.toString(),
-                  'height': widget.videoHeight.toString(),
-                })),
-                Text('video_duration'.trParams({
-                  'seconds': (widget.videoDuration?.inSeconds ?? 0).toString(),
-                })),
-                Text('file_size'.trParams({
-                  'size': _formatFileSize(File(widget.filePath).lengthSync()),
-                })),
-                const SizedBox(height: 12),
+                Text(
+                  'file_name'.trParams({'fileName': widget.fileName}),
+                  style: const TextStyle(fontSize: 11, height: 1.2),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'video_resolution'.trParams({
+                    'width': widget.videoWidth.toString(),
+                    'height': widget.videoHeight.toString(),
+                  }),
+                  style: const TextStyle(fontSize: 11, height: 1.2),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'video_duration'.trParams({
+                    'seconds': (widget.videoDuration?.inSeconds ?? 0).toString(),
+                  }),
+                  style: const TextStyle(fontSize: 11, height: 1.2),
+                ),
+                const SizedBox(height: 2),
+                Text(
+                  'file_size'.trParams({
+                    'size': _formatFileSize(File(widget.filePath).lengthSync()),
+                  }),
+                  style: const TextStyle(fontSize: 11, height: 1.2),
+                ),
+                const SizedBox(height: 8),
 
                 // 파일 삭제 안내
                 Container(
                   padding:
-                      const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 6),
                   decoration: BoxDecoration(
                     color: const Color(0xFFF8F9FA),
                     borderRadius: BorderRadius.circular(6),
@@ -212,22 +227,22 @@ class _SimpleVideoPlayerWidgetState extends State<SimpleVideoPlayerWidget> {
                   child: Row(
                     children: [
                       const Icon(Icons.info_outline,
-                          color: Color(0xFF6C757D), size: 14),
-                      const SizedBox(width: 8),
+                          color: Color(0xFF6C757D), size: 12),
+                      const SizedBox(width: 6),
                       Expanded(
                         child: Text(
                           'file_deletion_details'.tr,
                           style: const TextStyle(
-                            fontSize: 11,
+                            fontSize: 10,
                             color: Color(0xFF6C757D),
-                            height: 1.3,
+                            height: 1.2,
                           ),
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
               ],
             ),
           ),

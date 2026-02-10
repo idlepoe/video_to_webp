@@ -49,7 +49,7 @@ class _FileSelectScreenState extends State<FileSelectScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final maxVideoHeight = MediaQuery.of(context).size.height * 0.35;
+    final maxVideoHeight = MediaQuery.of(context).size.height * 0.2;
     return Scaffold(
       appBar: AppBar(
         title: Text('app_title'.tr),
